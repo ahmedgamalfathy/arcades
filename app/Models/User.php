@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\StatusEnum;
+use App\Models\Expense\Expense;
 use App\Models\Media\Media;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -51,5 +52,9 @@ class User extends Authenticatable
     public function media()
     {
        return  $this->belongsTo(Media::class);
+    }
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
     }
 }

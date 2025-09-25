@@ -7,7 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\Product\Product;
 use App\Enums\Media\MediaTypeEnum;
 use App\Services\Media\MediaService;
+use Spatie\QueryBuilder\QueryBuilder;
+use App\Filters\Product\FilterProduct;
 use App\Services\Upload\UploadService;
+use Spatie\QueryBuilder\AllowedFilter;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -20,8 +23,11 @@ class ProductService {
     }
   public function allProducts(Request $request)
   {
-    $perPage= $request->query('perPage');
-    $products= Product::cursorPaginate($perPage??10);
+    $perPage= $request->query('perPage',10);
+    $products=QueryBuilder::for(Product::class)
+     ->allowedFilters([
+           AllowedFilter::custom('search', new FilterProduct),
+      ])->cursorPaginate($perPage);
     return $products;
   }
   public function editProduct($id)

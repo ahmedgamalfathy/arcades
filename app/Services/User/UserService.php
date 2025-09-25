@@ -41,8 +41,8 @@ class UserService{
            ->defaultSort('-created_at')
             ->allowedFilters([
                 AllowedFilter::custom('search', new FilterUser()), // Add a custom search filter
-                AllowedFilter::exact('isActive', 'is_active'),
-                AllowedFilter::custom('role', new FilterUserRole()),
+                // AllowedFilter::exact('isActive', 'is_active'),
+                // AllowedFilter::custom('role', new FilterUserRole()),
             ])
             ->whereNot('id', $auth->id)
             ->orderBy('created_at', 'desc')

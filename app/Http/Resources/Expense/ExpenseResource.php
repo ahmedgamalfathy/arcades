@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Resources\Product;
+namespace App\Http\Resources\Expense;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProductResource extends JsonResource
+class ExpenseResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,11 +16,12 @@ class ProductResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'productId' => $this->id,
+            'ExpenseId' => $this->id,
+            'userName' => $this->user->name,
             'name' => $this->name,
             'price' => $this->price,
-            // 'status' => $this->status,
-            'path' => $this->media->path??"",
+            'date' => Carbon::parse($this->date)->format('Y-m-d'),
+            'note' => $this->note??"",
         ];
     }
 }
