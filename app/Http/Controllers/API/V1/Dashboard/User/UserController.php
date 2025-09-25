@@ -106,7 +106,7 @@ class UserController extends Controller implements HasMiddleware
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),[],HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::error(__('crud.server_error'),$e->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
 

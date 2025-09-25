@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\V1\Dashboard\User\UserController;
 use App\Http\Controllers\API\V1\Dashboard\Auth\LoginController;
 use App\Http\Controllers\API\V1\Dashboard\Auth\LogoutController;
+use App\Http\Controllers\API\V1\Dashboard\Media\MediaController;
+use App\Http\Controllers\API\V1\Dashboard\Product\ProductController;
 use App\Http\Controllers\API\V1\Dashboard\User\UserProfileController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\SendCodeController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\ResendCodeController;
@@ -25,6 +27,8 @@ Route::prefix('v1/admin')->group(function () {
         });
         Route::put('users/changePassword',[UserController::class,'userChangePassword']);
         Route::apiResource('users', UserController::class);
+        Route::apiResource('media', MediaController::class);
+        Route::apiResource('products', ProductController::class);
         Route::put('profile/change-password', ChangeCurrentPasswordController::class);
         Route::apiSingleton('profile', UserProfileController::class);
    });

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\StatusEnum;
+use App\Models\Media\Media;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -16,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('avatar')->nullable();
+            $table->foreignIdFor(Media::class)->nullable();
             $table->tinyInteger('is_active')->default(StatusEnum::ACTIVE->value);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

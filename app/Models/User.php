@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\StatusEnum;
+use App\Models\Media\Media;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Storage;
@@ -46,10 +47,9 @@ class User extends Authenticatable
             'is_active' => StatusEnum::class
         ];
     }
-        protected function avatar(): Attribute
+
+    public function media()
     {
-        return Attribute::make(
-            get: fn ($value) => $value ? Storage::disk('public')->url($value) : "",
-        );
+       return  $this->belongsTo(Media::class);
     }
 }

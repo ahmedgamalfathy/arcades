@@ -1,18 +1,16 @@
 <?php
 
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\Product;
 
 use App\Enums\ResponseCode\HttpStatusCode;
-use App\Enums\StatusEnum;
-use App\Enums\User\UserStatus;
 use App\Helpers\ApiResponse;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Validation\Rules\Enum;
-use Illuminate\Validation\Rules\Password;
 
-class UpdateUserRequest extends FormRequest
+
+
+class CreateProductRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,28 +27,17 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-
         return [
-            'name' => 'required',
-            'email'=> [
-                'required',
-                'email',
-                'unique:users,email,' . $this->route('user'),
-            ],
-            'phone' => ['nullable','numeric'],
-            'address' => 'nullable',
-            // 'isActive' => ['required', new Enum(StatusEnum::class)],
-            'roleId'=> 'required',
-            'password'=> [
-                'nullable','confirmed',
-                Password::min(8)->mixedCase()->numbers(),
-            ],
-            'avatar' => [ "nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp","max:5120"],//, "max:2048"
+            'name' => ['string','required','unique:products,name'],
+            'price'=> ['required','integer','min:1'],
+            // 'status' => ['nullable', new Enum(StatusEnum::class)],
+            'path' => ["required","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
         ];
     }
 
     public function failedValidation(Validator $validator)
     {
+
         throw new HttpResponseException(
             ApiResponse::error('', $validator->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY)
         );
@@ -59,9 +46,9 @@ class UpdateUserRequest extends FormRequest
     public function messages()
     {
         return [
+            'path.required' => __('validation.custom.required'),
             'name.required' => __('validation.custom.required'),
-            'email.required' => __('validation.custom.required'),
-            'password.required' => __('validation.custom.required'),
+            'price.required' => __('validation.custom.required'),
         ];
     }
 

@@ -4,12 +4,16 @@ namespace App\Services\User;
 
 use App\Models\User;
 use App\Enums\StatusEnum;
+use App\Models\Media\Media;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Filters\User\FilterUser;
+use Database\Seeders\MediaSeeder;
 use Illuminate\Http\UploadedFile;
+use App\Enums\Media\MediaTypeEnum;
 use Spatie\Permission\Models\Role;
 use App\Filters\User\FilterUserRole;
+use App\Services\Media\MediaService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -22,10 +26,11 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserService{
     protected $uploadService;
-
-    public function __construct(UploadService $uploadService)
+    protected $mediaService;
+    public function __construct(UploadService $uploadService , MediaService $mediaService)
     {
         $this->uploadService = $uploadService;
+        $this->mediaService = $mediaService;
     }
 
     public function allUsers()
@@ -49,11 +54,13 @@ class UserService{
 
     public function createUser(array $userData): User
     {
-
         $avatarPath = null;
-
         if(isset($userData['avatar']) && $userData['avatar'] instanceof UploadedFile){
-            $avatarPath =  $this->uploadService->uploadFile($userData['avatar'], 'avatars');
+            $media = $this->mediaService->createMedia([
+                'path'     => $userData['avatar'],
+                'type'     => MediaTypeEnum::PHOTO->value,
+                'category' => null,
+            ]);
         }
 
         $user = User::create([
@@ -61,7 +68,7 @@ class UserService{
             'email' => $userData['email'],
             'password' => $userData['password'],
             'is_active' => isset($userData['isActive']) ? StatusEnum::from($userData['isActive'])->value : StatusEnum::ACTIVE,
-            'avatar' => $avatarPath,
+            'media_id' =>$media?->id
         ]);
 
         $role = Role::find($userData['roleId']);
@@ -84,11 +91,22 @@ class UserService{
     {
 
         $avatarPath = null;
-
-        if(isset($userData['avatar']) && $userData['avatar'] instanceof UploadedFile){
-            $avatarPath =  $this->uploadService->uploadFile($userData['avatar'], 'avatars');
-        }
         $user = User::find($userId);
+        if(isset($userData['avatar']) && $userData['avatar'] instanceof UploadedFile){
+            if ($user->media_id) {
+                $media = $this->mediaService->updateMedia($user->media_id, [
+                    'path'     => $userData['avatar'],
+                    'type'     => MediaTypeEnum::PHOTO->value,
+                    'category' => null,
+                ]);
+            } else {
+                $media = $this->mediaService->createMedia([
+                    'path'     => $userData['avatar'],
+                    'type'     => MediaTypeEnum::PHOTO->value,
+                    'category' => null,
+                ]);
+            }
+        }
         $user->name = $userData['name'];
         $user->email = $userData['email'];
         if(isset($userData['password'])){
@@ -96,11 +114,25 @@ class UserService{
         }
         $user->is_active = isset($userData['isActive']) ? StatusEnum::from($userData['isActive'])->value : StatusEnum::ACTIVE;
         if($avatarPath){
-            if($user->avatar){
-                Storage::disk('public')->delete($user->getRawOriginal('avatar'));
+            if(isset($user->media)){
+                Storage::disk('public')->delete($user->media->path);
+                $user->media->delete();
+
+                $media =Media::find($user->media->id);
+                $media->path =$avatarPath;
+                $media->save();
             }
-            $user->avatar = $avatarPath;
+            $media = Media::create([
+                'path' => $avatarPath,
+                'type' => MediaTypeEnum::PHOTO->value,
+                'category' => null,
+            ]);
         }
+
+        if(isset($userData['password'])){
+            $user->password = $userData['password'];
+        }
+        $user->media_id =$media->id ??null;
         $user->save();
         $role = Role::find($userData['roleId']);
         $user->syncRoles($role->id);
@@ -117,9 +149,7 @@ class UserService{
         if(!$user){
           throw new ModelNotFoundException();
         }
-        if($user->avatar){
-            Storage::disk('public')->delete($user->getRawOriginal('avatar'));
-        }
+         $this->mediaService->deleteMedia($user->media->id);
         $user->delete();
 
     }
