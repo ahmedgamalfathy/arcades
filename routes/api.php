@@ -32,7 +32,7 @@ Route::prefix('v1/admin')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::apiResource('media', MediaController::class);
         Route::apiResource('products', ProductController::class);
-        Route::apiResource('expenses', ExpenseController::class)->except('indes');
+        Route::apiResource('expenses', ExpenseController::class)->except('index');
         Route::put('profile/change-password', ChangeCurrentPasswordController::class);
         Route::apiSingleton('profile', UserProfileController::class);
    });
