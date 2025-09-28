@@ -34,8 +34,8 @@ class ExpenseService {
       throw new ModelNotFoundException("Expense with id {$id} not found");
     }
     $expense->user_id = auth('api')->id();
+    $expense->type = $expense->type;
     $expense->name = $data['name'];
-    $expense->type = $data['type'];
     $expense->price = $data['price'];
     $expense->date = $data['date'];
     $expense->note = $data['note']??null;
@@ -51,5 +51,21 @@ class ExpenseService {
     return  $expense;
 
  }
+public function restoreExpense($id)
+{
+    $expense = Expense::withTrashed()->findOrFail($id);
+    if(!$expense){
+      throw new ModelNotFoundException("Expense with id {$id} not found");
+    }
+    $expense->restore();
+}
 
+public function forceDeleteExpense($id)
+{
+    $expense = Expense::withTrashed()->findOrFail($id);
+    if(!$expense){
+      throw new ModelNotFoundException("Expense with id {$id} not found");
+    }
+    $expense->forceDelete();
+}
 }

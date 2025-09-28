@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->decimal('price');
+            $table->decimal('price', 10, 2)->default(0);
             $table->tinyInteger('status')->default(StatusEnum::ACTIVE);
             $table->foreignIdFor(Media::class)->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Order\OrderStatus;
+use App\Enums\Order\OrderTypeEnum;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -15,7 +16,8 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('number')->unique();
-            $table->tinyInteger('status')->default(0);
+            $table->string('name')->unique();
+            $table->tinyInteger('type')->default(OrderTypeEnum::EXTERNAL->value);
             $table->decimal('price', 10, 2)->default(0);
             $table->timestamps();
         });

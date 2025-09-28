@@ -1,19 +1,18 @@
 <?php
 
-namespace App\Http\Requests\Expense;
+namespace App\Http\Requests\Order;
 
 use App\Helpers\ApiResponse;
+use App\Enums\Order\OrderStatus;
+use App\Enums\Order\DiscountType;
+use App\Enums\Order\OrderTypeEnum;
 use Illuminate\Validation\Rules\Enum;
-use App\Enums\Expense\ExpenseTypeEnum;
-use App\Services\Expense\ExpenseService;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-
-
-class UpdateExpenseRequest extends FormRequest
+class UpdateOrderRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -31,29 +30,33 @@ class UpdateExpenseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['string','required'],
-            'price'=> ['required','integer','min:1'],
-            // 'type' => ['required', new Enum(ExpenseTypeEnum::class)],
-            'date'=>['required','string','date_format:Y-m-d'],
-            'note'=>['nullable','string']
+            'name' => ['required','string'],
+            // 'type' => ['nullable',new Enum(OrderTypeEnum::class)],
+             'orderItems' => ['required', 'array', 'min:1'],
+             'orderItems.*.productId' => ['required', 'integer', 'exists:products,id'],
+             'orderItems.*.qty' => ['required', 'integer', 'min:1'],
+             'orderItems.*.orderItemId' => [
+                    'nullable',
+                    'integer',
+                    'required_if:orderItems.*.actionStatus,update,delete,""',
+                    'exists:order_items,id',
+             'orderItems.*.actionStatus' => ['required', 'in:update,delete,create,'],
+             ],
         ];
     }
 
     public function failedValidation(Validator $validator)
     {
-
         throw new HttpResponseException(
             ApiResponse::error('', $validator->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY)
         );
     }
-
     public function messages()
     {
         return [
-            'name.required' => __('validation.custom.required'),
-            'date.required' => __('validation.custom.required'),
-            'price.required' => __('validation.custom.required'),
+            'name.required'=> __('validation.custom.required'),
             'type.required' => __('validation.custom.required'),
+            'orderItems.required' => __('validation.custom.required'),
         ];
     }
 

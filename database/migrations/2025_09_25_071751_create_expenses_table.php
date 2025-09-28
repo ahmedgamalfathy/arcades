@@ -23,6 +23,7 @@ return new class extends Migration
             $table->decimal('price', 8,2);
             $table->date('date')->default(Carbon::now());
             $table->text('note')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

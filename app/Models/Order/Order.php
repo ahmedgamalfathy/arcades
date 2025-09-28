@@ -2,18 +2,14 @@
 
 namespace App\Models\Order;
 
+use App\Models\Order\OrderItem;
 use App\Enums\Order\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
     protected $guarded =[];
-    protected function casts(): array
-    {
-        return [
-            'status' => OrderStatus::class,
-        ];
-    }
+
     public static function boot()
     {
         parent::boot();
