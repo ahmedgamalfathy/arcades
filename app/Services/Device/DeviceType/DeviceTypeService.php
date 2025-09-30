@@ -15,7 +15,7 @@ class DeviceTypeService
     }
     public function editDeviceType(int $id)
     {
-        $deviceType = DeviceType::find($id);
+        $deviceType = DeviceType::with('deviceTimes')->find($id);
         if(!$deviceType){
         throw new ModelNotFoundException("Device Type with id {$id} not found");
         }

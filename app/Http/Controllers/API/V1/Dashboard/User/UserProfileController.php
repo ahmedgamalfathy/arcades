@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\API\V1\Dashboard\User;
 
 use App\Helpers\ApiResponse;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\User\UpdateUserProfileRequest;
-use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
-use App\Services\Upload\UploadService;
 use Illuminate\Http\UploadedFile;
+use App\Http\Controllers\Controller;
+use App\Services\Upload\UploadService;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\User\PorfileResource;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use App\Http\Requests\User\UpdateUserProfileRequest;
 
 class UserProfileController extends Controller implements HasMiddleware
 {
@@ -37,7 +37,7 @@ class UserProfileController extends Controller implements HasMiddleware
     public function show(Request $request)
     {
 
-        return ApiResponse::success(new UserResource($request->user()));
+        return ApiResponse::success(new PorfileResource($request->user()));
     }
 
     /**

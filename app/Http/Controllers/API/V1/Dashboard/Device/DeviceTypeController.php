@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use App\Services\Device\DeviceTime\DeviceTimeService;
 use App\Services\Device\DeviceType\DeviceTypeService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Device\DevcieType\CreateDeviceTypeRequest;
@@ -17,9 +18,11 @@ use App\Http\Requests\Device\DevcieType\UpdateDeviceTypeRequest;
 class DeviceTypeController extends Controller  implements HasMiddleware
 {
     protected $deviceTypeService;
-    public function __construct(DeviceTypeService $deviceTypeService)
+    protected $deviceTimeService;
+    public function __construct(DeviceTypeService $deviceTypeService ,DeviceTimeService $deviceTimeService)
     {
         $this->deviceTypeService = $deviceTypeService;
+        $this->deviceTimeService = $deviceTimeService;
     }
     public static function middleware(): array
     {
@@ -57,11 +60,18 @@ class DeviceTypeController extends Controller  implements HasMiddleware
         }
     }
 
-    public function store(CreateDeviceTypeRequest $createDeviceTimeRequest)
+    public function store(CreateDeviceTypeRequest $createDeviceTypeRequest)
     {
         try {
             DB::beginTransaction();
-             $this->deviceTypeService->createDeviceType($createDeviceTimeRequest->validated());
+            $data =$createDeviceTypeRequest->validated();
+             $deviceType=$this->deviceTypeService->createDeviceType($data);
+            if (!empty($data['times'])) {
+                foreach ($data['times'] as $time) {
+                        $time['deviceTypeId']  = $deviceType->id;
+                        $this->deviceTimeService->createDeviceTime($time);
+                }
+            }
             DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {

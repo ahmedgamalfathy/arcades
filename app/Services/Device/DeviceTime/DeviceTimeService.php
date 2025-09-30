@@ -25,7 +25,7 @@ class DeviceTimeService
     $deviceTime = DeviceTime::create([
         'name'=>$data['name'],
         'rate'=>$data['rate'],
-        'device_type_id'=>$data['device_type_id'],
+        'device_type_id'=>$data['deviceTypeId'],
     ]);
     return $deviceTime;
     }
@@ -37,7 +37,7 @@ class DeviceTimeService
     }
     $deviceTime->name = $data['name'];
     $deviceTime->rate = $data['rate'];
-    $deviceTime->device_type_id = $data['device_type_id'];
+    $deviceTime->device_type_id = $data['deviceTypeId'];
     $deviceTime->save();
     return $deviceTime;
     }

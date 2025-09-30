@@ -29,8 +29,9 @@ class UpdateDeviceTypeRequest extends FormRequest
     {
         return [
             'name' => ['string','required'],
-            'rate'=> ['required','integer','min:1'],
-            'deviceTypeId'=>['required','integer','exists:device_types,id'],
+            'times'=> ['required','array','min:1'],
+            'times.*.name'=>['required','string'],
+            'times.*.rate'=>['required','integer','min:1'],
         ];
     }
 

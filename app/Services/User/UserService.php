@@ -54,9 +54,10 @@ class UserService{
 
     public function createUser(array $userData): User
     {
-        $superAdmin = User::whereHas('roles', function ($query) {
-            $query->where('name', 'super admin');
-        })->first();
+        $superAdmin =Auth::user();
+        // User::whereHas('roles', function ($query) {
+        //     $query->where('name', 'super admin');
+        // })->first();
         if(isset($userData['avatar']) && $userData['avatar'] instanceof UploadedFile){
             $media = $this->mediaService->createMedia([
                 'path'     => $userData['avatar'],
@@ -71,7 +72,7 @@ class UserService{
             'password' => $userData['password'],
             'is_active' => isset($userData['isActive']) ? StatusEnum::from($userData['isActive'])->value : StatusEnum::ACTIVE,
             'media_id' =>$media?->id,
-            'user_id'=>$superAdmin->id,
+            'user_id'=>$superAdmin->user_id ?? $superAdmin->id,
         ]);
 
         $role = Role::find($userData['roleId']);
@@ -92,9 +93,10 @@ class UserService{
 
     public function updateUser(int $userId, array $userData)
     {
-        $superAdmin = User::whereHas('roles', function ($query) {
-            $query->where('name', 'super admin');
-        })->first();
+        $superAdmin =Auth::user();
+        //  User::whereHas('roles', function ($query) {
+        //     $query->where('name', 'super admin');
+        // })->first();
         $avatarPath = null;
         $user = User::find($userId);
         if(isset($userData['avatar']) && $userData['avatar'] instanceof UploadedFile){
@@ -138,7 +140,7 @@ class UserService{
             $user->password = $userData['password'];
         }
         $user->media_id =$media->id ??null;
-        $user->user_id = $superAdmin->id;
+        $user->user_id = $superAdmin->user_id ?? $superAdmin->id;
         $user->save();
         $role = Role::find($userData['roleId']);
         $user->syncRoles($role->id);
