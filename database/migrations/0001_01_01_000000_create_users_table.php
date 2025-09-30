@@ -17,12 +17,15 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->foreignIdFor(Media::class)->nullable();
+            $table->foreignIdFor(Media::class)->nullable()->cascadeOnDelete();
             $table->tinyInteger('is_active')->default(StatusEnum::ACTIVE->value);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('code')->nullable();
             $table->timestamp('expired_at')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->string('database_name')->nullable();
+            $table->string('app_key')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

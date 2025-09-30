@@ -2,15 +2,16 @@
 
 namespace App\Http\Requests\User;
 
-use App\Enums\ResponseCode\HttpStatusCode;
 use App\Enums\StatusEnum;
-use App\Enums\User\UserStatus;
 use App\Helpers\ApiResponse;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Contracts\Validation\Validator;
+use App\Enums\User\UserStatus;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
+use App\Enums\ResponseCode\HttpStatusCode;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 
 class CreateUserRequest extends FormRequest
@@ -32,7 +33,14 @@ class CreateUserRequest extends FormRequest
     {
         return [
             'name' => 'required|string',
-            'email'=> ['required','email','unique:users,email'],
+            // 'email'=> ['required','email','unique:users,email'],
+            'email' => [
+                'required',
+                Rule::anyOf([
+                    ['string', 'email','unique:users,email'],
+                    ['string', 'min:3','unique:users,email'],
+                ]),
+            ],
             // 'isActive' => ['required', new Enum(StatusEnum::class)],
             'password'=> [
                 'required','confirmed',

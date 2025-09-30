@@ -54,7 +54,9 @@ class UserService{
 
     public function createUser(array $userData): User
     {
-        $avatarPath = null;
+        $superAdmin = User::whereHas('roles', function ($query) {
+            $query->where('name', 'super admin');
+        })->first();
         if(isset($userData['avatar']) && $userData['avatar'] instanceof UploadedFile){
             $media = $this->mediaService->createMedia([
                 'path'     => $userData['avatar'],
@@ -65,10 +67,11 @@ class UserService{
 
         $user = User::create([
             'name' => $userData['name'],
-            'email' => $userData['email'],
+            'email' => $userData['email'].$superAdmin->app_key ,
             'password' => $userData['password'],
             'is_active' => isset($userData['isActive']) ? StatusEnum::from($userData['isActive'])->value : StatusEnum::ACTIVE,
-            'media_id' =>$media?->id
+            'media_id' =>$media?->id,
+            'user_id'=>$superAdmin->id,
         ]);
 
         $role = Role::find($userData['roleId']);
@@ -89,7 +92,9 @@ class UserService{
 
     public function updateUser(int $userId, array $userData)
     {
-
+        $superAdmin = User::whereHas('roles', function ($query) {
+            $query->where('name', 'super admin');
+        })->first();
         $avatarPath = null;
         $user = User::find($userId);
         if(isset($userData['avatar']) && $userData['avatar'] instanceof UploadedFile){
@@ -108,7 +113,7 @@ class UserService{
             }
         }
         $user->name = $userData['name'];
-        $user->email = $userData['email'];
+        $user->email = $userData['email'].$superAdmin->app_key;
         if(isset($userData['password'])){
             $user->password = $userData['password'];
         }
@@ -133,6 +138,7 @@ class UserService{
             $user->password = $userData['password'];
         }
         $user->media_id =$media->id ??null;
+        $user->user_id = $superAdmin->id;
         $user->save();
         $role = Role::find($userData['roleId']);
         $user->syncRoles($role->id);

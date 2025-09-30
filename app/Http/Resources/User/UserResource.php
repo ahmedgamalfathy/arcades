@@ -2,9 +2,10 @@
 
 namespace App\Http\Resources\User;
 
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 
 class UserResource extends JsonResource
@@ -19,7 +20,8 @@ class UserResource extends JsonResource
         return [
             'userId' => $this->id,
             'name' => $this->name,
-            'email' => $this->email,
+            'email' => Str::contains($this->email, '_')? Str::before($this->email, '_'): $this->email,
+            'appKey' => Str::contains($this->email, '_')? Str::after($this->email, '_'): $this->email,
             'avatar' => $this->media->path,
             'roleId' => $this->roles->first()->id,
             'isActive' => $this->is_active,

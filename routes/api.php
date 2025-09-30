@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\V1\Dashboard\User\UserController;
 use App\Http\Controllers\API\V1\Dashboard\Auth\LoginController;
 use App\Http\Controllers\API\V1\Dashboard\Auth\LogoutController;
+use App\Http\Controllers\API\V1\Dashboard\Device\DeviceTypeController;
 use App\Http\Controllers\API\V1\Dashboard\Media\MediaController;
 use App\Http\Controllers\Api\V1\Dashboard\Order\OrderController;
 use App\Http\Controllers\API\V1\Dashboard\Expense\ExpenseController;
@@ -41,4 +42,7 @@ Route::prefix('v1/admin')->group(function () {
         Route::apiResource('expenses', ExpenseController::class)->except('index');
         Route::put('profile/change-password', ChangeCurrentPasswordController::class);
         Route::apiSingleton('profile', UserProfileController::class);
+
+        Route::apiResource('device-types', DeviceTypeController::class);
+
    });

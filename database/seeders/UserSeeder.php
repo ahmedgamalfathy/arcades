@@ -20,6 +20,8 @@ class UserSeeder extends Seeder
             'name' => 'elmo',
             'email' => 'elmo@gmail.com',
             'password' => Hash::make('elmo123456'),
+            'database_name'=> 'u824100506_user1',
+            'app_key'=>'_h123456'
         ]);
         $superAdminRole = Role::where('name', 'super admin')->first();
         $superAdminUser->assignRole($superAdminRole);
@@ -28,18 +30,12 @@ class UserSeeder extends Seeder
             'name' => 'admin',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('elmo123456'),
+            'app_key'=>'h123456'
         ]);
         $adminRole = Role::where('name', 'admin')->first();
         $adminUser->assignRole($adminRole);
 
-        $superAdmintestTest = User::create([
-            'name' => 'super admin',
-            'email' => 'superadmin@gmail.com',
-            'password' => Hash::make('elmo123456'),
-        ]);
-        $superAdminTestRole = Role::where('name', 'super admin')->first();
-        $superAdmintestTest->assignRole($superAdminTestRole);
-  
+
    }
 
 }

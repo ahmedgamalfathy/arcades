@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
@@ -25,7 +26,13 @@ class LoginUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email',
+            'email' => [
+                'required','string'
+                // Rule::anyOf([
+                //     ['string', 'email','unique:users,email'],
+                //     ['string', 'min:3','unique:users,email'],
+                // ]),
+            ],
             'password'=>'required'
         ];
     }

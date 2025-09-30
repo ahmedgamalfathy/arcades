@@ -2,15 +2,16 @@
 
 namespace App\Http\Requests\User;
 
-use App\Enums\ResponseCode\HttpStatusCode;
 use App\Enums\StatusEnum;
-use App\Enums\User\UserStatus;
 use App\Helpers\ApiResponse;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Contracts\Validation\Validator;
+use App\Enums\User\UserStatus;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
+use App\Enums\ResponseCode\HttpStatusCode;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -32,10 +33,12 @@ class UpdateUserRequest extends FormRequest
 
         return [
             'name' => 'required',
-            'email'=> [
+            'email' => [
                 'required',
-                'email',
-                'unique:users,email,' . $this->route('user'),
+                Rule::anyOf([
+                    ['string', 'email', Rule::unique('users', 'email')->ignore($this->route('user'))],
+                    ['string',  'min:3', Rule::unique('users', 'email')->ignore($this->route('user'))],
+                ]),
             ],
             'phone' => ['nullable','numeric'],
             'address' => 'nullable',
