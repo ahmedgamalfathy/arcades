@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Product;
+namespace App\Http\Resources\Devices\DeviceTime;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -15,9 +15,9 @@ class DeviceTimeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'deviceTimeId' => $this->id,
+            'timeTypeId' => $this->id,
             'name' => $this->name,
-            'rete' => $this->rate,
+            'rate' => $this->rate,
         ];
     }
 }

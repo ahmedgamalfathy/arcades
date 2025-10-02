@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\V1\Dashboard\Device;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
+use App\Enums\ActionStatusEnum;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Enums\ResponseCode\HttpStatusCode;
@@ -14,6 +15,8 @@ use App\Services\Device\DeviceType\DeviceTypeService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Device\DevcieType\CreateDeviceTypeRequest;
 use App\Http\Requests\Device\DevcieType\UpdateDeviceTypeRequest;
+use App\Http\Resources\Devices\DeviceType\AllDeviceTypeResource;
+use App\Http\Resources\Devices\DeviceType\DeviceTypeEditResource;
 
 class DeviceTypeController extends Controller  implements HasMiddleware
 {
@@ -42,7 +45,7 @@ class DeviceTypeController extends Controller  implements HasMiddleware
     public function index(Request $request)
     {
         $devcieTypes=$this->deviceTypeService->allDeviceTypes($request);
-        return ApiResponse::success($devcieTypes);
+        return ApiResponse::success(new AllDeviceTypeResource ($devcieTypes));
     }
 
     /**
@@ -52,7 +55,7 @@ class DeviceTypeController extends Controller  implements HasMiddleware
     {
         try {
             $devcieTime=$this->deviceTypeService->editDeviceType($id);
-            return ApiResponse::success($devcieTime);
+            return ApiResponse::success(new DeviceTypeEditResource($devcieTime));
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
@@ -80,14 +83,41 @@ class DeviceTypeController extends Controller  implements HasMiddleware
 
     }
 
-    public function update(UpdateDeviceTypeRequest $updateDeviceTimeRequest, $id)
+    public function update(UpdateDeviceTypeRequest $updateDeviceTypeRequest, $id)
     {
         try {
             DB::beginTransaction();
-              $this->deviceTypeService->updateDeviceType($id, $updateDeviceTimeRequest->validated());
+            $data =$updateDeviceTypeRequest->validated();
+            $deviceType=  $this->deviceTypeService->updateDeviceType($id,$data );
+            if (!empty($data['times'])) {
+                foreach ($data['times'] as $time) {
+                    $time['deviceTypeId']=$deviceType->id;
+                    $status = isset($time['actionStatus']) ? (int)$time['actionStatus'] : ActionStatusEnum::DEFAULT->value;
+                        switch ($status) {
+                            case ActionStatusEnum::CREATE->value:
+                            $this->deviceTimeService->createDeviceTime($time);
+                            break;
+
+                            case ActionStatusEnum::UPDATE->value:
+                            $this->deviceTimeService->updateDeviceTime($time['timeTypeId'], $time);
+                             break;
+
+                            case ActionStatusEnum::DELETE->value:
+                            $this->deviceTimeService->deleteDeviceTime($time['timeTypeId']);
+                            break;
+
+                            case ActionStatusEnum::DEFAULT->value:
+                            default:
+                                // تجاهل العنصر
+                            break;
+                        }
+                }
+            }
             DB::commit();
             return ApiResponse::success([],__('crud.updated'));
-        } catch (\Throwable $th) {
+        }catch(ModelNotFoundException $e){
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 

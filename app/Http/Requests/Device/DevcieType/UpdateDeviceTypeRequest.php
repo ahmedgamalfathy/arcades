@@ -2,7 +2,11 @@
 
 namespace App\Http\Requests\Device\DevcieType;
 
+use Illuminate\Support\Arr;
 use App\Helpers\ApiResponse;
+use App\Enums\ActionStatusEnum;
+use App\Rules\UniqueDeviceTimeName;
+use Illuminate\Validation\Rules\Enum;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
@@ -28,10 +32,23 @@ class UpdateDeviceTypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['string','required'],
+            'name' => ['string','required','unique:device_types,name,'.$this->route('id')],
             'times'=> ['required','array','min:1'],
-            'times.*.name'=>['required','string'],
+            'times.*.name' => [
+                    'required',
+                    'string',
+                    function ($attribute, $value, $fail) {
+                        $index = explode('.', $attribute)[1];
+                        $time   = $this->input("times.$index", []);
+                        $timeId = $time['timeTypeId'] ?? null;
+                        $deviceTypeId = (int)$this->route('id');
+                        (new UniqueDeviceTimeName($deviceTypeId, $timeId))
+                            ->validate($attribute, $value, $fail);
+                    },
+                ],
             'times.*.rate'=>['required','integer','min:1'],
+            'times.*.actionStatus'=> ['required',new Enum(ActionStatusEnum::class)],
+            'times.*.timeTypeId'=> [ 'nullable', 'exists:device_times,id'],
         ];
     }
 
@@ -47,8 +64,10 @@ class UpdateDeviceTypeRequest extends FormRequest
     {
         return [
             'name.required' => __('validation.custom.required'),
-            'rate.required' => __('validation.custom.required'),
-            'deviceTypeId.required' => __('validation.custom.required'),
+            'times.required' => __('validation.custom.required'),
+            'times.*.name.required' => __('validation.custom.required'),
+            'times.*.rate.required' => __('validation.custom.required'),
+            'times.*.actionStatus.required' => __('validation.custom.required'),
         ];
     }
 

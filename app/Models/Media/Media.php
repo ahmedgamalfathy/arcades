@@ -2,6 +2,7 @@
 
 namespace App\Models\Media;
 
+use App\Models\Device\Device;
 use App\Enums\Media\MediaTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -19,5 +20,6 @@ class Media extends Model
             get: fn ($value) => $value ? Storage::disk('public')->url($value) : "",
         );
     }
+
 
 }

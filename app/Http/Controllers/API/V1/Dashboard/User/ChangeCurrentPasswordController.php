@@ -26,7 +26,7 @@ class ChangeCurrentPasswordController extends Controller implements HasMiddlewar
         $authUser = $request->user();
 
         if (!Hash::check($request->currentPassword, $authUser->password)) {
-            return ApiResponse::error(__('passwords.current_password_error'), HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return ApiResponse::error(__('passwords.current_password_error'), [],HttpStatusCode::UNPROCESSABLE_ENTITY);
         }
 
         // Update password securely

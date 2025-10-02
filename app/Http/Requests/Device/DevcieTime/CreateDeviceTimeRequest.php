@@ -2,10 +2,11 @@
 
 namespace App\Http\Requests\Device\DevcieTime;
 
-use App\Enums\Expense\ExpenseTypeEnum;
 use App\Helpers\ApiResponse;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
+use App\Enums\Expense\ExpenseTypeEnum;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
@@ -31,9 +32,16 @@ class CreateDeviceTimeRequest extends FormRequest
     public function rules(): array
     {//name , rate , device_type_id
         return [
-            'name' => ['string','required'],
-            'rate'=> ['required','integer','min:1'],
             'deviceTypeId'=>['required','integer','exists:device_types,id'],
+            'name' =>[
+                'required',
+                'string',
+                Rule::unique('device_times', 'name')
+                    ->where(fn ($query) =>
+                        $query->where('device_type_id', request('deviceTypeId'))
+                    ),
+           ],
+          'rate'=> ['required','integer','min:1'],
         ];
     }
 

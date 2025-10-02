@@ -62,15 +62,19 @@ class MediaService {
     return $media;
     }
 
-    public function deleteMedia(int $id)  {
+    public function deleteMedia(int $id)
+    {
         $media = Media::find($id);
-        if(!$media){
+        if (! $media) {
             throw new ModelNotFoundException();
         }
-        if($media->path){
+        if (! is_null($media->category)) {
+            return;
+        }
+        if ($media->path) {
             Storage::disk('public')->delete($media->getRawOriginal('path'));
-            // Storage::disk('public')->delete($media->path);
         }
         $media->delete();
     }
+
 }

@@ -2,6 +2,9 @@
 namespace App\Services\Device\DeviceType;
 
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+use App\Filters\DeviceType\FilterDeviceType;
 use App\Models\Device\DeviceType\DeviceType;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -9,8 +12,12 @@ class DeviceTypeService
 {
     public function allDeviceTypes(Request $request)
     {
-      $query = $request->query('perPage',10);
-      $deviceTypes =DeviceType::with('deviceTimes')->cursorPaginate($query);
+          $query = $request->query('perPage',10);
+        $deviceTypes = QueryBuilder::for(DeviceType::class)
+        ->allowedFilters([
+           AllowedFilter::custom('search', new FilterDeviceType()),
+        ])
+        ->with('devices')->cursorPaginate($query);
       return $deviceTypes;
     }
     public function editDeviceType(int $id)

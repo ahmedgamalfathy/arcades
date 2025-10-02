@@ -5,13 +5,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\V1\Dashboard\User\UserController;
 use App\Http\Controllers\API\V1\Dashboard\Auth\LoginController;
 use App\Http\Controllers\API\V1\Dashboard\Auth\LogoutController;
-use App\Http\Controllers\API\V1\Dashboard\Device\DeviceTypeController;
 use App\Http\Controllers\API\V1\Dashboard\Media\MediaController;
 use App\Http\Controllers\Api\V1\Dashboard\Order\OrderController;
+use App\Http\Controllers\API\V1\Dashboard\Device\DeviceController;
 use App\Http\Controllers\API\V1\Dashboard\Expense\ExpenseController;
 use App\Http\Controllers\API\V1\Dashboard\Product\ProductController;
 use App\Http\Controllers\API\V1\Dashboard\User\UserProfileController;
+use App\Http\Controllers\API\V1\Dashboard\Device\DeviceTypeController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\SendCodeController;
+use App\Http\Controllers\API\V1\Dashboard\Maintenance\MaintenanceController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\ResendCodeController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\VerifyCodeController;
 use App\Http\Controllers\API\V1\Dashboard\User\ChangeCurrentPasswordController;
@@ -44,5 +46,7 @@ Route::prefix('v1/admin')->group(function () {
         Route::apiSingleton('profile', UserProfileController::class);
 
         Route::apiResource('device-types', DeviceTypeController::class);
+        Route::apiResource('devices', DeviceController::class);
+        Route::apiResource('maintenances', MaintenanceController::class);
 
    });

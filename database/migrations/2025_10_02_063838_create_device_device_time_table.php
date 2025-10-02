@@ -3,7 +3,7 @@
 use App\Models\Device\Device;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
-use App\Models\Device\DeviceType\DeviceType;
+use App\Models\Device\DeviceTime\DeviceTime;
 use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
@@ -12,13 +12,11 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {//name , rate, device_type_id,
-        Schema::create('device_times', function (Blueprint $table) {
+    {
+        Schema::create('device_device_time', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->decimal('rate',8 , 2);
-            $table->foreignIdFor(DeviceType::class)->nullable()->constrained()->cascadeOnDelete();
-            $table->unique(['name', 'device_type_id']);
+            $table->foreignIdFor(DeviceTime::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Device::class)->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('device_times');
+        Schema::dropIfExists('device_device_time');
     }
 };

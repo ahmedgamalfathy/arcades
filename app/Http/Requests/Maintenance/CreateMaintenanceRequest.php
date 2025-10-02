@@ -1,8 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Device\DevcieType;
+namespace App\Http\Requests\Maintenance;
 
+use App\Enums\Expense\ExpenseTypeEnum;
 use App\Helpers\ApiResponse;
+use Illuminate\Validation\Rules\Enum;
+
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
@@ -10,7 +13,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 
 
-class CreateDeviceTypeRequest extends FormRequest
+class CreateMaintenanceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,22 +29,13 @@ class CreateDeviceTypeRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
-    {//name , rate , device_type_id
+    {//device_id , title , price , date ,note
         return [
-            'name' => ['string','required','unique:device_types,name'],
-            'times'=> ['required','array','min:1'],
-           'times.*.name' => [
-            'required',
-            'string',
-            function ($attribute, $value, $fail) {
-                $names = array_column($this->input('times'), 'name');
-
-                if (count(array_keys($names, $value)) > 1) {
-                    $fail("The name '$value' is duplicated within the request.");
-                }
-            }
-        ],
-            'times.*.rate'=>['required','integer','min:1'],
+            'deviceId' => ['required','exists:devices,id'],
+            'price'=> ['required','integer','min:1'],
+            'title' => ['required','string'],
+            'date'=>['required','string','date_format:Y-m-d'],
+            'note'=>['nullable','string']
         ];
     }
 
@@ -58,9 +52,9 @@ class CreateDeviceTypeRequest extends FormRequest
             //name , price , date , note ,type
         return [
             'name.required' => __('validation.custom.required'),
-            'name.unique' => __('validation.custom.unique'),
-            'rate.required' => __('validation.custom.required'),
-            'deviceTypeId.required' => __('validation.custom.required'),
+            'date.required' => __('validation.custom.required'),
+            'price.required' => __('validation.custom.required'),
+            'title.required' => __('validation.custom.required'),
         ];
     }
 
