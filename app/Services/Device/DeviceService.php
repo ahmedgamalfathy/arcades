@@ -21,7 +21,7 @@ class DeviceService
     public function allDevices(Request $request)
     {
       $query = $request->query('perPage',10);
-      $devices =Device::with('media','deviceTimes','maintenances')
+      $devices =Device::with('media','deviceTimes','deviceTimeSpecial','maintenances')
       ->cursorPaginate($query);
       return $devices;
     }
@@ -109,15 +109,15 @@ class DeviceService
         $device->delete();
         return  $device;
     }
-    protected function deleteUnusedMedia($mediaId, $excludeDeviceId = null) {
-        $query = Device::where('media_id', $mediaId);
-        if ($excludeDeviceId) {
-            $query->where('id', '!=', $excludeDeviceId);
+    public function changeDeviceStatus(int $id, array $data): void
+    {
+        $device =Device::find($id);
+        if(!$device){
+        throw new ModelNotFoundException("Device  with id {$id} not found");
         }
-        $isUsed = $query->exists();
-        if (!$isUsed) {
-          $this->mediaService->deleteMedia($mediaId);
-        }
+        $device->status =DeviceStatusEnum::from($data['status'])->value;
+        $device->save();
+
     }
 }
 

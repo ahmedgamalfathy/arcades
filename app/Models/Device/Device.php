@@ -23,6 +23,9 @@ class Device extends Model
     {
         return $this->belongsToMany(DeviceTime::class, 'device_device_time');
     }
+    public  function deviceTimeSpecial(){
+        return $this->hasMany(DeviceTime::class,'device_id');
+    }
     public function maintenances()
     {
         return $this->hasMany(Maintenance::class,'device_id');

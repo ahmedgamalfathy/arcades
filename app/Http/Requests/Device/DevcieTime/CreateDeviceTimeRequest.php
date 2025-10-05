@@ -4,9 +4,6 @@ namespace App\Http\Requests\Device\DevcieTime;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
-
-use App\Enums\Expense\ExpenseTypeEnum;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
@@ -32,14 +29,29 @@ class CreateDeviceTimeRequest extends FormRequest
     public function rules(): array
     {//name , rate , device_type_id
         return [
-            'deviceTypeId'=>['required','integer','exists:device_types,id'],
+            'deviceTypeId' => [
+                'nullable',
+                'integer',
+                'exists:device_types,id',
+                'required_without:deviceId',
+            ],
+            'deviceId' => [
+                'nullable',
+                'integer',
+                'exists:devices,id',
+                'required_without:deviceTypeId',
+            ],
+
             'name' =>[
                 'required',
                 'string',
-                Rule::unique('device_times', 'name')
-                    ->where(fn ($query) =>
-                        $query->where('device_type_id', request('deviceTypeId'))
-                    ),
+            Rule::unique('device_times', 'name')
+                ->when($this->deviceTypeId, fn($query) =>
+                    $query->where('device_type_id', $this->deviceTypeId)
+                )
+                ->when($this->deviceId, fn($query) =>
+                    $query->where('device_id', $this->deviceId)
+                ),
            ],
           'rate'=> ['required','integer','min:1'],
         ];

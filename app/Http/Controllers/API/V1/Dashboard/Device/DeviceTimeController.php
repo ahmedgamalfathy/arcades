@@ -11,8 +11,10 @@ use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Services\Device\DeviceTime\DeviceTimeService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Resources\Devices\DeviceTime\DeviceTimeResource;
 use App\Http\Requests\Device\DevcieTime\CreateDeviceTimeRequest;
 use App\Http\Requests\Device\DevcieTime\UpdateDeviceTimeRequest;
+use App\Http\Resources\Devices\DeviceTime\AllDeviceTimeResource;
 
 class DeviceTimeController extends Controller implements HasMiddleware
 {
@@ -39,7 +41,7 @@ class DeviceTimeController extends Controller implements HasMiddleware
     public function index()
     {
         $devcieTimes=$this->deviceTimeService->allDeviceTimes();
-        return ApiResponse::success($devcieTimes);
+        return ApiResponse::success(DeviceTimeResource::Collection($devcieTimes));
     }
 
     /**
@@ -49,7 +51,7 @@ class DeviceTimeController extends Controller implements HasMiddleware
     {
         try {
             $devcieTime=$this->deviceTimeService->editDeviceTime($id);
-            return ApiResponse::success($devcieTime);
+            return ApiResponse::success(new DeviceTimeResource($devcieTime));
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {

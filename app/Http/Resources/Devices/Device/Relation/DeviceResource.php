@@ -21,7 +21,11 @@ class DeviceResource extends JsonResource
             'status' => $this->status,
             'media' => $this->media->path ?? "",
             // 'deviceType'=>$this->whenLoaded('deviceType',new DeviceResource($this->deviceType)),
-            'deviceTimes' =>$this->deviceTimes->pluck('name')??""
+            'deviceTimes' => $this->deviceTimes
+                ->merge($this->deviceTimeSpecial)
+                ->pluck('name')
+                ->unique()
+                ->values(),
             // $this->whenLoaded('deviceTimes',DeviceTimeResource::collection ($this->deviceTimes))
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Device\DevcieTime;
 
 use App\Helpers\ApiResponse;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use App\Enums\Expense\ExpenseTypeEnum;
 use App\Services\Expense\ExpenseService;
@@ -31,9 +32,31 @@ class UpdateDeviceTimeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['string','required'],
+            'name' => [
+                'required',
+                'string',
+                Rule::unique('device_times', 'name')
+                    ->ignore($this->route('device_time')) // هنا بتستثني السجل الحالي
+                    ->when($this->deviceTypeId, fn($query) =>
+                        $query->where('device_type_id', $this->deviceTypeId)
+                    )
+                    ->when($this->deviceId, fn($query) =>
+                        $query->where('device_id', $this->deviceId)
+                    ),
+            ],
             'rate'=> ['required','integer','min:1'],
-            'deviceTypeId'=>['required','integer','exists:device_types,id'],
+            'deviceTypeId' => [
+                'nullable',
+                'integer',
+                'exists:device_types,id',
+                'required_without:deviceId',
+            ],
+            'deviceId' => [
+                'nullable',
+                'integer',
+                'exists:devices,id',
+                'required_without:deviceTypeId',
+            ],
         ];
     }
 

@@ -9,7 +9,7 @@ class DeviceTimeService
 {
     public function allDeviceTimes()
     {
-      $deviceTimes =DeviceTime::select('name','rate')->get();
+      $deviceTimes =DeviceTime::select('id','name','rate')->get();
       return $deviceTimes;
     }
     public function editDeviceTime(int $id)
@@ -25,7 +25,8 @@ class DeviceTimeService
     $deviceTime = DeviceTime::create([
         'name'=>$data['name'],
         'rate'=>$data['rate'],
-        'device_type_id'=>$data['deviceTypeId'],
+        'device_type_id'=>$data['deviceTypeId']??null,
+        'device_id'=>$data['deviceId']??null
     ]);
     return $deviceTime;
     }
@@ -37,7 +38,8 @@ class DeviceTimeService
     }
     $deviceTime->name = $data['name'];
     $deviceTime->rate = $data['rate'];
-    $deviceTime->device_type_id = $data['deviceTypeId'];
+    $deviceTime->device_type_id = $data['deviceTypeId']??null;
+    $deviceTime->device_id = $data['deviceId']??null;
     $deviceTime->save();
     return $deviceTime;
     }

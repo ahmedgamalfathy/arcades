@@ -11,6 +11,7 @@ use App\Http\Controllers\API\V1\Dashboard\Device\DeviceController;
 use App\Http\Controllers\API\V1\Dashboard\Expense\ExpenseController;
 use App\Http\Controllers\API\V1\Dashboard\Product\ProductController;
 use App\Http\Controllers\API\V1\Dashboard\User\UserProfileController;
+use App\Http\Controllers\API\V1\Dashboard\Device\DeviceTimeController;
 use App\Http\Controllers\API\V1\Dashboard\Device\DeviceTypeController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\SendCodeController;
 use App\Http\Controllers\API\V1\Dashboard\Maintenance\MaintenanceController;
@@ -44,8 +45,9 @@ Route::prefix('v1/admin')->group(function () {
         Route::apiResource('expenses', ExpenseController::class)->except('index');
         Route::put('profile/change-password', ChangeCurrentPasswordController::class);
         Route::apiSingleton('profile', UserProfileController::class);
-
+         Route::put('devices/{id}/changeStatus',[DeviceController::class,'changeStatus']);
         Route::apiResource('device-types', DeviceTypeController::class);
+        Route::apiResource('device-times', DeviceTimeController::class);
         Route::apiResource('devices', DeviceController::class);
         Route::apiResource('maintenances', MaintenanceController::class);
 

@@ -18,7 +18,9 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('rate',8 , 2);
             $table->foreignIdFor(DeviceType::class)->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Device::class)->nullable()->constrained()->cascadeOnDelete();
             $table->unique(['name', 'device_type_id']);
+            $table->unique(['name', 'device_id']);
             $table->timestamps();
         });
     }
@@ -31,3 +33,4 @@ return new class extends Migration
         Schema::dropIfExists('device_times');
     }
 };
+;
