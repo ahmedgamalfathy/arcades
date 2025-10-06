@@ -33,11 +33,7 @@ class DeviceController extends Controller  implements HasMiddleware
     {
         return [
             new Middleware('auth:api'),
-            // new Middleware('permission:devices', only:['index']),
-            // new Middleware('permission:device_create', only:['store']),
-            // new Middleware('permission:device_edit', only:['edit']),
-            // new Middleware('permission:device_update', only:['update']),
-            // new Middleware('permission:device_delete', only:['destroy']),
+            new Middleware('tenant'),
         ];
     }
 

@@ -23,6 +23,7 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+     protected $connection = 'mysql';
      protected $guarded =[];
 
     /**
@@ -51,8 +52,9 @@ class User extends Authenticatable
 
     public function media()
     {
-       return  $this->belongsTo(Media::class);
+       return  $this->setConnection('tenant')->belongsTo(Media::class);
     }
+
     public function expenses()
     {
         return $this->hasMany(Expense::class);

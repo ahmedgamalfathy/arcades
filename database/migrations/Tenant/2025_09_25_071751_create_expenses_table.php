@@ -17,7 +17,8 @@ return new class extends Migration
     {
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();//name , price , date , note ,type
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            // $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->string('name');
             $table->tinyInteger('type')->default(ExpenseTypeEnum::EXTERNAL->value);
             $table->decimal('price', 8,2);

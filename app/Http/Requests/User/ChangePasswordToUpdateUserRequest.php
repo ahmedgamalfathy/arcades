@@ -29,7 +29,9 @@ class ChangePasswordToUpdateUserRequest extends FormRequest
         return [
             'email'=>['required','email','exists:users,email'],
             'currentPassword' => ['required'],
-            'password' => ['required','confirmed', Password::min(8)->mixedCase()->numbers()],
+            'password' => ['required',
+            // 'confirmed',
+            Password::min(8)->mixedCase()->numbers()],
         ];
     }
 

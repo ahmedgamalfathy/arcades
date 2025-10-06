@@ -18,6 +18,7 @@ use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\User\ChangePasswordToUpdateUserRequest;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller implements HasMiddleware
 {
@@ -32,11 +33,11 @@ class UserController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('auth:api'),
-            new Middleware('permission:all_users', only:['index']),
-            new Middleware('permission:create_user', only:['create']),
-            new Middleware('permission:edit_user', only:['edit']),
-            new Middleware('permission:update_user', only:['update']),
-            new Middleware('permission:destroy_user', only:['destroy']),
+            // new Middleware('permission:all_users', only:['index']),
+            // new Middleware('permission:create_user', only:['create']),
+            // new Middleware('permission:edit_user', only:['edit']),
+            // new Middleware('permission:update_user', only:['update']),
+            // new Middleware('permission:destroy_user', only:['destroy']),
         ];
     }
 
@@ -45,8 +46,8 @@ class UserController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $users = $this->userService->allUsers();
-        return ApiResponse::success(new AllUserCollection(PaginateCollection::paginate($users, $request->pageSize?$request->pageSize:10)));
+        $users = $this->userService->allUsers($request);
+        return ApiResponse::success(new AllUserCollection($users));
 
     }
 
@@ -66,7 +67,10 @@ class UserController extends Controller implements HasMiddleware
             return ApiResponse::success([], __('crud.created'));
 
 
-        } catch (\Exception $e) {
+        }catch(ValidationException $e){
+            return  ApiResponse::error(__('crud.server_error'),$e->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+        catch (\Exception $e) {
             DB::rollBack();
            return  ApiResponse::error(__('crud.server_error'),$e->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
@@ -86,7 +90,7 @@ class UserController extends Controller implements HasMiddleware
         }catch(ModelNotFoundException $e){
             return  ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Exception $e) {
-          return ApiResponse::error(__('crud.server_error'),[],HttpStatusCode::INTERNAL_SERVER_ERROR);
+          return ApiResponse::error(__('crud.server_error'),$e->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
 

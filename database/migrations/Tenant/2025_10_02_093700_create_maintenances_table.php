@@ -16,7 +16,8 @@ return new class extends Migration
         Schema::create('maintenances', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Device::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
+            // $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->string('title');
             $table->decimal('price',8,2);
             $table->timestamp('date');

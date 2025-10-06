@@ -36,7 +36,7 @@ class MediaService {
         if(isset($data['path']) && $data['path'] instanceof UploadedFile){
           $path =  $this->uploadService->uploadFile($data['path'], 'media');
         }
-      $media=Media::create([
+      $media=Media::on('tenant')->create([
         'path'=>$path,
         'type'=>$data['type']??MediaTypeEnum::PHOTO->value,
         'category'=>$data['category'],
@@ -44,7 +44,7 @@ class MediaService {
       return $media;
     }
     public function updateMedia(int $id,$data){
-    $media = Media::find($id);
+    $media = Media::on('tenant')->find($id);
     if(!$media){
         throw new ModelNotFoundException();
     }
@@ -64,7 +64,7 @@ class MediaService {
 
     public function deleteMedia(int $id)
     {
-        $media = Media::find($id);
+        $media = Media::on('tenant')->find($id);
         if (! $media) {
             throw new ModelNotFoundException();
         }

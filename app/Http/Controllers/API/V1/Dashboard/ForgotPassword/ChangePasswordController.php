@@ -24,7 +24,7 @@ class ChangePasswordController extends Controller
             'code' => 'required|exists:users,code',
             'email' => 'required|email|exists:users,email',
             "password"=>["required",
-            Password::min(8)->mixedCase()->numbers(),'confirmed'],
+            Password::min(8)->letters()->numbers(),'confirmed'],
         ]);
         $user=User::where('email',$data['email'])->where('code',$data['code'])->first();
         if(!$user){
@@ -40,7 +40,7 @@ class ChangePasswordController extends Controller
         ]);
         $user->tokens()->delete();
         DB::commit();
-        return ApiResponse::success([], __('crud.updated'));
+        return ApiResponse::success([], __('auth.change_password'));
         }catch(\Exception $ex){
             DB::rollBack();
             return ApiResponse::error($ex->getMessage(), [], HttpStatusCode::UNPROCESSABLE_ENTITY);

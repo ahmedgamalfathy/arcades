@@ -32,8 +32,21 @@ class UpdateUserProfileRequest extends FormRequest
             //     'email',
             //     'unique:users,email,' . $this->route('user'),
             // ],
-            'avatar' => [ "nullable","image", "mimes:jpeg,jpg,png,gif,svg", "max:5120"],
+          'mediaId' => ['nullable', 'integer'],
+          'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
         ];
+    }
+     public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if (!$this->mediaId && !$this->hasFile('mediaFile')) {
+                $validator->errors()->add('media', 'You must select an existing image or upload a new one.');
+            }
+
+            if ($this->mediaId && $this->hasFile('mediaFile')) {
+                $validator->errors()->add('media', 'You cannot upload an image and select an existing image at the same time.');
+            }
+        });
     }
 
     public function failedValidation(Validator $validator)

@@ -3,42 +3,22 @@
 namespace App\Http\Resources\User;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\ResourceCollection;
-use App\Models\User;
+use Illuminate\Http\Resources\Json\JsonResource;
 
-class AllUserCollection extends ResourceCollection
+class AllUserCollection extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
      * @return array<string, mixed>
      */
-
-     private $pagination;
-
-     public function __construct($resource)
-     {
-         $this->pagination = [
-             'total' => $resource->total(),
-             'count' => $resource->count(),
-             'perPage' => $resource->perPage(),
-             'currentPage' => $resource->currentPage(),
-             'totalPages' => $resource->lastPage()
-         ];
-
-         $resource = $resource->getCollection();
-
-         parent::__construct($resource);
-     }
-
-
     public function toArray(Request $request): array
     {
-
         return [
-            'users' => AllUserResource::collection(($this->collection)->values()->all()),
-            'pagination' => $this->pagination
+            'users' => AllUserResource::collection($this->resource->items()),
+            'perPage'      => $this->resource->count(),
+            'nextPageUrl'  => $this->resource->nextPageUrl(),
+            'prevPageUrl'  => $this->resource->previousPageUrl(),
         ];
-
     }
 }

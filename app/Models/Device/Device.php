@@ -4,12 +4,14 @@ namespace App\Models\Device;
 
 use App\Models\Media\Media;
 use App\Models\Maintenance\Maintenance;
+use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Device\DeviceTime\DeviceTime;
 use App\Models\Device\DeviceType\DeviceType;
 
 class Device extends Model
 {
+    use UsesTenantConnection;
     protected $guarded = [];
     public function media()
     {

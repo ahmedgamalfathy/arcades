@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\API\V1\Dashboard\Media;
 
 use App\Helpers\ApiResponse;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Services\Media\MediaService;
+use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\Media\CreateMediaRequest;
 use App\Http\Requests\Media\UpdateMediaRequest;
-use App\Services\Media\MediaService;
-use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class MediaController extends Controller
+class MediaController extends Controller  implements HasMiddleware
 {
     /**
      * Display a listing of the resource.
@@ -17,6 +19,13 @@ class MediaController extends Controller
     public $mediaService;
     public function __construct(MediaService $mediaService) {
      $this->mediaService =$mediaService;
+    }
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('auth:api'),
+            new Middleware('tenant'),
+        ];
     }
     public function index(Request $request)
     {

@@ -40,16 +40,31 @@ class UpdateUserRequest extends FormRequest
                     ['string',  'min:3', Rule::unique('users', 'email')->ignore($this->route('user'))],
                 ]),
             ],
+          'mediaId' => ['nullable', 'integer'],
+          'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'phone' => ['nullable','numeric'],
             'address' => 'nullable',
-            // 'isActive' => ['required', new Enum(StatusEnum::class)],
+            'isActive' => ['required', new Enum(StatusEnum::class)],
             'roleId'=> 'required',
             'password'=> [
-                'nullable','confirmed',
-                Password::min(8)->mixedCase()->numbers(),
+                'nullable',
+                // 'confirmed',
+                Password::min(8)->letters()->numbers(),
             ],
             'avatar' => [ "nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp","max:5120"],//, "max:2048"
         ];
+    }
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if (!$this->mediaId && !$this->hasFile('mediaFile')) {
+                $validator->errors()->add('media', 'You must select an existing image or upload a new one.');
+            }
+
+            if ($this->mediaId && $this->hasFile('mediaFile')) {
+                $validator->errors()->add('media', 'You cannot upload an image and select an existing image at the same time.');
+            }
+        });
     }
 
     public function failedValidation(Validator $validator)

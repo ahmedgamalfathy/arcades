@@ -16,7 +16,7 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\Product\AllProductResource;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+// implements HasMiddleware
 class ProductController extends Controller implements HasMiddleware
 {
        protected $productService;
@@ -30,12 +30,8 @@ class ProductController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:api'),
-            // new Middleware('permission:all_products', only:['index']),
-            // new Middleware('permission:create_product', only:['create']),
-            // new Middleware('permission:edit_product', only:['edit']),
-            // new Middleware('permission:update_product', only:['update']),
-            // new Middleware('permission:destroy_product', only:['destroy']),
+            new Middleware('auth:sanctum'),
+            new Middleware('tenant'),
         ];
     }
 

@@ -32,8 +32,7 @@ class CreateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string',
-            // 'email'=> ['required','email','unique:users,email'],
+        'name' => 'required|string',
             'email' => [
                 'required',
                 Rule::anyOf([
@@ -41,16 +40,30 @@ class CreateUserRequest extends FormRequest
                     ['string', 'min:3','unique:users,email'],
                 ]),
             ],
-            // 'isActive' => ['required', new Enum(StatusEnum::class)],
+            'isActive' => ['required', new Enum(StatusEnum::class)],
             'password'=> [
-                'required','confirmed',
-                Password::min(8)->mixedCase()->numbers(),
+                'required',
+                // 'confirmed',
+                Password::min(8)->letters()->numbers(),
             ],
             'roleId'=> ['required', 'numeric'],
-            'avatar' => ["nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
+            // 'avatar' => ["nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
+          'mediaId' => ['nullable', 'integer'],
+          'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
         ];
     }
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if (!$this->mediaId && !$this->hasFile('mediaFile')) {
+                $validator->errors()->add('media', 'You must select an existing image or upload a new one.');
+            }
 
+            if ($this->mediaId && $this->hasFile('mediaFile')) {
+                $validator->errors()->add('media', 'You cannot upload an image and select an existing image at the same time.');
+            }
+        });
+    }
     public function failedValidation(Validator $validator)
     {
 
@@ -64,6 +77,7 @@ class CreateUserRequest extends FormRequest
         return [
             'name.required' => __('validation.custom.required'),
             'email.required' => __('validation.custom.required'),
+            'email.unique' => __('validation.custom.unique'),
             'password.required' => __('validation.custom.required'),
 
         ];

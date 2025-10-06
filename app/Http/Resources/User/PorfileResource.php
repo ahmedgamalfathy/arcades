@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\User;
 
+use App\Models\User;
+use App\Models\Media\Media;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -21,8 +23,10 @@ class PorfileResource extends JsonResource
             'name' => $this->name,
             'email' => Str::contains($this->email, '_')? Str::before($this->email, '_'): $this->email,
             // 'appKey' => Str::contains($this->email, '_')? Str::after($this->email, '_'): $this->email,
-            'avatar' => $this->media->path??"",
-            'roleId' => $this->roles->first()->name,
+            'avatar' => $this->media?->path
+            ?? Media::on('tenant')->where('category', 'avatar')->first()?->path
+            ?? "",
+            'roleName' => $this->roles->first()->name??"",
         ];
     }
 }

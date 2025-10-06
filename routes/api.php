@@ -20,17 +20,23 @@ use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\VerifyCodeController;
 use App\Http\Controllers\API\V1\Dashboard\User\ChangeCurrentPasswordController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\ChangePasswordController;
 Route::prefix('v1/admin')->group(function () {
-        Route::prefix('auth')->group(function () {
-            //login , logout , forgot password , reset password
+
+     Route::prefix('auth')->group(function () {
             Route::post('/login ', LoginController::class);
             Route::post('/logout',LogoutController::class);
         });
+
         Route::prefix('forgot-password')->group(function () {
-            Route::post('/sendCode', SendCodeController::class);
-            Route::post('/verifyCode', VerifyCodeController::class);
+            Route::post('/send-code', SendCodeController::class);
+            Route::post('/verify-code', VerifyCodeController::class);
             // Route::post('/resendCode', ResendCodeController::class);
-            Route::post('/changePassword', ChangePasswordController::class);
+            Route::post('/change-password', ChangePasswordController::class);
         });
+
+});
+
+Route::prefix('v1/admin')->group(function () {
+
         Route::get('expenses/internal',[ExpenseController::class,'internalExpenses']);
         Route::get('expenses/external',[ExpenseController::class,'externalExpenses']);
         Route::put('users/changePassword',[UserController::class,'userChangePassword']);

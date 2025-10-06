@@ -33,20 +33,22 @@ class UserService{
         $this->mediaService = $mediaService;
     }
 
-    public function allUsers()
+    public function allUsers(Request $request)
     {
         $auth = Auth::user();
+        $perPage= $request->query('perPage',10);
         /*$currentUserRole = $auth->getRoleNames()[0];*/
         $user = QueryBuilder::for(User::class)
            ->defaultSort('-created_at')
             ->allowedFilters([
                 AllowedFilter::custom('search', new FilterUser()), // Add a custom search filter
-                // AllowedFilter::exact('isActive', 'is_active'),
+                AllowedFilter::exact('isActive', 'is_active'),
                 // AllowedFilter::custom('role', new FilterUserRole()),
             ])
             ->whereNot('id', $auth->id)
+            ->where('user_id',$auth->id)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->cursorPaginate($perPage);
 
         return $user;
 
@@ -58,20 +60,31 @@ class UserService{
         // User::whereHas('roles', function ($query) {
         //     $query->where('name', 'super admin');
         // })->first();
-        if(isset($userData['avatar']) && $userData['avatar'] instanceof UploadedFile){
-            $media = $this->mediaService->createMedia([
-                'path'     => $userData['avatar'],
-                'type'     => MediaTypeEnum::PHOTO->value,
-                'category' => null,
-            ]);
-        }
+            $mediaId = null;
+            if (isset($userData['mediaFile']) && $userData['mediaFile'] instanceof UploadedFile) {
+                $media = $this->mediaService->createMedia([
+                    'path' => $userData['mediaFile'],
+                    'type' => MediaTypeEnum::PHOTO,
+                    'category'=>null,
+                ]);
+                $mediaId = $media->id;
+            }
+            elseif (isset($userData['mediaId'])) {
+                $mediaId = $userData['mediaId'];
+            }
+            $finalEmail = $userData['email'] . $superAdmin->app_key;
+            if (User::where('email', $finalEmail)->exists()) {
+                throw ValidationException::withMessages([
+                    'email' => ['This email is already taken.'],
+                ]);
+            }
 
         $user = User::create([
             'name' => $userData['name'],
             'email' => $userData['email'].$superAdmin->app_key ,
             'password' => $userData['password'],
             'is_active' => isset($userData['isActive']) ? StatusEnum::from($userData['isActive'])->value : StatusEnum::ACTIVE,
-            'media_id' =>$media?->id,
+            'media_id' => $mediaId,
             'user_id'=>$superAdmin->user_id ?? $superAdmin->id,
         ]);
 
@@ -84,7 +97,7 @@ class UserService{
 
     public function editUser(int $userId)
     {
-        $user= User::with('roles')->findOrFail($userId);
+        $user= User::with('roles')->find($userId);
         if(!$user){
           throw new ModelNotFoundException();
         }
@@ -97,22 +110,24 @@ class UserService{
         //  User::whereHas('roles', function ($query) {
         //     $query->where('name', 'super admin');
         // })->first();
-        $avatarPath = null;
         $user = User::find($userId);
-        if(isset($userData['avatar']) && $userData['avatar'] instanceof UploadedFile){
-            if ($user->media_id) {
-                $media = $this->mediaService->updateMedia($user->media_id, [
-                    'path'     => $userData['avatar'],
-                    'type'     => MediaTypeEnum::PHOTO->value,
-                    'category' => null,
-                ]);
-            } else {
+        $oldMediaId = $user->media_id;
+        $mediaId = $oldMediaId;
+        if (isset($userData['mediaFile']) && $userData['mediaFile'] instanceof UploadedFile) {
                 $media = $this->mediaService->createMedia([
-                    'path'     => $userData['avatar'],
-                    'type'     => MediaTypeEnum::PHOTO->value,
-                    'category' => null,
+                    'path' => $userData['mediaFile'],
+                    'type' => MediaTypeEnum::PHOTO,
                 ]);
-            }
+                $mediaId = $media->id;
+                if ($oldMediaId) {
+                $this->mediaService->deleteMedia($mediaId);
+                }
+        }
+        elseif (isset($userData['mediaId']) && $userData['mediaId'] != $oldMediaId) {
+                $mediaId = $userData['mediaId'];
+                if ($oldMediaId) {
+                    $this->mediaService->deleteMedia($mediaId);
+                }
         }
         $user->name = $userData['name'];
         $user->email = $userData['email'].$superAdmin->app_key;
@@ -120,26 +135,11 @@ class UserService{
             $user->password = $userData['password'];
         }
         $user->is_active = isset($userData['isActive']) ? StatusEnum::from($userData['isActive'])->value : StatusEnum::ACTIVE;
-        if($avatarPath){
-            if(isset($user->media)){
-                Storage::disk('public')->delete($user->media->path);
-                $user->media->delete();
-
-                $media =Media::find($user->media->id);
-                $media->path =$avatarPath;
-                $media->save();
-            }
-            $media = Media::create([
-                'path' => $avatarPath,
-                'type' => MediaTypeEnum::PHOTO->value,
-                'category' => null,
-            ]);
-        }
 
         if(isset($userData['password'])){
             $user->password = $userData['password'];
         }
-        $user->media_id =$media->id ??null;
+        $user->media_id =$mediaId;
         $user->user_id = $superAdmin->user_id ?? $superAdmin->id;
         $user->save();
         $role = Role::find($userData['roleId']);
@@ -152,12 +152,16 @@ class UserService{
 
     public function deleteUser(int $userId)
     {
-
         $user = User::find($userId);
         if(!$user){
           throw new ModelNotFoundException();
         }
-         $this->mediaService->deleteMedia($user->media->id);
+        if ($user->media_id) {
+            $media = Media::on('tenant')->find($user->media_id);
+            if ($media) {
+                $this->mediaService->deleteMedia($media->id);
+            }
+        }
         $user->delete();
 
     }

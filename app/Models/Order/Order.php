@@ -4,10 +4,12 @@ namespace App\Models\Order;
 
 use App\Models\Order\OrderItem;
 use App\Enums\Order\OrderStatus;
+use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    use UsesTenantConnection;
     protected $guarded =[];
 
     public static function boot()

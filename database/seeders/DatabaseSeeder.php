@@ -15,11 +15,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            RolesAndPermissionsSeeder::class,
-            UserSeeder::class,
-            MediaSeeder::class
-
-        ]);
+        // $this->call([
+        //     // RolesAndPermissionsSeeder::class,
+        //     // UserSeeder::class,
+        //     // MediaSeeder::class
+        // ]);
+        if (config('database.default') === 'mysql') {
+            $this->call([
+                UserSeeder::class,
+                RolesAndPermissionsSeeder::class,
+                // MediaSeeder::class
+            ]);
+        }
+        if (config('database.default') === 'tenant') {
+            // قاعدة بيانات التيننت
+            $this->call([
+                MediaSeeder::class
+            ]);
+        }
     }
 }

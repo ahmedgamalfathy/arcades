@@ -30,7 +30,7 @@ class VerifyCodeController extends Controller
                 return ApiResponse::error('Time of code is expired ,please resend code again!', [], HttpStatusCode::UNPROCESSABLE_ENTITY);
             }
             DB::commit();
-            return ApiResponse::success([],    __('crud.created'));
+            return ApiResponse::success([],    __('auth.send_code'));
         } catch (\Throwable $th) {
            DB::rollBack();
             return ApiResponse::error($th->getMessage(), [], HttpStatusCode::UNPROCESSABLE_ENTITY);

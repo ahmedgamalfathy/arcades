@@ -3,11 +3,13 @@
 namespace App\Models\Device\DeviceType;
 
 use App\Models\Device\Device;
+use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Device\DeviceTime\DeviceTime;
 
 class DeviceType extends Model
 {
+    use UsesTenantConnection;
     protected $guarded = [];
 
     public function deviceTimes()
