@@ -25,14 +25,12 @@ Route::prefix('v1/admin')->group(function () {
             Route::post('/login ', LoginController::class);
             Route::post('/logout',LogoutController::class);
         });
-
         Route::prefix('forgot-password')->group(function () {
             Route::post('/send-code', SendCodeController::class);
             Route::post('/verify-code', VerifyCodeController::class);
             // Route::post('/resendCode', ResendCodeController::class);
             Route::post('/change-password', ChangePasswordController::class);
         });
-
 });
 
 Route::prefix('v1/admin')->group(function () {

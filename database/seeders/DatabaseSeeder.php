@@ -22,8 +22,8 @@ class DatabaseSeeder extends Seeder
         // ]);
         if (config('database.default') === 'mysql') {
             $this->call([
-                UserSeeder::class,
                 RolesAndPermissionsSeeder::class,
+                UserSeeder::class,
                 // MediaSeeder::class
             ]);
         }
