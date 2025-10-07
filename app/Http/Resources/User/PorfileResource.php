@@ -23,10 +23,10 @@ class PorfileResource extends JsonResource
             'name' => $this->name,
             'email' => Str::contains($this->email, '_')? Str::before($this->email, '_'): $this->email,
             // 'appKey' => Str::contains($this->email, '_')? Str::after($this->email, '_'): $this->email,
+            'roleName' => $this->roles->first()->name??"",
             'avatar' => $this->media?->path
             ?? Media::on('tenant')->where('category', 'avatar')->first()?->path
             ?? "",
-            'roleName' => $this->roles->first()->name??"",
         ];
     }
 }

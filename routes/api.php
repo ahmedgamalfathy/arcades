@@ -20,8 +20,7 @@ use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\VerifyCodeController;
 use App\Http\Controllers\API\V1\Dashboard\User\ChangeCurrentPasswordController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\ChangePasswordController;
 Route::prefix('v1/admin')->group(function () {
-
-     Route::prefix('auth')->group(function () {
+        Route::prefix('auth')->group(function () {
             Route::post('/login ', LoginController::class);
             Route::post('/logout',LogoutController::class);
         });
@@ -34,7 +33,6 @@ Route::prefix('v1/admin')->group(function () {
 });
 
 Route::prefix('v1/admin')->group(function () {
-
         Route::get('expenses/internal',[ExpenseController::class,'internalExpenses']);
         Route::get('expenses/external',[ExpenseController::class,'externalExpenses']);
         Route::put('users/changePassword',[UserController::class,'userChangePassword']);
@@ -54,5 +52,4 @@ Route::prefix('v1/admin')->group(function () {
         Route::apiResource('device-times', DeviceTimeController::class);
         Route::apiResource('devices', DeviceController::class);
         Route::apiResource('maintenances', MaintenanceController::class);
-
    });

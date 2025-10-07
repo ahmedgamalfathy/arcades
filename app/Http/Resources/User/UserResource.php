@@ -22,9 +22,9 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => Str::contains($this->email, '_')? Str::before($this->email, '_'): $this->email,
             'appKey' => Str::contains($this->email, '_')? Str::after($this->email, '_'): $this->email,
-            'avatar' => $this->media->path ??"",
             'roleId' => $this->roles->first()->id ??"",
             'isActive' => $this->is_active,
+            'avatar' => $this->media->path ??"",
         ];
     }
 }
