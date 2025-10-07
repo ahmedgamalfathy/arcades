@@ -11,6 +11,7 @@ use App\Filters\User\FilterUser;
 use Database\Seeders\MediaSeeder;
 use Illuminate\Http\UploadedFile;
 use App\Enums\Media\MediaTypeEnum;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use App\Filters\User\FilterUserRole;
 use App\Services\Media\MediaService;
@@ -78,7 +79,6 @@ class UserService{
                     'email' => ['This email is already taken.'],
                 ]);
             }
-
         $user = User::create([
             'name' => $userData['name'],
             'email' => $userData['email'].$superAdmin->app_key ,
