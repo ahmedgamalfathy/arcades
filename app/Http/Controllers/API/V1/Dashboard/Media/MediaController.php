@@ -22,8 +22,13 @@ class MediaController extends Controller  implements HasMiddleware
     }
     public static function middleware(): array
     {
-        return [
+        return [// medias ,create_medias,edit_meida ,update_meida ,destroy_meida
             new Middleware('auth:api'),
+            new Middleware('permission:medias', only:['index']),
+            new Middleware('permission:create_medias', only:['create']),
+            new Middleware('permission:edit_meida', only:['edit']),
+            new Middleware('permission:update_meida', only:['update']),
+            new Middleware('permission:destroy_meida', only:['destroy']),
             new Middleware('tenant'),
         ];
     }

@@ -31,8 +31,14 @@ class DeviceController extends Controller  implements HasMiddleware
     }
     public static function middleware(): array
     {
-        return [
+        return [//'changeStatus, devices ,create_devices, edit_device,update_device ,destroy_device
             new Middleware('auth:api'),
+            new Middleware('permission:devices', only:['index']),
+            new Middleware('permission:devices_changeStatus', only:['changeStatus']),
+            new Middleware('permission:create_devices', only:['create']),
+            new Middleware('permission:edit_device', only:['edit']),
+            new Middleware('permission:update_device', only:['update']),
+            new Middleware('permission:destroy_device', only:['destroy']),
             new Middleware('tenant'),
         ];
     }

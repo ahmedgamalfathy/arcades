@@ -32,6 +32,11 @@ class MaintenanceController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('auth:api'),
+            new Middleware('permission:maintenaces', only:['index']),
+            new Middleware('permission:create_maintenaces', only:['create']),
+            new Middleware('permission:edit_maintenace', only:['edit']),
+            new Middleware('permission:update_maintenace', only:['update']),
+            new Middleware('permission:destroy_maintenace', only:['destroy']),
             new Middleware('tenant'),
         ];
     }

@@ -25,8 +25,13 @@ class DeviceTimeController extends Controller implements HasMiddleware
     }
     public static function middleware(): array
     {
-        return [
+        return [//deviceTimes ,create_deviceTimes,edit_deviceTime,update_deviceTime,destroy_deviceTime
             new Middleware('auth:api'),
+            new Middleware('permission:deviceTimes', only:['index']),
+            new Middleware('permission:create_deviceTimes', only:['create']),
+            new Middleware('permission:edit_deviceTime', only:['edit']),
+            new Middleware('permission:update_deviceTime', only:['update']),
+            new Middleware('permission:destroy_deviceTime', only:['destroy']),
             new Middleware('tenant'),
         ];
     }

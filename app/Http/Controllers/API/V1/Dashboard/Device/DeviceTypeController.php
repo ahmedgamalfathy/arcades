@@ -28,9 +28,14 @@ class DeviceTypeController extends Controller  implements HasMiddleware
         $this->deviceTimeService = $deviceTimeService;
     }
     public static function middleware(): array
-    {
+    {//deviceTypes , create_deviceTypes ,edit_deviceType ,update_deviceType ,destroy_deviceType
         return [
             new Middleware('auth:api'),
+            new Middleware('permission:deviceTypes', only:['index']),
+            new Middleware('permission:create_deviceTypes', only:['create']),
+            new Middleware('permission:edit_deviceType', only:['edit']),
+            new Middleware('permission:update_deviceType', only:['update']),
+            new Middleware('permission:destroy_deviceType', only:['destroy']),
             new Middleware('tenant'),
         ];
     }

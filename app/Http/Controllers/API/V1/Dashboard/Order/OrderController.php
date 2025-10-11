@@ -26,9 +26,15 @@ class OrderController extends Controller implements HasMiddleware
         $this->orderService = $orderService;
     }
     public static function middleware(): array
-    {
+    {//orders ,create_orders , edit_order ,update_order ,destroy_order
         return [
             new Middleware('auth:api'),
+            new Middleware('permission:internalOrders', only:['internalOrders']),
+            new Middleware('permission:externalOrders', only:['externalOrders']),
+            new Middleware('permission:create_orders', only:['create']),
+            new Middleware('permission:edit_order', only:['edit']),
+            new Middleware('permission:update_order', only:['update']),
+            new Middleware('permission:destroy_order', only:['destroy']),
             new Middleware('tenant'),
         ];
     }

@@ -15,7 +15,7 @@ class ChangeCurrentPasswordController extends Controller implements HasMiddlewar
    public static function middleware(): array
     {
         return [
-            new Middleware('auth:api')
+            new Middleware('auth:api'),
         ];
     }
     /**

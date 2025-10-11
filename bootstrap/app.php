@@ -4,8 +4,6 @@ use App\Helpers\ApiResponse;
 use Illuminate\Foundation\Application;
 use App\Http\Middleware\CheckPermission;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Auth\AuthenticationException;
-use Illuminate\Validation\UnauthorizedException;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -28,10 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-    $exceptions->render(function (UnauthorizedException $e, $request) {
-       return ApiResponse::error("You do not have permission",[],HttpStatusCode::FORBIDDEN);
+    $exceptions->render(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
+        return ApiResponse::error("You do not have permission.", [], HttpStatusCode::FORBIDDEN);
     });
-    // $exceptions->render(function (AuthenticationException $e, $request) {
-    //   return ApiResponse::error("Unauthenticated.", [], HttpStatusCode::UNAUTHORIZED);
-    // });
+
+    // unauthenticated (401)
+    $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+        return ApiResponse::error("Unauthenticated.", [], HttpStatusCode::UNAUTHORIZED);
+    });
     })->create();
