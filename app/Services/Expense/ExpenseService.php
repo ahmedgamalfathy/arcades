@@ -7,7 +7,7 @@ use App\Models\Expense\Expense;
 class ExpenseService {
  public function allExpenses(Request $request,int $type) {
     $perPage =$request->query('perPage',10);
-    $expenses = Expense::where('type',$type)->cursorPaginate($perPage);
+    $expenses = Expense::where('type',$type)->orderByDesc('id')->cursorPaginate($perPage);
     return $expenses;
  }
  public function editExpense(int $id){

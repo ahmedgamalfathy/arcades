@@ -17,11 +17,12 @@ class ExpenseResource extends JsonResource
     {
         return [
             'ExpenseId' => $this->id,
-            'userName' => $this->user->name,
             'name' => $this->name,
             'price' => $this->price,
             'date' => Carbon::parse($this->date)->format('Y-m-d'),
             'note' => $this->note??"",
+            'userName' => $this->user->name,
+            'userProfile'=>$this->user->media->path??"",
         ];
     }
 }
