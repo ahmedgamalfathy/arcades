@@ -37,11 +37,26 @@ class UpdateOrderRequest extends FormRequest
              'orderItems' => ['required', 'array', 'min:1'],
              'orderItems.*.productId' => ['required', 'integer', 'exists:products,id'],
              'orderItems.*.qty' => ['required', 'integer', 'min:1'],
+            // 'orderItems.*.orderItemId' => [
+            //     'nullable',
+            //     'integer',
+            //     'required_if:orderItems.*.actionStatus,update,delete,""',
+            //     'exists:order_items,id',
+            // ],
             'orderItems.*.orderItemId' => [
-                'nullable',
-                'integer',
-                'required_if:orderItems.*.actionStatus,update,delete,""',
-                'exists:order_items,id',
+            'nullable',
+            'integer',
+            'required_if:orderItems.*.actionStatus,update,delete,""',
+            'exists:order_items,id',
+            function ($attribute, $value, $fail) {
+                if ($value) {
+                    $orderId = $this->route('order'); // id بتاع الأوردر الحالي
+                    $orderItem = \App\Models\Order\OrderItem::find($value);
+                    if ($orderItem && $orderItem->order_id != $orderId) {
+                        $fail("The order item ID does not belong to this order.");
+                    }
+                }
+            },
             ],
             'orderItems.*.actionStatus' => ['required', 'in:update,delete,create,""'],
         ];
