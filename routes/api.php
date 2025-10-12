@@ -6,7 +6,7 @@ use App\Http\Controllers\API\V1\Dashboard\User\UserController;
 use App\Http\Controllers\API\V1\Dashboard\Auth\LoginController;
 use App\Http\Controllers\API\V1\Dashboard\Auth\LogoutController;
 use App\Http\Controllers\API\V1\Dashboard\Media\MediaController;
-use App\Http\Controllers\Api\V1\Dashboard\Order\OrderController;
+use App\Http\Controllers\API\V1\Dashboard\Order\OrderController;
 use App\Http\Controllers\API\V1\Dashboard\Device\DeviceController;
 use App\Http\Controllers\API\V1\Dashboard\Expense\ExpenseController;
 use App\Http\Controllers\API\V1\Dashboard\Product\ProductController;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1\Dashboard\Order;
+namespace App\Http\Controllers\API\V1\Dashboard\Order;
 
 use App\Enums\Order\OrderTypeEnum;
 use App\Helpers\ApiResponse;
