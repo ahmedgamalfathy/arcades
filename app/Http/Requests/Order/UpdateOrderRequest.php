@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Order;
 
 use App\Helpers\ApiResponse;
+use Illuminate\Validation\Rule;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\DiscountType;
 use App\Enums\Order\OrderTypeEnum;
@@ -29,19 +30,20 @@ class UpdateOrderRequest extends FormRequest
      */
     public function rules(): array
     {
+        //  ['string',  'min:3', Rule::unique('users', 'email')->ignore($this->route('user'))]
         return [
-            'name' => ['required','string'],
+            'name' => ['required','string',Rule::unique('orders', 'name')->ignore($this->route('order'))],
             // 'type' => ['nullable',new Enum(OrderTypeEnum::class)],
              'orderItems' => ['required', 'array', 'min:1'],
              'orderItems.*.productId' => ['required', 'integer', 'exists:products,id'],
              'orderItems.*.qty' => ['required', 'integer', 'min:1'],
-             'orderItems.*.orderItemId' => [
-                    'nullable',
-                    'integer',
-                    'required_if:orderItems.*.actionStatus,update,delete,""',
-                    'exists:order_items,id',
-             'orderItems.*.actionStatus' => ['required', 'in:update,delete,create,'],
-             ],
+            'orderItems.*.orderItemId' => [
+                'nullable',
+                'integer',
+                'required_if:orderItems.*.actionStatus,update,delete,""',
+                'exists:order_items,id',
+            ],
+            'orderItems.*.actionStatus' => ['required', 'in:update,delete,create,""'],
         ];
     }
 

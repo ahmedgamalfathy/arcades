@@ -59,12 +59,13 @@ class OrderService
     }
     public function updateOrder(int $id, array $data)
     {
-        $order = Order::where('id', $id)->lockForUpdate()->first();
-        $order->name = $data['name'];
-        $order->save();
+        $order = Order::find($id);
         if(!$order){
             throw new ModelNotFoundException();
         }
+        $order->name = $data['name'];
+        $order->save();
+
         foreach ($data['orderItems'] as $itemData) {
             if ($itemData['actionStatus'] === 'update') {
                 $this->orderItemService->updateOrderItem($itemData['orderItemId'], [

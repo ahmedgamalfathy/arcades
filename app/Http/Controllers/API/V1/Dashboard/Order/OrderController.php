@@ -83,7 +83,9 @@ class OrderController extends Controller implements HasMiddleware
                $this->orderService->updateOrder($id, $updateOrderRequest->validated());
             DB::commit();
             return ApiResponse::success([],__('crud.updated'));
-        } catch (\Throwable $th) {
+        }catch(ModelNotFoundException $e){
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 

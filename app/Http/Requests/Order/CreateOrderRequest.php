@@ -31,7 +31,7 @@ class CreateOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required','string'],
+            'name' => ['required','string','unique:orders,name'],
             'type' => ['required',new Enum(OrderTypeEnum::class)],
             'orderItems' => ['required', 'array', 'min:1'],
             'orderItems.*.productId' => ["required", 'integer', 'exists:products,id'],
