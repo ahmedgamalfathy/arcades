@@ -25,6 +25,8 @@ return new class extends Migration
             $table->timestamp('expired_at')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->string('database_name')->nullable();
+            $table->string('database_username')->nullable();
+            $table->string('database_password')->nullable();
             $table->string('app_key')->nullable();
             $table->rememberToken();
             $table->timestamps();

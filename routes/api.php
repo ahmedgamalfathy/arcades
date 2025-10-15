@@ -19,6 +19,8 @@ use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\ResendCodeController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\VerifyCodeController;
 use App\Http\Controllers\API\V1\Dashboard\User\ChangeCurrentPasswordController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\ChangePasswordController;
+use App\Http\Controllers\API\V1\Dashboard\Timer\DeviceTimerController;
+
 Route::prefix('v1/admin')->group(function () {
         Route::prefix('auth')->group(function () {
             Route::post('/login ', LoginController::class);
@@ -52,4 +54,11 @@ Route::prefix('v1/admin')->group(function () {
         Route::apiResource('device-times', DeviceTimeController::class);
         Route::apiResource('devices', DeviceController::class);
         Route::apiResource('maintenances', MaintenanceController::class);
+        Route::prefix('device-timer')->controller(DeviceTimerController::class)->group(function () {
+            Route::post('start-individual', 'startIndividual');
+            Route::post('{id}/finish', 'finish');
+            Route::post('{id}/pause', 'pause');
+            Route::post('{id}/resume', 'resume');
+            Route::post('{id}/change-time', 'changeTime');
+        });
    });
