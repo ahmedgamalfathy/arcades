@@ -37,8 +37,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'update_product',
             'destroy_product',
 //expenses ,create_expenses ,edit_expense ,update_expense,destroy_expense
-            'internalExpenses',
-            'externalExpenses',
+           'all_expenses',
             'forceDelete',
             'destroy_restore',
             'destroy_forceDelete',
