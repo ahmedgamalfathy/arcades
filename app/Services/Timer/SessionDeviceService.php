@@ -17,7 +17,12 @@ class SessionDeviceService
         AllowedFilter::custom('search', new FilterSessionDevice),
         AllowedFilter::exact('type', 'type'),
         ])
-        ->with('bookedDevices') 
+        ->whereHas('bookedDevices', function ($query) {
+        $query->where('status', '!=', 0);
+        })
+        ->with(['bookedDevices' => function ($query) {
+        $query->where('status', '!=', 0);
+        }])
         ->cursorPaginate($perPage);
         return $sessions;
     }
