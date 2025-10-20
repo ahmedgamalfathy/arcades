@@ -37,7 +37,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'update_product',
             'destroy_product',
 //expenses ,create_expenses ,edit_expense ,update_expense,destroy_expense
-           'all_expenses',
+            'all_expenses',
             'forceDelete',
             'destroy_restore',
             'destroy_forceDelete',
@@ -95,29 +95,29 @@ class RolesAndPermissionsSeeder extends Seeder
         // roles
 
         $admin = Role::create(['name' => 'admin']);
-        $adminPermissions = [
-            'all_users',
-            'edit_user',
+        // $adminPermissions = [
+        //     'all_users',
+        //     'edit_user',
 
-            'products',
-            'edit_product',
+        //     'products',
+        //     'edit_product',
 
           
 
-            'devices',
-            'edit_device',
+        //     'devices',
+        //     'edit_device',
 
-            'deviceTimes',
-            'edit_deviceTime',
+        //     'deviceTimes',
+        //     'edit_deviceTime',
 
-            'deviceTypes',
-            'edit_deviceType',
+        //     'deviceTypes',
+        //     'edit_deviceType',
 
-            'internalOrders',
-            'externalOrders',
-            'edit_order',
-        ];
-        $admin->givePermissionTo($adminPermissions);
+        //     'internalOrders',
+        //     'externalOrders',
+        //     'edit_order',
+        // ];
+        // $admin->givePermissionTo($adminPermissions);
         $superAdmin = Role::create(['name' => 'super admin']);
         $superAdmin->givePermissionTo(Permission::get());
 
