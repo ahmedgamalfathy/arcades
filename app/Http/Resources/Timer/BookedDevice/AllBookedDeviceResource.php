@@ -16,17 +16,19 @@ class AllBookedDeviceResource extends JsonResource
     public function toArray(Request $request): array
     { 
         $statuParam = Param::select('type')->where('parameter_order', 1)->first()->type;
-        $remainingMinutes = $this->end_date_time 
-        ? Carbon::now()->diffInMinutes(Carbon::parse($this->end_date_time), false) 
-        : 0;
-
-        $statusParam = 'normal';
-        if ($remainingMinutes < 0) {
-        $statusParam = 'danger'; 
-        } elseif ($remainingMinutes < $statuParam) {
-        $statusParam = 'warning'; 
-        }else{
+        if (!$this->end_date_time) {
+            // لو end_date_time فاضي
             $statusParam = 'normal';
+            $remainingMinutes = 0;
+        } else {
+            $remainingMinutes = Carbon::now()->diffInMinutes(Carbon::parse($this->end_date_time), false);
+            if ($remainingMinutes < 0) {
+                $statusParam = 'danger';
+            } elseif ($remainingMinutes < $statuParam) {
+                $statusParam = 'warning';
+            } else {
+                $statusParam = 'normal';
+            }
         }
         return [//sessionDevice,deviceType,deviceTime,device
             'bookedDeviceId' => $this->id,
