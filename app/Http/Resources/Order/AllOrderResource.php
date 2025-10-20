@@ -19,9 +19,10 @@ class AllOrderResource  extends JsonResource
         return [
             'orderId' => $this->id,
             // 'orderNumber' => $this->number,
-            'name' => $this->name,
+            'name' => $this->name??"",
             'price' => $this->price,
-            'orderItems'=> OrderItemResource::collection($this->whenLoaded('items')),
+            // 'orderItems'=> OrderItemResource::collection($this->whenLoaded('items')),
+            'orderItems'=> OrderItemResource::collection($this->items),
             // 'totalOrderItems'=>$this->items->count(),
             // 'date' =>Carbon::parse($this->created_at)->format('d/m/Y')
         ];

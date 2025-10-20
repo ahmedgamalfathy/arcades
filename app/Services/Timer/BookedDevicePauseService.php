@@ -33,6 +33,7 @@ class BookedDevicePauseService
             if($bookedDevice->end_date_time){
                 $bookedDevice->end_date_time = Carbon::parse($bookedDevice->end_date_time)
                     ->addSeconds($pause->duration_seconds);
+                $bookedDevice->period_cost = $bookedDevice->calculatePrice();
                 $bookedDevice->save();
             }
         }

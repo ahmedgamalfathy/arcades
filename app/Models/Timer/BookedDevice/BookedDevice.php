@@ -6,7 +6,10 @@ use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Device\DeviceTime\DeviceTime;
 use App\Models\Timer\BookedDevicePause\BookedDevicePause;
-
+use App\Models\Device\DeviceType\DeviceType;
+use App\Models\Timer\SessionDevice\sessionDevice;
+use App\Models\Device\Device;
+use App\Models\Order\Order;
 class BookedDevice extends Model
 {
      use UsesTenantConnection;
@@ -20,12 +23,27 @@ class BookedDevice extends Model
     {
         return $this->hasMany(BookedDevicePause::class);
     }
-
+//sessionDevice,deviceType,deviceTime,device
+   public function sessionDevice()
+    {
+        return $this->belongsTo(SessionDevice::class);
+    }
+    public function deviceType()
+    {
+        return $this->belongsTo(DeviceType::class);
+    }
+    public function device()
+    {
+        return $this->belongsTo(Device::class);
+    }
     public function deviceTime()
     {
         return $this->belongsTo(DeviceTime::class);
     }
-
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
     public function calculateUsedSeconds(): int
     {
         $start=$this->start_date_time;

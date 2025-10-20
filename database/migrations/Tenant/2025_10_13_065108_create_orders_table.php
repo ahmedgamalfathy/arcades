@@ -5,7 +5,7 @@ use App\Enums\Order\OrderTypeEnum;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-
+use App\Models\Timer\BookedDevice\BookedDevice;
 return new class extends Migration
 {
     /**
@@ -16,8 +16,9 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('number')->unique();
-            $table->string('name')->unique();
+            $table->string('name')->nullable()->unique();
             $table->tinyInteger('type')->default(OrderTypeEnum::EXTERNAL->value);
+            $table->foreignIdFor(BookedDevice::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('price', 10, 2)->default(0);
             $table->timestamps();
         });

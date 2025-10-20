@@ -14,11 +14,11 @@ class DeviceTimerService
 
     // ✅ start أو إدخال وقت محدد
     public function startOrSetTime(array $data)
-    {
-        if (!empty($data['start_date_time']) && !empty($data['end_date_time'])) {
+    {//sessionDeviceId,deviceTypeId,deviceId,deviceTimeId,startDateTime,endDateTime
+        if (!empty($data['startDateTime']) && !empty($data['endDateTime'])) {
             $data['status'] = BookedDeviceEnum::ACTIVE->value;
-            $data['total_used_seconds'] = Carbon::parse($data['start_date_time'])
-                ->diffInSeconds(Carbon::parse($data['end_date_time']));
+            $data['totalUsedSeconds'] = Carbon::parse($data['startDateTime'])
+                ->diffInSeconds(Carbon::parse($data['endDateTime']));
         } else {
            $data['status'] = BookedDeviceEnum::ACTIVE->value;
         }
@@ -30,10 +30,12 @@ class DeviceTimerService
     public function pause(int $id)
     {
          $bookedDevice=BookedDevice::findOrFail($id);
-        if ($bookedDevice->status !== BookedDeviceEnum::ACTIVE->value) {
-            throw new \Exception('Device is not active.');
+        if($bookedDevice->status== BookedDeviceEnum::FINISHED->value){
+            throw new \Exception('Device is already finished.');
         }
-
+        if ($bookedDevice->status !== BookedDeviceEnum::ACTIVE->value) {
+            throw new \Exception('Device is already paused.');
+        }
         $this->pauseService->createPause($id);
         $this->bookedDeviceService->updateBookedDevice($id, ['status' =>  BookedDeviceEnum::PAUSED->value]);
     }
@@ -51,6 +53,10 @@ class DeviceTimerService
 
     public function finish(int $id)
     {
+        $bookedDevice=BookedDevice::findOrFail($id);
+        if($bookedDevice->status== BookedDeviceEnum::FINISHED->value){
+            throw new \Exception('Device is already finished.');
+        }
         return $this->bookedDeviceService->finishBookedDevice($id);
     }
 

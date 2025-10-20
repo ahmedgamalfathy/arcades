@@ -19,7 +19,7 @@ class OrderResource extends JsonResource
         return [
             'orderId' => $this->id,
             'orderNumber' => $this->number,
-            'name' => $this->name,
+            'name' => $this->name??"",
             'price' => $this->price,
             'date' =>Carbon::parse($this->created_at)->format('d/m/Y'),
             'time' =>Carbon::parse($this->created_at)->format('H:i'),

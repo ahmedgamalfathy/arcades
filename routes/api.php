@@ -13,13 +13,16 @@ use App\Http\Controllers\API\V1\Dashboard\Product\ProductController;
 use App\Http\Controllers\API\V1\Dashboard\User\UserProfileController;
 use App\Http\Controllers\API\V1\Dashboard\Device\DeviceTimeController;
 use App\Http\Controllers\API\V1\Dashboard\Device\DeviceTypeController;
+use App\Http\Controllers\API\V1\Dashboard\Timer\DeviceTimerController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\SendCodeController;
 use App\Http\Controllers\API\V1\Dashboard\Maintenance\MaintenanceController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\ResendCodeController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\VerifyCodeController;
 use App\Http\Controllers\API\V1\Dashboard\User\ChangeCurrentPasswordController;
 use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\ChangePasswordController;
-use App\Http\Controllers\API\V1\Dashboard\Timer\DeviceTimerController;
+use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesController;
+use App\Http\Controllers\API\V1\Dashboard\Timer\SessionDevice\SessionDeviceController;
+use App\Http\Controllers\API\V1\Dashboard\Setting\Param\ParamController;
 
 Route::prefix('v1/admin')->group(function () {
         Route::prefix('auth')->group(function () {
@@ -54,11 +57,21 @@ Route::prefix('v1/admin')->group(function () {
         Route::apiResource('device-times', DeviceTimeController::class);
         Route::apiResource('devices', DeviceController::class);
         Route::apiResource('maintenances', MaintenanceController::class);
+        Route::post('/device-timer/end-group-times',EndGroupTimesController::class);
         Route::prefix('device-timer')->controller(DeviceTimerController::class)->group(function () {
-            Route::post('start-individual', 'startIndividual');
+            Route::post('individual-time', 'individualTime');
+            Route::post('group-time', 'groupTime');
             Route::post('{id}/finish', 'finish');
             Route::post('{id}/pause', 'pause');
             Route::post('{id}/resume', 'resume');
             Route::post('{id}/change-time', 'changeTime');
+            Route::get('{id}/show','show');
+            Route::delete('{id}/delete','destroy');
+            Route::put('{id}/update-end-date-time', 'updateEndDateTime');
+            Route::put('{id}/transfer_device _to_group','transferDeviceToGroup');
+        });
+        Route::apiResource('sessions', SessionDeviceController::class)->only(['index','show','destroy']);
+        Route::prefix('parameter')->group(function () {
+            Route::apiResource('params', ParamController::class);
         });
    });

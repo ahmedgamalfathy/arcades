@@ -12,11 +12,14 @@ use App\Services\Timer\DeviceTimerService;
 use App\Services\Timer\BookedDeviceService;
 use App\Services\Timer\SessionDeviceService;
 use App\Enums\SessionDevice\SessionDeviceEnum;
+use App\Http\Requests\Timer\Group\CreateGroupRequest;
 use App\Http\Requests\Timer\Individual\CreateIndividualRequest;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
+use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
+use Exception;
 class DeviceTimerController extends Controller  implements HasMiddleware
 {
     public function __construct(
@@ -38,9 +41,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             new Middleware('tenant'),
         ];
     }
-
-//Individual
-    public function startIndividual(CreateIndividualRequest $createIndividualRequest)
+    public function individualTime(CreateIndividualRequest $createIndividualRequest)
     {
         try {
          DB::beginTransaction();
@@ -50,24 +51,52 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         ]);
         $data = $createIndividualRequest->validated();
 
-        $start = Carbon::parse($data['start_date_time']);
-        $end   = $data['end_date_time'] ? Carbon::parse($data['end_date_time']) : null;
+        $start = Carbon::parse($data['startDateTime']);
+        $end   = $data['endDateTime'] ? Carbon::parse($data['endDateTime']) : null;
 
         if ($end && $end->lessThanOrEqualTo($start)) {
         return ApiResponse::error("The end time must be after the start time.");
         }
-        $data['session_device_id']=$sessionDevice->id;
+        $data['sessionDeviceId']=$sessionDevice->id;
 
         $device = $this->timerService->startOrSetTime($data);
         DB::commit();
-        return ApiResponse::success($device);
+        return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
     }
+    public function groupTime(CreateGroupRequest $createGroupRequest){
+        $data= $createGroupRequest->validated();
+        try {
+         DB::beginTransaction();
+        if( $data['name'] && $data['sessionDeviceId']){
+            throw new exception("name and sessionDeviceId are required");
+        }elseIf($data['name']){
+             $sessionDevice= $this->sessionDeviceService->createSessionDevice([
+                'name'=>$data['name'],
+                'type'=>SessionDeviceEnum::GROUP->value
+            ]);
+            $data['sessionDeviceId']=$sessionDevice->id;
+        }elseIf($data['sessionDeviceId']){
+            $sessionDevice= $this->sessionDeviceService->editSessionDevice($data['sessionDeviceId']);
+            $data['sessionDeviceId']=$sessionDevice->id;    
+        }
+        $start = Carbon::parse($data['startDateTime']);
+        $end   = $data['endDateTime'] ? Carbon::parse($data['endDateTime']) : null;
 
-
+        if ($end && $end->lessThanOrEqualTo($start)) {
+        return ApiResponse::error("The end time must be after the start time.");
+        }
+        $device = $this->timerService->startOrSetTime($data);
+        DB::commit();
+        return ApiResponse::success([],__('crud.created'));
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     public function pause($id)
     {
         try {
@@ -123,13 +152,81 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     {
         try {
             DB::beginTransaction();
-                $request->validate(['device_time_id' => 'required|exists:device_times,id']);
+                $request->validate(['deviceTimeId' => 'required|exists:device_times,id']);
                 $device = $this->bookedDeviceService->editBookedDevice($id);
-                $newDevice = $this->timerService->changeDeviceTime($device->id, $request->device_time_id);
+                $newDevice = $this->timerService->changeDeviceTime($device->id, $request->deviceTimeId);
             DB::commit();
             return ApiResponse::success($newDevice,__('crud.updated'));
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    //show device timer
+    public function show($id){
+        try {
+            $device = $this->bookedDeviceService->editBookedDevice($id);
+            return ApiResponse::success(new BookedDevcieResource($device));
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    //delete device timer
+    public function destroy(int $id){
+        try {
+            $this->bookedDeviceService->deleteBookedDevice($id);
+            return ApiResponse::success([],__('crud.deleted'));
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    //update device end date time
+    public function updateEndDateTime($id, Request $request){
+        try {
+            DB::beginTransaction();
+                $request->validate([
+                    'endDateTime' => [
+                        'required',
+                        'date_format:Y-m-d H:i:s',
+                        function ($attribute, $value, $fail) use ($id) {
+                            $bookedDevice = $this->bookedDeviceService->editBookedDevice($id);
+                            $start = Carbon::parse($bookedDevice->start_date_time);
+                            $end = Carbon::parse($value);
+                            if ($end->lessThanOrEqualTo($start)) {
+                                $fail('The End Time must be after the Start Time.');
+                            }
+                        },
+                    ],
+                ]);
+                $device = $this->bookedDeviceService->editBookedDevice($id);
+                $this->bookedDeviceService->updateEndDateTime($device->id, $request->all());
+            DB::commit();
+            return ApiResponse::success([],__('crud.updated'));
+        }catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    //transfer device to group
+    public function transferDeviceToGroup($id, Request $request){
+        try {
+            DB::beginTransaction();
+                $request->validate([
+                    'name' => 'required_without:sessionDeviceId|nullable|string',
+                    'sessionDeviceId' => 'required_without:name|nullable|exists:session_devices,id',
+                ]);
+                $device = $this->bookedDeviceService->editBookedDevice($id);
+                $this->bookedDeviceService->transferDeviceToGroup($device->id, $request->all());
+            DB::commit();
+            return ApiResponse::success([],__('crud.updated'));
+        }catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'),$th->getMessage(),HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }

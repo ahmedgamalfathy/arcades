@@ -39,10 +39,18 @@ class OrderService
     public function createOrder(array $data){
         $totalPrice = 0;
        //name , type , price
-        $order = Order::create([
-             'name'=>$data['name'],
-             'type' => OrderTypeEnum::from($data['type'])->value,
-        ]);
+        if($data['type'] == OrderTypeEnum::INTERNAL->value){
+            $order = Order::create([
+                'name'=>$data['name']??null,
+                'type' => OrderTypeEnum::from($data['type'])->value,
+                'booked_device_id'=>$data['bookedDeviceId'],
+            ]);
+        }else{
+            $order = Order::create([
+                'name'=>$data['name']??null,
+                'type' => OrderTypeEnum::from($data['type'])->value,
+            ]);
+        }
         foreach ($data['orderItems'] as $itemData) {
             $item= $this->orderItemService->createOrderItem([
                     'orderId' => $order->id,
@@ -63,7 +71,7 @@ class OrderService
         if(!$order){
             throw new ModelNotFoundException();
         }
-        $order->name = $data['name'];
+        $order->name = $data['name']??null;
         $order->save();
 
         foreach ($data['orderItems'] as $itemData) {

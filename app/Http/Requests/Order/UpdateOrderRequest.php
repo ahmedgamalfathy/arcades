@@ -12,7 +12,7 @@ use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
+use App\Models\Order\Order;
 class UpdateOrderRequest extends FormRequest
 {
     /**
@@ -32,17 +32,15 @@ class UpdateOrderRequest extends FormRequest
     {
         //  ['string',  'min:3', Rule::unique('users', 'email')->ignore($this->route('user'))]
         return [
-            'name' => ['required','string',Rule::unique('orders', 'name')->ignore($this->route('order'))],
-            // 'type' => ['nullable',new Enum(OrderTypeEnum::class)],
+            'name' => ['string',Rule::unique('orders', 'name')->ignore($this->route('order')),
+                Rule::requiredIf(function () {
+                $order = Order::find($this->route('order'));
+                return $order && (int) $order->type === 1;
+                }),
+            ],
              'orderItems' => ['required', 'array', 'min:1'],
              'orderItems.*.productId' => ['required', 'integer', 'exists:products,id'],
              'orderItems.*.qty' => ['required', 'integer', 'min:1'],
-            // 'orderItems.*.orderItemId' => [
-            //     'nullable',
-            //     'integer',
-            //     'required_if:orderItems.*.actionStatus,update,delete,""',
-            //     'exists:order_items,id',
-            // ],
             'orderItems.*.orderItemId' => [
             'nullable',
             'integer',
@@ -71,8 +69,7 @@ class UpdateOrderRequest extends FormRequest
     public function messages()
     {
         return [
-            'name.required'=> __('validation.custom.required'),
-            'type.required' => __('validation.custom.required'),
+            'name.required_if' => __('validation.custom.required'),
             'orderItems.required' => __('validation.custom.required'),
         ];
     }

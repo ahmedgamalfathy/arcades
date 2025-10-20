@@ -138,12 +138,28 @@ class MakeTenantMigration extends Command
         // Run seeders if requested
         if ($this->option('seed')) {
             $this->line("Seeding tenant {$tenant->id}...");
-            Artisan::call('db:seed', [
-                '--database' => $connectionName,
-                '--force' => true,
-                '--class' => 'Database\\Seeders\\MediaSeeder', // ← هنا تحط اسم الـ seeder اللي عايز تشغله
-            ]);
+            $seeders = [
+                \Database\Seeders\MediaSeeder::class,
+                \Database\Seeders\ParamSeeder::class,
+            ];
+            foreach ($seeders as $seederClass) {
+                $this->line(" → Running {$seederClass}");
+                Artisan::call('db:seed', [
+                    '--database' => $connectionName,
+                    '--force' => true,
+                    '--class' => $seederClass,
+                ]);
+                $this->info(Artisan::output());
+            }
         }
+        // if ($this->option('seed')) {
+        //     $this->line("Seeding tenant {$tenant->id}...");
+        //     Artisan::call('db:seed', [
+        //         '--database' => $connectionName,
+        //         '--force' => true,
+        //         '--class' => 'Database\\Seeders\\MediaSeeder', // ← هنا تحط اسم الـ seeder اللي عايز تشغله
+        //     ]);
+        // }
 
 
         // Purge connection

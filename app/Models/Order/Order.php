@@ -6,6 +6,7 @@ use App\Models\Order\OrderItem;
 use App\Enums\Order\OrderStatus;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Timer\BookedDevice\BookedDevice;
 
 class Order extends Model
 {
@@ -22,5 +23,9 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+    public function bookedDevice()
+    {
+        return $this->belongsTo(BookedDevice::class);
     }
 }

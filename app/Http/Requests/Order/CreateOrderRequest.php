@@ -31,8 +31,17 @@ class CreateOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required','string','unique:orders,name'],
+            'name' => [
+                'string',
+                'unique:orders,name',
+                'required_if:type,1',
+            ],
             'type' => ['required',new Enum(OrderTypeEnum::class)],
+            'bookedDeviceId' => [
+                'nullable',
+                'exists:booked_devices,id',
+                'required_if:type,0',
+            ],
             'orderItems' => ['required', 'array', 'min:1'],
             'orderItems.*.productId' => ["required", 'integer', 'exists:products,id'],
             'orderItems.*.qty' => ['required', 'integer', 'min:1'],
@@ -48,8 +57,9 @@ class CreateOrderRequest extends FormRequest
     public function messages()
     {
         return [
-            'name.required'=> __('validation.custom.required'),
+            'name.required_if' => __('validation.custom.required'),
             'type.required' => __('validation.custom.required'),
+            'bookedDeviceId.required_if' => __('validation.custom.required'),
             'orderItems.required' => __('validation.custom.required'),
             'productId.required' => __('validation.custom.required'),
             'qty.required' => __('validation.custom.required'),
