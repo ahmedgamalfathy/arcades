@@ -38,8 +38,8 @@ Route::prefix('v1/admin')->group(function () {
 });
 
 Route::prefix('v1/admin')->group(function () {
-        Route::get('expenses/internal',[ExpenseController::class,'internalExpenses']);
-        Route::get('expenses/external',[ExpenseController::class,'externalExpenses']);
+        // Route::get('expenses/internal',[ExpenseController::class,'internalExpenses']);
+        // Route::get('expenses/external',[ExpenseController::class,'externalExpenses']);
         Route::put('users/changePassword',[UserController::class,'userChangePassword']);
         Route::post('expenses/{id}/restore', [ExpenseController::class, 'restore']);
         Route::delete('expenses/{id}/force', [ExpenseController::class, 'forceDelete']);
@@ -49,7 +49,7 @@ Route::prefix('v1/admin')->group(function () {
         Route::apiResource('media', MediaController::class);
         Route::apiResource('products', ProductController::class);
         Route::apiResource('orders', OrderController::class);
-        Route::apiResource('expenses', ExpenseController::class)->except('index');
+        Route::apiResource('expenses', ExpenseController::class);
         Route::put('profile/change-password', ChangeCurrentPasswordController::class);
         Route::apiSingleton('profile', UserProfileController::class);
          Route::put('devices/{id}/changeStatus',[DeviceController::class,'changeStatus']);
