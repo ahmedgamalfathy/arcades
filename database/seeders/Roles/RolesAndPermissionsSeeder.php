@@ -102,8 +102,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'products',
             'edit_product',
 
-            'internalExpenses',
-            'externalExpenses',
+          
 
             'devices',
             'edit_device',
