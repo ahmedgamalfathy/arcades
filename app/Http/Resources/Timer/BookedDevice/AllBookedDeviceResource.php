@@ -25,6 +25,8 @@ class AllBookedDeviceResource extends JsonResource
         $statusParam = 'danger'; 
         } elseif ($remainingMinutes < $statuParam) {
         $statusParam = 'warning'; 
+        }else{
+            $statusParam = 'normal';
         }
         return [//sessionDevice,deviceType,deviceTime,device
             'bookedDeviceId' => $this->id,
