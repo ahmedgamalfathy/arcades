@@ -17,7 +17,6 @@ use App\Http\Requests\Timer\Individual\CreateIndividualRequest;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
 use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
 use Exception;
 class DeviceTimerController extends Controller  implements HasMiddleware

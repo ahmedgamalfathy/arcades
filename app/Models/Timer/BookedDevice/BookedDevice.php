@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Device\DeviceTime\DeviceTime;
 use App\Models\Timer\BookedDevicePause\BookedDevicePause;
 use App\Models\Device\DeviceType\DeviceType;
-use App\Models\Timer\SessionDevice\sessionDevice;
+use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Models\Device\Device;
 use App\Models\Order\Order;
 class BookedDevice extends Model
