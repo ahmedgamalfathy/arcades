@@ -71,7 +71,7 @@ class UserProfileController extends Controller implements HasMiddleware
                     $this->mediaService->deleteMedia($mediaId);
                 }
         }
-        $authUser->name = $userData['name'].$superAdmin->app_key;
+        $authUser->name = $userData['name'];
         $authUser->media_id =$mediaId;
         $authUser->save();
 

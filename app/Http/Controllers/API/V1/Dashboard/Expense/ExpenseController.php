@@ -50,13 +50,13 @@ class ExpenseController extends Controller implements HasMiddleware
      */
     public function internalExpenses(Request $request)
     {
-        $expenses = $this->expenseService->allExpenses($request,ExpenseTypeEnum::INTERNAL->value);
+        $expenses = $this->expenseService->allExpenses($request);
         return ApiResponse::success(new AllExpenseResource($expenses));
     }
 
     public function externalExpenses(Request $request)
     {
-        $expenses = $this->expenseService->allExpenses($request,ExpenseTypeEnum::EXTERNAL->value);
+        $expenses = $this->expenseService->allExpenses($request);
         return ApiResponse::success(new AllExpenseResource($expenses));
     }
 

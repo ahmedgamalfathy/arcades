@@ -111,12 +111,19 @@ class UserService{
         //     $query->where('name', 'super admin');
         // })->first();
         $user = User::find($userId);
+         $finalEmail = $userData['email'] . $superAdmin->app_key;
+            if (User::where('email', $finalEmail)->exists()) {
+                throw ValidationException::withMessages([
+                    'email' => ['This email is already taken.'],
+                ]);
+            }
         $oldMediaId = $user->media_id;
         $mediaId = $oldMediaId;
         if (isset($userData['mediaFile']) && $userData['mediaFile'] instanceof UploadedFile) {
                 $media = $this->mediaService->createMedia([
                     'path' => $userData['mediaFile'],
                     'type' => MediaTypeEnum::PHOTO,
+                    'category'=>null,
                 ]);
                 $mediaId = $media->id;
                 if ($oldMediaId) {

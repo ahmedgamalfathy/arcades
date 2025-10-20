@@ -21,4 +21,6 @@ return [
     'code_confirm'=>"The verification code is correct",
     'send_code'=>"The code has been sent successfully.",
     'change_password' => 'The password has been changed.',
+    'inactive_account'=>'Your account is inactive.',
+    'logged_out'=>'You have successfully logged out.',
 ];

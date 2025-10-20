@@ -3,11 +3,19 @@ namespace App\Services\Expense;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Models\Expense\Expense;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class ExpenseService {
- public function allExpenses(Request $request,int $type) {
+ public function allExpenses(Request $request) {
     $perPage =$request->query('perPage',10);
-    $expenses = Expense::where('type',$type)->orderByDesc('id')->cursorPaginate($perPage);
+    // $expenses = Expense::where('type',$type)->orderByDesc('id')->cursorPaginate($perPage);
+    $expenses = QueryBuilder::for(Expense::class)
+    ->allowedFilters([
+        // AllowedFilter::custom('search', new FilterExpense),
+        AllowedFilter::exact('type', 'type'),
+    ])
+    ->cursorPaginate($perPage);
     return $expenses;
  }
  public function editExpense(int $id){
