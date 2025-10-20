@@ -18,6 +18,7 @@ use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
+use App\Http\Resources\Device\DeviceResource;
 use Exception;
 class DeviceTimerController extends Controller  implements HasMiddleware
 {
@@ -132,13 +133,13 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         try {
             DB::beginTransaction();
                 $finished = $this->timerService->finish($id);
-                $data=[
-                    'message' => 'Device finished',
-                    'total_seconds' => $finished->total_used_seconds,
-                    'price' => $finished->calculatePrice(),
-                ];
+                // $data=[
+                //     'message' => 'Device finished',
+                //     'total_seconds' => $finished->total_used_seconds,
+                //     'price' => $finished->calculatePrice(),
+                // ];
             DB::commit();
-         return ApiResponse::success($data);
+         return ApiResponse::success(new  BookedDevcieResource($finished));
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
