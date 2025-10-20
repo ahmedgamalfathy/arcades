@@ -13,6 +13,7 @@ use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Controllers\Controller;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Enums\BookedDevice\BookedDeviceEnum;
 
 class EndGroupTimesController extends Controller  implements HasMiddleware
 {
@@ -43,7 +44,9 @@ class EndGroupTimesController extends Controller  implements HasMiddleware
                 return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
                }
                foreach($sessionDevice->bookedDevices as $device){
-                 $this->timerService->finish($device->id);
+                    if ($device->status != BookedDeviceEnum::FINISHED->value) {
+                        $this->timerService->finish($device->id);
+                    }
                }
                //, 'bookedDevices.device.media'
                //sessionDevice,deviceType,deviceTime,device
