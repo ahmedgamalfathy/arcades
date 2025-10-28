@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use App\Models\Timer\BookedDevice\BookedDevice;
+use App\Models\Daily\Daily;
 return new class extends Migration
 {
     /**
@@ -20,6 +21,7 @@ return new class extends Migration
             $table->tinyInteger('type')->default(OrderTypeEnum::EXTERNAL->value);
             $table->foreignIdFor(BookedDevice::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('price', 10, 2)->default(0);
+            $table->foreignIdFor(Daily::class)->nullable()->constrained()->cascadeOnUpdate()->nullOnDelete();
             $table->timestamps();
         });
     }

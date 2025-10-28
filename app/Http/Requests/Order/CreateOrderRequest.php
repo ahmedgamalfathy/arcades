@@ -37,14 +37,15 @@ class CreateOrderRequest extends FormRequest
                 'required_if:type,1',
             ],
             'type' => ['required',new Enum(OrderTypeEnum::class)],
-            'bookedDeviceId' => [
-                'nullable',
-                'exists:booked_devices,id',
-                'required_if:type,0',
-            ],
+            // 'bookedDeviceId' => [
+            //     'nullable',
+            //     'exists:booked_devices,id',
+            //     'required_if:type,0',
+            // ],
             'orderItems' => ['required', 'array', 'min:1'],
             'orderItems.*.productId' => ["required", 'integer', 'exists:products,id'],
             'orderItems.*.qty' => ['required', 'integer', 'min:1'],
+            'dailyId' => ['required_if:type,0', 'exists:dailies,id'],
         ];
     }
 

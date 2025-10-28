@@ -29,25 +29,17 @@ class OrderController extends Controller implements HasMiddleware
     {//orders ,create_orders , edit_order ,update_order ,destroy_order
         return [
             new Middleware('auth:api'),
-            new Middleware('permission:internalOrders', only:['internalOrders']),
-            new Middleware('permission:externalOrders', only:['externalOrders']),
+            new Middleware('permission:orders', only:['index']),
             new Middleware('permission:create_orders', only:['create']),
-            new Middleware('permission:edit_order', only:['edit']),
+            new Middleware('permission:edit_order', only:['show']),
             new Middleware('permission:update_order', only:['update']),
             new Middleware('permission:destroy_order', only:['destroy']),
             new Middleware('tenant'),
         ];
     }
-
-     public function internalOrders(Request $request)
+    public function index(Request $request)
     {
-        $orders = $this->orderService->allOrders($request,OrderTypeEnum::INTERNAL->value);
-        return ApiResponse::success(new AllOrderCollection($orders));
-    }
-
-    public function externalOrders(Request $request)
-    {
-        $orders = $this->orderService->allOrders($request,OrderTypeEnum::EXTERNAL->value);
+        $orders = $this->orderService->allOrders($request);
         return ApiResponse::success(new AllOrderCollection($orders));
     }
 

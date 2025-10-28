@@ -19,6 +19,8 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
 use App\Http\Resources\Device\DeviceResource;
+use App\Models\User;
+use App\Notifications\BookedDeviceStatusNotification;
 use Exception;
 class DeviceTimerController extends Controller  implements HasMiddleware
 {
@@ -44,12 +46,14 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     public function individualTime(CreateIndividualRequest $createIndividualRequest)
     {
         try {
+        
          DB::beginTransaction();
+         $data = $createIndividualRequest->validated();
         $sessionDevice= $this->sessionDeviceService->createSessionDevice([
             'name'=>'individual',
-            'type'=>SessionDeviceEnum::INDIVIDUAL->value
+            'type'=>SessionDeviceEnum::INDIVIDUAL->value,
+            'daily_id'=>$data['dailyId']
         ]);
-        $data = $createIndividualRequest->validated();
 
         $start = Carbon::parse($data['startDateTime']);
         $end   = $data['endDateTime'] ? Carbon::parse($data['endDateTime']) : null;
@@ -58,8 +62,19 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         return ApiResponse::error("The end time must be after the start time.");
         }
         $data['sessionDeviceId']=$sessionDevice->id;
-
-        $device = $this->timerService->startOrSetTime($data);
+               $booked   = $this->timerService->startOrSetTime($data);
+                   $user=User::find(auth('api')->id());
+                   $user->notify(new BookedDeviceStatusNotification([
+                    "sessionDevice" => optional($booked->sessionDevice)->id,
+                    "deviceTypeName" => optional($booked->deviceType)->name,
+                    "deviceTimeName" => optional($booked->deviceTime)->name,
+                    "deviceName" => optional($booked->device)->name,
+                    "bookedDeviceId" => $booked->id,
+                    "message" => "متبقى على الجهاز دقائق",
+                    "userId" => $user->id,
+                    "created_at" =>now(),
+                    "updated_at" => now(),
+                ]));
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
@@ -76,7 +91,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         }elseIf($data['name']){
              $sessionDevice= $this->sessionDeviceService->createSessionDevice([
                 'name'=>$data['name'],
-                'type'=>SessionDeviceEnum::GROUP->value
+                'type'=>SessionDeviceEnum::GROUP->value,
+                'daily_id'=>$data['dailyId']
             ]);
             $data['sessionDeviceId']=$sessionDevice->id;
         }elseIf($data['sessionDeviceId']){

@@ -33,6 +33,7 @@ class CreateIndividualRequest extends FormRequest
             'deviceTimeId' => 'required|exists:device_times,id',
             'startDateTime' => 'required|date',
             'endDateTime' => 'nullable|date|after:startDateTime',
+            'dailyId' => 'required|exists:dailies,id',
         ];
     }
 
@@ -51,6 +52,7 @@ class CreateIndividualRequest extends FormRequest
             'deviceTypeId.required' => __('validation.custom.required'),
             'deviceTimeId.required' => __('validation.custom.required'),
             'startDateTime.required' => __('validation.custom.required'),
+            'dailyId.required' => __('validation.custom.required'),
         ];
     }
 

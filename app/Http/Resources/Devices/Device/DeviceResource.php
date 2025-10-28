@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Devices\Device;
 
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\Maintenance\MaintenanceResource;
@@ -21,6 +22,19 @@ class DeviceResource extends JsonResource
             'name' => $this->name,
             'status' => $this->status,
             'media' => $this->media->path ?? "",
+            //totalTime device hours and status bookeddevice
+            "time"=>[
+                "totalTime"=>  round(($this->bookedDevices()
+                    ->where('status',BookedDeviceEnum::FINISHED->value)
+                    ->sum('total_used_seconds') - $this->bookedDevices()
+                    ->where('status',BookedDeviceEnum::FINISHED->value)
+                    ->sum('total_paused_seconds')) / 3600,2) ?? 0,
+                "deviceType"=> $this->deviceType->name??"",
+                "statusDevice"=> $this->bookedDevices()
+                    ->orderBy('id', 'desc')
+                    ->first()?->status ?? BookedDeviceEnum::FINISHED->value,
+                
+            ],
             // 'deviceType'=>$this->whenLoaded('deviceType',new DeviceResource($this->deviceType)),
             'deviceTimes' =>$this->whenLoaded('deviceTimes',DeviceTimeResource::collection ($this->deviceTimes)),
             'maintenances' =>$this->whenLoaded('maintenances',MaintenanceResource::collection ($this->maintenances))

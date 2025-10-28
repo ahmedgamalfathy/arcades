@@ -7,7 +7,7 @@ use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
+use App\Enums\SessionDevice\SessionDeviceEnum;
 
 
 class CreateGroupRequest extends FormRequest
@@ -29,12 +29,13 @@ class CreateGroupRequest extends FormRequest
     {//name , price , date , note ,type
         return [
             'name' => 'required_without:sessionDeviceId|string|nullable',
-            'sessionDeviceId' => 'required_without:name|exists:session_devices,id|nullable',
+            'sessionDeviceId' => ['required_without:name', 'exists:session_devices,id,type,' . SessionDeviceEnum::GROUP->value, 'nullable'],
             'deviceId' => 'required|exists:devices,id',
             'deviceTypeId' => 'required|exists:device_types,id',
             'deviceTimeId' => 'required|exists:device_times,id',
             'startDateTime' => 'required|date',
             'endDateTime' => 'nullable|date|after:startDateTime',
+            'dailyId' => 'required|exists:dailies,id',
         ];
     }
 
@@ -53,6 +54,7 @@ class CreateGroupRequest extends FormRequest
             'deviceTypeId.required' => __('validation.custom.required'),
             'deviceTimeId.required' => __('validation.custom.required'),
             'startDateTime.required' => __('validation.custom.required'),
+            'dailyId.required' => __('validation.custom.required'),
         ];
     }
 

@@ -55,7 +55,8 @@ class DeviceTimerService
     {
         $bookedDevice=BookedDevice::findOrFail($id);
         if($bookedDevice->status== BookedDeviceEnum::FINISHED->value){
-            throw new \Exception('Device is already finished.');
+             return $bookedDevice;
+            // throw new \Exception('Device is already finished.');
         }
         return $this->bookedDeviceService->finishBookedDevice($id);
     }

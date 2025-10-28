@@ -8,7 +8,7 @@ use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Device\DeviceTime\DeviceTime;
 use App\Models\Device\DeviceType\DeviceType;
-
+use App\Models\Timer\BookedDevice\BookedDevice;
 class Device extends Model
 {
     use UsesTenantConnection;
@@ -32,5 +32,8 @@ class Device extends Model
     {
         return $this->hasMany(Maintenance::class,'device_id');
     }
-
+     public function bookedDevices()
+    {
+        return $this->hasMany(BookedDevice::class,'device_id');
+    }
 }

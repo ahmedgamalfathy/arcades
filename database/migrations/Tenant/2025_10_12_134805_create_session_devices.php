@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use App\Enums\SessionDevice\SessionDeviceEnum;
-
+use App\Models\Daily\Daily;
 return new class extends Migration
 {
     /**
@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->tinyInteger('type')->default(SessionDeviceEnum::INDIVIDUAL->value);
             $table->string('name');
-            // $table->foreignId('daily_id')->nullable()->constrained('dailies')->onDelete('cascade');
+            $table->foreignIdFor(Daily::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });
     }

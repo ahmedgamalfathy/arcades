@@ -35,7 +35,8 @@ class CreateExpenseRequest extends FormRequest
             'price'=> ['required','numeric','min:1'],
             'type' => ['required', new Enum(ExpenseTypeEnum::class)],
             'date'=>['required','string','date_format:Y-m-d'],
-            'note'=>['nullable','string']
+            'note'=>['nullable','string'],
+            'dailyId' => ['required_if:type,0', 'exists:dailies,id'],
         ];
     }
 

@@ -19,15 +19,20 @@ use App\Http\Resources\Devices\Device\DeviceResource;
 use App\Services\Device\DeviceTime\DeviceTimeService;
 use App\Http\Resources\Devices\Device\AllDeviceResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Services\Order\OrderService;
+use App\Http\Requests\Order\CreateOrderDeviceRequest;
+use App\Enums\Order\OrderTypeEnum;
 
 class DeviceController extends Controller  implements HasMiddleware
 {
     protected $deviceTimeService;
     protected $deviceService;
-    public function __construct(DeviceTimeService $deviceTimeService ,DeviceService $deviceService)
+    protected $orderService;
+    public function __construct(DeviceTimeService $deviceTimeService ,DeviceService $deviceService,OrderService $orderService)
     {
         $this->deviceTimeService = $deviceTimeService;
         $this->deviceService = $deviceService;
+        $this->orderService = $orderService;
     }
     public static function middleware(): array
     {
@@ -123,6 +128,18 @@ class DeviceController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
+    }
+    public function createOrderDevice(CreateOrderDeviceRequest $createOrderDeviceRequest){
+        try {
+            DB::beginTransaction();
+            $data =$createOrderDeviceRequest->validated();
+            $data['type']=OrderTypeEnum::INTERNAL->value;
+            $this->orderService->createOrder($data);
+            DB::commit();
+            return ApiResponse::success([],__('crud.created'));
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
     }
 
 }

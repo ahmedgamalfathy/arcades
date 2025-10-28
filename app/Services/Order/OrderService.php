@@ -17,14 +17,14 @@ class OrderService
     {
         $this->orderItemService = $orderItemService;
     }
-    public function allOrders(Request $request,int $type){
+    public function allOrders(Request $request){
         $perPage= $request->query('perPage',10);
         $orders = QueryBuilder::for(Order::class)
         ->allowedFilters([
            AllowedFilter::custom('search', new FilterOrder),
+           AllowedFilter::exact('type', 'type'),
         ])
         ->with(['items'])
-        ->where('type',$type)
         ->cursorPaginate($perPage);
         return $orders;
     }
@@ -43,12 +43,14 @@ class OrderService
             $order = Order::create([
                 'name'=>$data['name']??null,
                 'type' => OrderTypeEnum::from($data['type'])->value,
-                'booked_device_id'=>$data['bookedDeviceId'],
+                'booked_device_id'=>$data['bookedDeviceId']??null,
+                'daily_id'=>$data['dailyId']??null,
             ]);
         }else{
             $order = Order::create([
                 'name'=>$data['name']??null,
                 'type' => OrderTypeEnum::from($data['type'])->value,
+                'daily_id'=>$data['dailyId']??null,
             ]);
         }
         foreach ($data['orderItems'] as $itemData) {

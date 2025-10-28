@@ -51,8 +51,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'update_maintenace',
             'destroy_maintenace',
 //orders ,create_orders , edit_order ,update_order ,destroy_order
-            'internalOrders',
-            'externalOrders',
+            'orders',
             'create_orders',
             'edit_order',
             'update_order',
@@ -82,7 +81,27 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit_deviceType',
             'update_deviceType',
             'destroy_deviceType',
-
+//daily ,create_daily , edit_daily ,update_daily ,destroy_daily ,close_daily ,daily_report
+            'daily',
+            'create_daily',
+            'edit_daily',
+            'update_daily',
+            'destroy_daily',
+            'close_daily',
+            'daily_report',
+//all_params , create_param , edit_param ,update_param ,destroy_param
+            'all_params',
+            'create_param',
+            'edit_param',
+            'update_param',
+            'destroy_param',
+//notifications , auth_unread_notifications , auth_read_notifications , auth_read_notification , auth_delete_notifications , auth_delete_notification
+            'notifications',
+            'auth_unread_notifications',
+            'auth_read_notifications',
+            'auth_read_notification',
+            'auth_delete_notifications',
+            'auth_delete_notification',
         ];
 
         foreach ($permissions as $permission) {

@@ -3,8 +3,8 @@
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 use App\Enums\Expense\ExpenseTypeEnum;
-use App\Models\Expense\Expense;
 use App\Models\User;
+use App\Models\Daily\Daily;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
@@ -24,6 +24,7 @@ return new class extends Migration
             $table->decimal('price', 8,2);
             $table->date('date')->default(Carbon::now());
             $table->text('note')->nullable();
+            $table->foreignIdFor(Daily::class)->nullable()->constrained()->cascadeOnUpdate()->nullOnDelete();
             $table->softDeletes();
             $table->timestamps();
         });

@@ -32,7 +32,8 @@ class ExpenseService {
         'type'=>$data['type'],
         'price'=>$data['price'],
         'date'=>$data['date'],
-        'note'=>$data['note']??null
+        'note'=>$data['note']??null,
+        'daily_id'=>$data['dailyId']??null,
     ]);
     return $expense;
  }
