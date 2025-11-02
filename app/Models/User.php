@@ -19,7 +19,7 @@ use Spatie\Activitylog\LogOptions;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable , HasRoles ,HasApiTokens , LogsActivity;
+    use HasFactory, Notifiable , HasRoles ,HasApiTokens ;
     /**
      * The attributes that are mass assignable.
      *
@@ -27,15 +27,15 @@ class User extends Authenticatable
      */
      protected $connection = 'mysql';
      protected $guarded =[];
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('User')
-            ->logAll()
-            ->logOnlyDirty()
-            ->dontLogIfAttributesChangedOnly(['updated_at'])
-            ->setDescriptionForEvent(fn(string $eventName) => "User {$eventName}");
-    }
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->useLogName('User')
+    //         ->logAll()
+    //         ->logOnlyDirty()
+    //         ->dontLogIfAttributesChangedOnly(['updated_at'])
+    //         ->setDescriptionForEvent(fn(string $eventName) => "User {$eventName}");
+    // }
     /**
      * The attributes that should be hidden for serialization.
      *
