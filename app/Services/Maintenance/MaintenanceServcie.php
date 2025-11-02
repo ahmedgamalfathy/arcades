@@ -29,6 +29,7 @@ class MaintenanceServcie {
         'device_id'=>$data['deviceId'],
         'title'=>$data['title'],
         'price'=>$data['price'],
+        'place'=>$data['place']??null,
         'date'=>$data['date'],
         'note'=>$data['note']??null
     ]);
@@ -44,6 +45,7 @@ class MaintenanceServcie {
     $maintenance->title = $data['title'];
     $maintenance->price = $data['price'];
     $maintenance->date = $data['date'];
+    $maintenance->place = $data['place']??null;
     $maintenance->note = $data['note']??null;
     $maintenance->save();
     return $maintenance;

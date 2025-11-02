@@ -11,12 +11,16 @@ use App\Services\Media\MediaService;
 use App\Enums\Device\DeviceStatusEnum;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Services\Device\DeviceTime\DeviceTimeService;
+use App\Models\Device\DeviceTime\DeviceTime;
 
 class DeviceService
 {
     protected $mediaService;
-    public function __construct(MediaService $mediaService){
+    protected $deviceTimeService;
+    public function __construct(MediaService $mediaService ,DeviceTimeService $deviceTimeService){
       $this->mediaService = $mediaService;
+      $this->deviceTimeService = $deviceTimeService;
     }
     public function allDevices(Request $request)
     {
@@ -58,6 +62,20 @@ class DeviceService
             ]);
             if (isset($data['deviceTimeIds'])) {
                 $device->deviceTimes()->attach($data['deviceTimeIds']);
+            }
+            if (isset($data['deviceTimeSpecial'])) {
+                foreach ($data['deviceTimeSpecial'] as $deviceTimeSpecial) {
+                    if($deviceTimeSpecial['name'] ){
+                        $existingDeviceTime = DeviceTime::where('name', $deviceTimeSpecial['name'])
+                        ->where('device_id', $device->id)
+                        ->first();
+                        if ($existingDeviceTime) {
+                            throw new Exception("Device time with name {$deviceTimeSpecial['name']} already exists for this device");
+                        }
+                    }
+                    $deviceTimeSpecial['deviceId'] = $device->id;
+                    $this->deviceTimeService->createDeviceTime($deviceTimeSpecial);
+                }
             }
             DB::commit();
             return $device;

@@ -53,7 +53,7 @@ class CreateDeviceTimeRequest extends FormRequest
                     $query->where('device_id', $this->deviceId)
                 ),
            ],
-          'rate'=> ['required','integer','min:1'],
+          'rate'=> ['required','numeric','min:1'],
         ];
     }
 

@@ -8,7 +8,13 @@ use Spatie\QueryBuilder\AllowedFilter;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Services\Timer\DeviceTimerService;
-use App\Enums\BookedDevice\BookedDeviceEnum;
+use Spatie\Activitylog\Models\Activity;
+use App\Models\Order\Order;
+use App\Models\Expense\Expense;
+use App\Models\Timer\SessionDevice\SessionDevice;
+use App\Models\Device\Device;
+use App\Models\Timer\BookedDevice\BookedDevice;
+use App\Http\Resources\ActivityLog\DailyActivityResource;
 
 class DailyService
 {
@@ -161,30 +167,75 @@ class DailyService
       $daily->save();
       return $daily;
      }
-public function dailyReport()
-{
-    $startOfMonth = Carbon::now()->startOfMonth();
-    $endOfMonth = Carbon::now()->endOfMonth();
+    public function dailyReport()
+    {
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
 
-    $dailies = Daily::query()
-        ->with(['orders', 'expenses', 'sessions.bookedDevices'])
-        ->whereBetween('start_date_time', [$startOfMonth, $endOfMonth])
-        ->orderBy('start_date_time', 'asc')
-        ->get()
-        ->groupBy(function ($daily) {
-            return Carbon::parse($daily->start_date_time)->format('Y-m-d');
-        })
-        ->map(function ($dailiesPerDay, $date) {
-            return [
-                'date' => $date,
-                'orders' => $dailiesPerDay->sum('total_orders'),
-                'devices' => $dailiesPerDay->sum('total_session_devices'),
-                'expenses' => $dailiesPerDay->sum('total_expenses'),
-                // 'count' => $dailiesPerDay->count(), // عدد السجلات لهذا اليوم
-            ];
-        })
-        ->values(); 
+        $dailies = Daily::query()
+            ->with(['orders', 'expenses', 'sessions.bookedDevices'])
+            ->whereBetween('start_date_time', [$startOfMonth, $endOfMonth])
+            ->orderBy('start_date_time', 'asc')
+            ->get()
+            ->groupBy(function ($daily) {
+                return Carbon::parse($daily->start_date_time)->format('Y-m-d');
+            })
+            ->map(function ($dailiesPerDay, $date) {
+                return [
+                    'date' => $date,
+                    'orders' => $dailiesPerDay->sum('total_orders'),
+                    'devices' => $dailiesPerDay->sum('total_session_devices'),
+                    'expenses' => $dailiesPerDay->sum('total_expenses'),
+                    // 'count' => $dailiesPerDay->count(), // عدد السجلات لهذا اليوم
+                ];
+            })
+            ->values(); 
 
-    return $dailies;
-}
+        return $dailies;
+    }
+    public function activityLog($dailyId) 
+    {
+        $daily = Daily::findOrFail($dailyId);
+        $sessionIds = $daily->sessions()->pluck('id')->toArray();
+        $orderIds = $daily->orders()->pluck('id')->toArray();
+        $expenseIds = $daily->expenses()->pluck('id')->toArray();
+        $bookedDeviceIds = $daily->sessions()
+            ->with('bookedDevices:id,session_device_id')
+            ->get()
+            ->flatMap(fn($session) => $session->bookedDevices->pluck('id'))
+            ->toArray();
+
+        // ✅ نستخدم whereIn بدلاً من where (لأن القيم مصفوفة)
+        $sessions = Activity::whereIn('subject_id', $sessionIds)
+            ->where('subject_type', SessionDevice::class)
+            ->get();
+
+        $orders = Activity::whereIn('subject_id', $orderIds)
+            ->where('subject_type', Order::class)
+            ->get();
+
+        $expenses = Activity::whereIn('subject_id', $expenseIds)
+            ->where('subject_type', Expense::class)
+            ->get();
+
+        $bookedDevices = Activity::whereIn('subject_id', $bookedDeviceIds)
+            ->where('subject_type', BookedDevice::class)
+            ->get();
+        $dailyActivities = Activity::where('subject_id', $dailyId)
+            ->where('subject_type', Daily::class)
+            ->get(); 
+
+
+        
+            $activities = [
+            'daily'=>$dailyActivities,
+            'sessions' => $sessions,
+            'orders' => $orders,
+            'expenses' => $expenses,
+            'bookedDevices' => $bookedDevices,
+        ];
+        return $activities;
+    }
+
+
 }

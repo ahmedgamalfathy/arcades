@@ -61,20 +61,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         if ($end && $end->lessThanOrEqualTo($start)) {
         return ApiResponse::error("The end time must be after the start time.");
         }
-        $data['sessionDeviceId']=$sessionDevice->id;
-               $booked   = $this->timerService->startOrSetTime($data);
-                   $user=User::find(auth('api')->id());
-                   $user->notify(new BookedDeviceStatusNotification([
-                    "sessionDevice" => optional($booked->sessionDevice)->id,
-                    "deviceTypeName" => optional($booked->deviceType)->name,
-                    "deviceTimeName" => optional($booked->deviceTime)->name,
-                    "deviceName" => optional($booked->device)->name,
-                    "bookedDeviceId" => $booked->id,
-                    "message" => "متبقى على الجهاز دقائق",
-                    "userId" => $user->id,
-                    "created_at" =>now(),
-                    "updated_at" => now(),
-                ]));
+               $data['sessionDeviceId']=$sessionDevice->id;
+               $this->timerService->startOrSetTime($data);
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
@@ -184,6 +172,16 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         try {
             $device = $this->bookedDeviceService->editBookedDevice($id);
             return ApiResponse::success(new BookedDevcieResource($device));
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    public function getActitvityLog(){
+        try {
+            $activityLog = $this->bookedDeviceService->getActivityLog();
+            return ApiResponse::success($activityLog);
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {

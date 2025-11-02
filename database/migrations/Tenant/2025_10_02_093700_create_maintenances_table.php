@@ -20,6 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->string('title');
             $table->decimal('price',8,2);
+            $table->string('place')->nullable();
             $table->timestamp('date');
             $table->text('note')->nullable();
             $table->timestamps();

@@ -6,12 +6,22 @@ use App\Models\Device\Device;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Device\DeviceTime\DeviceTime;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class DeviceType extends Model
 {
-    use UsesTenantConnection;
+    use UsesTenantConnection , LogsActivity;
     protected $guarded = [];
-
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('DeviceType')
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontLogIfAttributesChangedOnly(['updated_at'])
+            ->setDescriptionForEvent(fn(string $eventName) => "DeviceType {$eventName}");
+    }
     public function deviceTimes()
     {
         return $this->hasMany(DeviceTime::class);

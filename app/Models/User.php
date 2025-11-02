@@ -13,11 +13,13 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable , HasRoles ,HasApiTokens;
+    use HasFactory, Notifiable , HasRoles ,HasApiTokens , LogsActivity;
     /**
      * The attributes that are mass assignable.
      *
@@ -25,7 +27,15 @@ class User extends Authenticatable
      */
      protected $connection = 'mysql';
      protected $guarded =[];
-
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('User')
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontLogIfAttributesChangedOnly(['updated_at'])
+            ->setDescriptionForEvent(fn(string $eventName) => "User {$eventName}");
+    }
     /**
      * The attributes that should be hidden for serialization.
      *

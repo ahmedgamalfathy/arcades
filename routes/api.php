@@ -30,6 +30,7 @@ use App\Http\Controllers\API\V1\Dashboard\Daily\DailyController;
 use App\Http\Controllers\API\V1\Dashboard\Daily\DailyReportController;
 use App\Http\Controllers\API\V1\Dashboard\Report\ReportController;
 use App\Events\BookedDeviceExpireTime;
+use App\Http\Controllers\API\V1\Dashboard\Daily\DailyActivityController;
 
 Route::prefix('v1/admin')->group(function () {
         Route::prefix('auth')->group(function () {
@@ -91,6 +92,7 @@ Route::prefix('v1/admin')->group(function () {
                 });
                 Route::prefix('dailies')->controller(DailyController::class)->group(function(){
                     Route::get('dailyReport', 'dailyReport');
+                    Route::get('ActivityLog', 'activityLog');
                     Route::get('', 'index');
                     Route::post('', 'create');
                     Route::get('{id}', 'show');
@@ -104,32 +106,6 @@ Route::prefix('v1/admin')->group(function () {
                     Route::get('getStatusReport', 'getStatusReport');
                     Route::get('getExpensesReport', 'getExpensesReport');
                 });
-                //  Route::post('/test-notification', function () {
-                //     try {
-                //         // بث الحدث لكل المستخدمين
-                //         broadcast(new BookedDeviceExpireTime([
-                //             'sessionDevice' => 1,
-                //             'deviceTypeName' => 'PlayStation 5',
-                //             'deviceTimeName' => 'ساعة واحدة',
-                //             'deviceName' => 'PS5-001',
-                //             'bookedDeviceId' => 123,
-                //             'message' => '🎮 اختبار: متبقى على الجهاز 5 دقائق',
-                //         ]))->toOthers();
+                Route::get('dailyActivity',DailyActivityController::class);
 
-                //         return response()->json([
-                //             'success' => true,
-                //             'message' => 'Event broadcast successfully',
-                //             'channel' => 'booked-device-expire-time',
-                //             'event' => 'device-expire-time',
-                //             'timestamp' => now()->toISOString()
-                //         ]);
-                        
-                //     } catch (\Exception $e) {
-                //         return response()->json([
-                //             'success' => false,
-                //             'message' => 'Error: ' . $e->getMessage(),
-                //             'trace' => config('app.debug') ? $e->getTraceAsString() : null
-                //         ], 500);
-                //     }
-                // });
     });

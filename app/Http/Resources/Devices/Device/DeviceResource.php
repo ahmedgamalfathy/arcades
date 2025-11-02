@@ -17,6 +17,10 @@ class DeviceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {//name , status , device_type_id , media_id
+        $deviceTimes = $this->deviceTimes
+            ->merge($this->deviceTimeSpecial)
+            ->unique()
+            ->values();
         return [
             'deviceId' => $this->id,
             'name' => $this->name,
@@ -36,7 +40,7 @@ class DeviceResource extends JsonResource
                 
             ],
             // 'deviceType'=>$this->whenLoaded('deviceType',new DeviceResource($this->deviceType)),
-            'deviceTimes' =>$this->whenLoaded('deviceTimes',DeviceTimeResource::collection ($this->deviceTimes)),
+            'deviceTimes' =>$this->whenLoaded('deviceTimes',DeviceTimeResource::collection ($deviceTimes)),
             'maintenances' =>$this->whenLoaded('maintenances',MaintenanceResource::collection ($this->maintenances))
         ];
     }

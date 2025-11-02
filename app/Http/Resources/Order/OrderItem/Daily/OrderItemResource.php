@@ -18,6 +18,7 @@ class OrderItemResource extends JsonResource
     {
         return [
             'price' => $this->price,
+            'qty'=>$this->qty,
             'productName'=>$this->product->name,
         ];
 

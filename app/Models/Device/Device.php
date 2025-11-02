@@ -9,10 +9,21 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Device\DeviceTime\DeviceTime;
 use App\Models\Device\DeviceType\DeviceType;
 use App\Models\Timer\BookedDevice\BookedDevice;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 class Device extends Model
 {
-    use UsesTenantConnection;
+    use UsesTenantConnection , LogsActivity;
     protected $guarded = [];
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('Device')
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontLogIfAttributesChangedOnly(['updated_at'])
+            ->setDescriptionForEvent(fn(string $eventName) => "Device {$eventName}");
+    }
     public function media()
     {
         return $this->belongsTo(Media::class);

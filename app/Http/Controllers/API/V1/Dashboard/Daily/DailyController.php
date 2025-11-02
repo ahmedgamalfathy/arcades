@@ -16,6 +16,7 @@ use App\Enums\ResponseCode\HttpStatusCode;
 use App\Http\Requests\Daily\UpdateDailyRequest;
 use App\Http\Resources\Daily\DailyEditResource;
 use App\Http\Resources\Daily\Income\AllDailyIncomeResource;
+use App\Http\Resources\ActivityLog\AllActionDailyActivityResource;
 use Throwable;
 class DailyController extends Controller implements HasMiddleware
 {
@@ -99,6 +100,7 @@ class DailyController extends Controller implements HasMiddleware
         try {
             DB::beginTransaction();
             $this->dailyService->closeDaily();
+            
             DB::commit();
             return ApiResponse::success([], __('crud.updated'));
         }catch (ModelNotFoundException $th) {
@@ -119,5 +121,15 @@ class DailyController extends Controller implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-
+    public function activityLog(Request $request)
+    {
+        try {
+            $activities= $this->dailyService->activityLog($request->query('dailyId'));
+            return ApiResponse::success(new AllActionDailyActivityResource($activities));
+        }catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
 }

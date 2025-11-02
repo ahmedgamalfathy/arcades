@@ -23,6 +23,7 @@ use App\Services\Order\OrderService;
 use App\Http\Requests\Order\CreateOrderDeviceRequest;
 use App\Enums\Order\OrderTypeEnum;
 
+
 class DeviceController extends Controller  implements HasMiddleware
 {
     protected $deviceTimeService;
@@ -120,7 +121,10 @@ class DeviceController extends Controller  implements HasMiddleware
            $data= $request->validate([
             "status"=>['required','string',new Enum(DeviceStatusEnum::class) ]
            ]);
-            $this->deviceService->changeDeviceStatus($id,$data );
+            $device=$this->deviceService->changeDeviceStatus($id,$data );
+            if($device){
+            activity()->performedOn($device)->causedBy(auth('api')->user())->withProperties($device->toArray())->log('change device status');
+            }
             return ApiResponse::success([],__('crud.updated'));
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);

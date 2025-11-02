@@ -54,6 +54,9 @@ class DeviceTimerService
     public function finish(int $id)
     {
         $bookedDevice=BookedDevice::findOrFail($id);
+        if($bookedDevice->status== BookedDeviceEnum::PAUSED->value){
+            $this->resume($id);
+        }
         if($bookedDevice->status== BookedDeviceEnum::FINISHED->value){
              return $bookedDevice;
             // throw new \Exception('Device is already finished.');

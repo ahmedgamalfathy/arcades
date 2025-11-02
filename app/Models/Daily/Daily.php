@@ -9,12 +9,23 @@ use App\Models\Expense\Expense;
 use App\Models\Order\Order;
 use App\Enums\Expense\ExpenseTypeEnum;
 use App\Enums\Order\OrderTypeEnum;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 class Daily extends Model
 {
-    use UsesTenantConnection;
+    use UsesTenantConnection , LogsActivity ;
 
     protected $table = 'dailies';
     protected $guarded = [];
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('Daily')
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontLogIfAttributesChangedOnly(['updated_at'])
+            ->setDescriptionForEvent(fn(string $eventName) => "Daily {$eventName}");
+    }
     public function sessions()
     {
         return $this->hasMany(SessionDevice::class);

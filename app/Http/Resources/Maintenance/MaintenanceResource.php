@@ -16,10 +16,11 @@ class MaintenanceResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'MaintenanceId' => $this->id,
+            'maintenanceId' => $this->id,
             'userName'=>$this->user->name ??"",
             'title' => $this->title,
             'price' => $this->price,
+            'place'=>$this->place ?? "",
             'date' => Carbon::parse($this->date)->format('Y-m-d'),
             'note' => $this->note??"",
         ];

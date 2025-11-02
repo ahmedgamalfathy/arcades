@@ -33,7 +33,10 @@ class CreateDeviceRequest extends FormRequest
           'name' =>['required','string','unique:devices,name'],
           'deviceTypeId'=>['required','integer','exists:device_types,id'],
           'deviceTimeIds'=>['required','array'],
-          'deviceTimeIds.*'=>['integer', 'exists:device_times,id']
+          'deviceTimeIds.*'=>['integer', 'exists:device_times,id'],
+          'deviceTimeSpecial'=>['nullable','array'],
+          'deviceTimeSpecial.*.name'=>['required','string'],
+          'deviceTimeSpecial.*.rate'=>['required','numeric'],
         ];
     }
     public function withValidator($validator)

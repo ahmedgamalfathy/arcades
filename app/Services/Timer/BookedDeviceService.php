@@ -64,7 +64,7 @@ class BookedDeviceService
         $bookedDevice= BookedDevice::findOrFail($id);
         if($bookedDevice && $bookedDevice->sessionDevice->type==SessionDeviceEnum::GROUP->value) 
         {
-            if($bookedDevice->sessionDevice->devices()->count() == 1){
+            if($bookedDevice->sessionDevice->bookedDevices()->count() == 1){
                 $bookedDevice->sessionDevice->delete();
             }
             if($bookedDevice->pauses()->count() > 0){
@@ -118,5 +118,8 @@ class BookedDeviceService
         $bookedDevice->update(['session_device_id' => $data['sessionDeviceId']]);
         return $bookedDevice;
     }
-
+   public function getActivityLog()
+   {
+    return BookedDevice::with('sessionDevice','deviceType','deviceTime','device')->get();
+   }
 }

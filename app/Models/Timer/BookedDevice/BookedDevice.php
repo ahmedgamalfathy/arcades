@@ -10,10 +10,28 @@ use App\Models\Device\DeviceType\DeviceType;
 use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Models\Device\Device;
 use App\Models\Order\Order;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+
 class BookedDevice extends Model
 {
-     use UsesTenantConnection;
+     use UsesTenantConnection , LogsActivity;
+
       protected $guarded =[];
+     public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('BookedDevice')
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontLogIfAttributesChangedOnly(['updated_at'])
+            ->setDescriptionForEvent(fn(string $eventName) => "BookedDevice {$eventName}");
+    }
+    public function tapActivity(Activity $activity, string $eventName)
+    {
+        $activity->daily_id = $this->sessionDevice->daily_id;
+    }
       protected $casts = [
         'start_date_time' => 'datetime',
         'end_date_time'   => 'datetime',
@@ -57,4 +75,5 @@ class BookedDevice extends Model
         $hours = $this->calculateUsedSeconds() / 3600;
         return round($hours * ($this->deviceTime->rate ?? 0), 2);
     }
+
 }

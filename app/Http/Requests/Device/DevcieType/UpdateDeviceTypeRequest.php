@@ -11,7 +11,7 @@ use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
+use Illuminate\Validation\Rule;
 
 
 class UpdateDeviceTypeRequest extends FormRequest
@@ -32,7 +32,8 @@ class UpdateDeviceTypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['string','required','unique:device_types,name,'.$this->route('id')],
+            'name' => ['string','required',Rule::unique('device_types', 'name')
+            ->ignore($this->route('device_type'))],
             'times'=> ['required','array','min:1'],
             'times.*.name' => [
                     'required',
@@ -41,7 +42,7 @@ class UpdateDeviceTypeRequest extends FormRequest
                         $index = explode('.', $attribute)[1];
                         $time   = $this->input("times.$index", []);
                         $timeId = $time['timeTypeId'] ?? null;
-                        $deviceTypeId = (int)$this->route('id');
+                        $deviceTypeId = (int)$this->route('device_type');
                         (new UniqueDeviceTimeName($deviceTypeId, $timeId))
                             ->validate($attribute, $value, $fail);
                     },
