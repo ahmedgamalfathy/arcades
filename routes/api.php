@@ -69,6 +69,7 @@ Route::prefix('v1/admin')->group(function () {
                     Route::post('{id}/finish', 'finish');
                     Route::post('{id}/pause', 'pause');
                     Route::post('{id}/resume', 'resume');
+                    Route::get('{id}/activity-log','getActitvityLogToDevice');
                     Route::post('{id}/change-time', 'changeTime');
                     Route::get('{id}/show','show');
                     Route::delete('{id}/delete','destroy');

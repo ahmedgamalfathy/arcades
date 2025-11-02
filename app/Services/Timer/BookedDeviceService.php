@@ -7,7 +7,10 @@ use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Enums\SessionDevice\SessionDeviceEnum;
-
+use App\Models\Timer\BookedDevicePause\BookedDevicePause;
+use Spatie\Activitylog\Models\Activity;
+use App\Models\Order\Order;
+use App\Models\Order\OrderItem;
 class BookedDeviceService
 {
     public function createBookedDevice(array $data)
@@ -118,8 +121,39 @@ class BookedDeviceService
         $bookedDevice->update(['session_device_id' => $data['sessionDeviceId']]);
         return $bookedDevice;
     }
-   public function getActivityLog()
+   public function getActivityLogToDevice($id)
    {
-    return BookedDevice::with('sessionDevice','deviceType','deviceTime','device')->get();
+    $bookedDevice=BookedDevice::findOrFail($id);
+    $orderIds=$bookedDevice->orders->pluck('id')->toArray();
+    $orderItemIds=$bookedDevice->orders->pluck('order_items.id')->toArray();
+    $sessionId = [$bookedDevice->sessionDevice->id];
+    $pausesId=$bookedDevice->pauses->pluck('id')->toArray();
+        $activities  = Activity::where(function ($query) use ($orderIds, $orderItemIds, $sessionId, $pausesId) {
+            $query->where(function ($q) use ($orderIds) {
+                $q->where('subject_type', Order::class)
+                ->whereIn('subject_id', $orderIds);
+            })
+            ->orWhere(function ($q) use ($orderItemIds) {
+                $q->where('subject_type', OrderItem::class)
+                ->whereIn('subject_id', $orderItemIds);
+            })
+            ->orWhere(function ($q) use ($sessionId) {
+                $q->where('subject_type', SessionDevice::class)
+                ->where('subject_id', $sessionId);
+            })
+            ->orWhere(function ($q) use ($pausesId) {
+                $q->where('subject_type', BookedDevicePause::class)
+                ->whereIn('subject_id', $pausesId);
+            });
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
+    return [
+        'orders'      => $activities->where('subject_type', Order::class)->values(),
+        'order_items' => $activities->where('subject_type', OrderItem::class)->values(),
+        'sessions'    => $activities->where('subject_type', SessionDevice::class)->values(),
+        'pauses'      => $activities->where('subject_type', BookedDevicePause::class)->values(),
+    ];
+
    }
 }

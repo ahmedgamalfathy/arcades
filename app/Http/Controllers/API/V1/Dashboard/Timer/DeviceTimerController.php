@@ -18,6 +18,7 @@ use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
+use App\Http\Resources\ActivityLog\DeviceActivity\AllDeviceActivityResource;
 use App\Http\Resources\Device\DeviceResource;
 use App\Models\User;
 use App\Notifications\BookedDeviceStatusNotification;
@@ -178,10 +179,15 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-    public function getActitvityLog(){
+    public function getActitvityLogToDevice($id){
         try {
-            $activityLog = $this->bookedDeviceService->getActivityLog();
-            return ApiResponse::success($activityLog);
+            $activityLog = $this->bookedDeviceService->getActivityLogToDevice($id);
+            return ApiResponse::success([
+                'orders'      => AllDeviceActivityResource::collection($activityLog['orders']),
+                'order_items' => AllDeviceActivityResource::collection($activityLog['order_items']),
+                'sessions'    => AllDeviceActivityResource::collection($activityLog['sessions']),
+                'pauses'      => AllDeviceActivityResource::collection($activityLog['pauses']),
+            ]);
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
