@@ -46,10 +46,11 @@ class BookedDeviceService
         {
             throw new Exception("the booked device Finished status");
         }
-        $start = Carbon::parse($bookedDevice->start_date_time)->timezone('UTC');
-        $end = Carbon::now('UTC');
-        if($bookedDevice->end_date_time && $bookedDevice->end_date_time->timezone('UTC')->lessThan($end)) {
-            $end = $bookedDevice->end_date_time->timezone('UTC');
+        $start = $bookedDevice->start_date_time;
+        $end = now();
+        
+        if($bookedDevice->end_date_time && $bookedDevice->end_date_time->lessThan($end)) {
+            $end = $bookedDevice->end_date_time;
         }
         $total = $start->diffInSeconds($end);
         $used = max(0, $total - (int) $bookedDevice->total_paused_seconds);
