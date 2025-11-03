@@ -46,8 +46,8 @@ class BookedDeviceService
         {
             throw new Exception("the booked device Finished status");
         }
-        $start = Carbon::createFromFormat('Y-m-d H:i:s', $bookedDevice->start_date_time, 'UTC');
-        $end = now('UTC');
+        $start = Carbon::createFromFormat('Y-m-d H:i:s', $bookedDevice->start_date_time);
+        $end = now();
         if($bookedDevice->end_date_time && $bookedDevice->end_date_time->lessThan($end)){
             $end = $bookedDevice->end_date_time;
         }
