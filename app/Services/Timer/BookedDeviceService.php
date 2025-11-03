@@ -11,6 +11,7 @@ use App\Models\Timer\BookedDevicePause\BookedDevicePause;
 use Spatie\Activitylog\Models\Activity;
 use App\Models\Order\Order;
 use App\Models\Order\OrderItem;
+use Illuminate\Support\Facades\Log;
 class BookedDeviceService
 {
     public function createBookedDevice(array $data)
@@ -47,8 +48,13 @@ class BookedDeviceService
             throw new Exception("the booked device Finished status");
         }
         $start = $bookedDevice->start_date_time;
-        $end = now();
-        
+        $end = Carbon::now('UTC');
+    Log::info('=== DEBUG START ===');
+    Log::info('Start from DB (raw): ' . $bookedDevice->getRawOriginal('start_date_time'));
+    Log::info('Start as Carbon: ' . $start->toDateTimeString() . ' (Timezone: ' . $start->timezone->getName() . ')');
+    Log::info('End (now UTC): ' . $end->toDateTimeString() . ' (Timezone: ' . $end->timezone->getName() . ')');
+    Log::info('Comparison: End < Start? ' . ($end->lessThan($start) ? 'YES ❌' : 'NO ✅'));
+    Log::info('=== DEBUG END ===');
         if($bookedDevice->end_date_time && $bookedDevice->end_date_time->lessThan($end)) {
             $end = $bookedDevice->end_date_time;
         }
