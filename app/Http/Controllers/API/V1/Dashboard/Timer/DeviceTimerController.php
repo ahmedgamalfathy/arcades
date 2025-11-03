@@ -93,8 +93,10 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             $sessionDevice= $this->sessionDeviceService->editSessionDevice($data['sessionDeviceId']);
             $data['sessionDeviceId']=$sessionDevice->id;    
         }
-        $start = Carbon::parse($data['startDateTime']);
-        $end   = $data['endDateTime'] ? Carbon::parse($data['endDateTime']) : null;
+        $start = Carbon::parse($data['startDateTime'])->utc();
+        $end = $data['endDateTime'] 
+            ? Carbon::parse($data['endDateTime'])->utc() 
+            : null;
 
         if ($end && $end->lessThanOrEqualTo($start)) {
         return ApiResponse::error("The end time must be after the start time.");
