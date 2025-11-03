@@ -101,6 +101,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         if ($end && $end->lessThanOrEqualTo($start)) {
         return ApiResponse::error("The end time must be after the start time.");
         }
+        $data['startDateTime'] = $start;
+        $data['endDateTime'] = $end;
         $device = $this->timerService->startOrSetTime($data);
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
