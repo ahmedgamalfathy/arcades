@@ -13,7 +13,7 @@ use App\Models\Order\Order;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
-
+use Carbon\Carbon;
 class BookedDevice extends Model
 {
      use UsesTenantConnection , LogsActivity;
@@ -65,7 +65,7 @@ class BookedDevice extends Model
     public function calculateUsedSeconds(): int
     {
         $start=$this->start_date_time;
-        $end = $this->end_date_time ?? now();
+        $end = $this->end_date_time ?? Carbon::now('UTC');
         $total = $start->diffInSeconds($end);
         return max(0, $total - $this->total_paused_seconds);
     }

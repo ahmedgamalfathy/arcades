@@ -49,12 +49,6 @@ class BookedDeviceService
         }
         $start = $bookedDevice->start_date_time;
         $end = Carbon::now('UTC');
-    Log::info('=== DEBUG START ===');
-    Log::info('Start from DB (raw): ' . $bookedDevice->getRawOriginal('start_date_time'));
-    Log::info('Start as Carbon: ' . $start->toDateTimeString() . ' (Timezone: ' . $start->timezone->getName() . ')');
-    Log::info('End (now UTC): ' . $end->toDateTimeString() . ' (Timezone: ' . $end->timezone->getName() . ')');
-    Log::info('Comparison: End < Start? ' . ($end->lessThan($start) ? 'YES ❌' : 'NO ✅'));
-    Log::info('=== DEBUG END ===');
         if($bookedDevice->end_date_time && $bookedDevice->end_date_time->lessThan($end)) {
             $end = $bookedDevice->end_date_time;
         }
@@ -93,7 +87,7 @@ class BookedDeviceService
         {
             throw new Exception("the booked device Finished status");
         }
-        $bookedDevice->end_date_time =$data['endDateTime'];
+        $bookedDevice->end_date_time = Carbon::parse($data['endDateTime'])->utc();
         $bookedDevice->total_used_seconds=$bookedDevice->calculateUsedSeconds();
         $bookedDevice->period_cost=$bookedDevice->calculatePrice();
         $bookedDevice->save();
