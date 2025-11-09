@@ -20,8 +20,18 @@ class AllExpenseResource extends JsonResource
             'expenses' => ExpenseResource::collection($this->resource->items()),
             'count'=>$total,
             'perPage' => $this->resource->count(),
-            'nextPageUrl'  => $this->resource->nextPageUrl(),
-            'prevPageUrl'  => $this->resource->previousPageUrl(),
+            'nextPageUrl'  => $this->extractCursor($this->resource->nextPageUrl()),
+            'prevPageUrl'  => $this->extractCursor($this->resource->previousPageUrl()),
         ];
+    }
+    private function extractCursor(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+        $query = parse_url($url, PHP_URL_QUERY);
+        parse_str($query, $params);
+
+        return $params['cursor'] ?? null;
     }
 }

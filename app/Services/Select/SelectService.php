@@ -55,6 +55,7 @@ class SelectService
             'users' => ['getAllUsers', UserSelectService::class],
             'deviceType' => ['getDeviceType', DeviceTypeSelectService::class],
             'devices' => ['getDevicesByDeviceType', DeviceTypeSelectService::class],
+            'devicesAvailableByDeviceType' => ['devicesAvailableByDeviceType', DeviceTypeSelectService::class],
             'times' => ['getTimesByDeviceID', DeviceTypeSelectService::class],
             'roles' => ['getAllRoles', RoleSelectService::class],
             'permissions' => ['getAllPermissions', PermissionSelectService::class],

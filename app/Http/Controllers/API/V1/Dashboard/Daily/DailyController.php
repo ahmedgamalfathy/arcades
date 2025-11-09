@@ -125,6 +125,18 @@ class DailyController extends Controller implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
+    public function monthlyChartData(Request $request)
+    {
+        try {
+            $data=$request->validate([
+                'dailyId'=>'required|exists:dailies,id',
+            ]);
+            $monthlyChartData= $this->dailyReportService->getMonthlyChartData($data['dailyId']);
+            return ApiResponse::success($monthlyChartData);
+        }catch (Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
     public function activityLog(Request $request)
     {
         try {

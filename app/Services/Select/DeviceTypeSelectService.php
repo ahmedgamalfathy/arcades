@@ -27,6 +27,13 @@ class DeviceTypeSelectService{
         $devices = Device::on('tenant')->where('device_type_id',$deviceTypeId)->get(['id as value', 'name as label']);
         return $devices;
     }
+    public function devicesAvailableByDeviceType($deviceTypeId=null){
+        $bookedDevices = BookedDevice::on('tenant')->where(function($query){
+            $query->where('end_date_time',null)->orWhere('end_date_time','!=',null);
+        })->where('status','!=',BookedDeviceEnum::FINISHED->value)->pluck('device_id');
+        $devices = Device::on('tenant')->where('device_type_id',$deviceTypeId)->whereNotIn('id',$bookedDevices)->get(['id as value', 'name as label']);
+        return $devices;
+    }
     public function getTimesByDeviceID($deviceId=null){
         if($deviceId == null){
             return DeviceTime::on('tenant')->get(['id as value', 'name as label']);

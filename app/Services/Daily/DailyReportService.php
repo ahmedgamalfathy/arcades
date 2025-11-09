@@ -8,7 +8,8 @@ use App\Models\Expense\Expense;
 use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Enums\Expense\ExpenseTypeEnum;
 use App\Models\Daily\Daily;
-
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 class DailyReportService
 {
 public function dailyReport(array $data)
@@ -116,5 +117,82 @@ private function parseIncludes(?string $includeParam): array
         }
 
         return array_filter(array_map('trim', explode(',', $includeParam)));
+}
+public function getMonthlyChartData(int $dailyId)
+{
+    $daily = Daily::findOrFail($dailyId);
+    $startDate = Carbon::parse($daily->start_date_time);
+    $endDate = Carbon::parse($daily->end_date_time);
+    $startOfMonth = Carbon::parse($startDate)->startOfMonth();
+    $endOfMonth = Carbon::parse($endDate)->endOfMonth();
+    
+    // Initialize result array with all days of the month
+    $chartData = [];
+    $currentDate = $startOfMonth->copy();
+    
+    while ($currentDate <= $endOfMonth) {
+        $day = $currentDate->format('d');
+        $chartData[$day] = [
+            'date' => $currentDate->format('Y-m-d'),
+            'orders' => 0,
+            'expenses' => 0,
+            'sessions' => 0,
+        ];
+        $currentDate->addDay();
+    }
+    
+    // Get Orders grouped by day (with specific daily_id)
+    $orders = Order::where('daily_id', $dailyId)
+        ->whereNull('booked_device_id')
+        ->selectRaw('DATE(created_at) as date, SUM(price) as total')
+        ->groupBy(DB::raw('DATE(created_at)'))
+        ->get();
+    
+    foreach ($orders as $order) {
+        $day = Carbon::parse($order->date)->format('d');
+        if (isset($chartData[$day])) {
+            $chartData[$day]['orders'] = round((float) $order->total, 2);
+        }
+    }
+    
+    // Get Expenses grouped by day (with specific daily_id)
+    $expenses = Expense::where('type', ExpenseTypeEnum::INTERNAL->value)
+        ->where('daily_id', $dailyId)
+        ->selectRaw('DATE(created_at) as date, SUM(price) as total')
+        ->groupBy(DB::raw('DATE(created_at)'))
+        ->get();
+    
+    foreach ($expenses as $expense) {
+        $day = Carbon::parse($expense->date)->format('d');
+        if (isset($chartData[$day])) {
+            $chartData[$day]['expenses'] = round((float) $expense->total, 2);
+        }
+    }
+    
+    // Get Sessions grouped by day (within daily's date range)
+    $sessions = SessionDevice::where('daily_id', $dailyId)
+        ->with('bookedDevices')
+        ->get();
+    
+    // Group sessions by date and calculate total period_cost
+    foreach ($sessions as $session) {
+        $day = Carbon::parse($session->created_at)->format('d');
+        $totalCost = $session->bookedDevices->sum('period_cost');
+        $totalCost +=($session->orders?->sum('price') ?? 0);
+        if (isset($chartData[$day])) {
+            $chartData[$day]['sessions'] += round((float) $totalCost, 2);
+        }
+    }
+    
+    // Round sessions totals after accumulation
+    foreach ($chartData as $day => $data) {
+        $chartData[$day]['sessions'] = round($data['sessions'], 2);
+    }
+    
+    $chartData = array_filter($chartData, function($day) {
+        return $day['orders'] > 0 || $day['expenses'] > 0 || $day['sessions'] > 0;
+    });
+    
+    return $chartData;
 }
 }

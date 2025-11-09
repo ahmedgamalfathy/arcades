@@ -94,8 +94,9 @@ Route::prefix('v1/admin')->group(function () {
                     Route::get('', [SelectController::class, 'getSelects']);
                 });
                 Route::prefix('dailies')->controller(DailyController::class)->group(function(){
-                    Route::get('dailyReport', 'dailyReport');
-                    Route::get('ActivityLog', 'activityLog');
+                    Route::get('daily-report', 'dailyReport');
+                    Route::get('monthly-chart-data', 'monthlyChartData');
+                    Route::get('activity-log', 'activityLog');
                     Route::get('', 'index');
                     Route::post('', 'create');
                     Route::get('{id}', 'show');

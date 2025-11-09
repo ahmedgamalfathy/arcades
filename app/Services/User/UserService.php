@@ -48,6 +48,7 @@ class UserService{
             ])
             ->whereNot('id', $auth->id)
             ->where('user_id',$auth->id)
+            ->whereNull('database_name')
             ->orderBy('created_at', 'desc')
             ->cursorPaginate($perPage);
 
