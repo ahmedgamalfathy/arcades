@@ -31,6 +31,8 @@ use App\Http\Controllers\API\V1\Dashboard\Daily\DailyReportController;
 use App\Http\Controllers\API\V1\Dashboard\Report\ReportController;
 use App\Events\BookedDeviceExpireTime;
 use App\Http\Controllers\API\V1\Dashboard\Daily\DailyActivityController;
+use App\Http\Controllers\API\V1\Dashboard\Report\DailyReportStatusController;
+
 
 Route::prefix('v1/admin')->group(function () {
         Route::prefix('auth')->group(function () {
@@ -100,13 +102,14 @@ Route::prefix('v1/admin')->group(function () {
                     Route::put('{id}', 'update');
                     Route::delete('{id}', 'delete');
                     Route::post('close', 'closeDaily');
-            
+
                 });
                 Route::prefix('reports')->controller(ReportController::class)->group(function(){
                     Route::get('', 'getReport');
                     Route::get('getStatusReport', 'getStatusReport');
                     Route::get('getExpensesReport', 'getExpensesReport');
                 });
+                Route::get('reports/dailyStatusData',[ DailyReportStatusController::class,'getStatusReport']);
                 Route::get('dailyActivity',DailyActivityController::class);
 
     });

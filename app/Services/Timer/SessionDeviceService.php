@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use App\Filters\Timer\FilterSessionDevice;
+use App\Filters\Timer\FilterTypeSessionDevice;
 
 class SessionDeviceService
 {
@@ -14,8 +15,9 @@ class SessionDeviceService
         $perPage= $request->query('perPage',10);
         $sessions=QueryBuilder::for(SessionDevice::class)
         ->allowedFilters([
-        AllowedFilter::custom('search', new FilterSessionDevice),
-        AllowedFilter::exact('type', 'type'),
+            AllowedFilter::custom('search', new FilterSessionDevice),
+            AllowedFilter::exact('type', 'type'),
+            AllowedFilter::custom('bookedDevicesStatus', new FilterTypeSessionDevice),
         ])
         ->whereHas('bookedDevices', function ($query) {
         $query->where('status', '!=', 0);

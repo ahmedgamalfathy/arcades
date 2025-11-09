@@ -12,6 +12,7 @@ use Spatie\Activitylog\Models\Activity;
 use App\Models\Order\Order;
 use App\Models\Order\OrderItem;
 use Illuminate\Support\Facades\Log;
+use App\Events\BookedDeviceChangeStatus;
 class BookedDeviceService
 {
     public function createBookedDevice(array $data)
@@ -75,9 +76,11 @@ class BookedDeviceService
                 $bookedDevice->pauses()->delete();
             }
             $bookedDevice->delete();
+            // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         }else {
             $bookedDevice->delete();
             $bookedDevice->sessionDevice->delete();
+            // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         }
     }
     public function updateEndDateTime(int $id, array $data)
@@ -91,6 +94,7 @@ class BookedDeviceService
         $bookedDevice->total_used_seconds=$bookedDevice->calculateUsedSeconds();
         $bookedDevice->period_cost=$bookedDevice->calculatePrice();
         $bookedDevice->save();
+        // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $bookedDevice;
     }
     public function transferDeviceToGroup(int $id, array $data)
@@ -120,6 +124,7 @@ class BookedDeviceService
         }
 
         $bookedDevice->update(['session_device_id' => $data['sessionDeviceId']]);
+        // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $bookedDevice;
     }
    public function getActivityLogToDevice($id)

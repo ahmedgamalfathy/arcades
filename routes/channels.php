@@ -9,3 +9,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('booked-device-expire-time', function ($user) {
     return true;
 });
+Broadcast::channel('booked-devices', function ($user) {
+    return true;
+});
+    

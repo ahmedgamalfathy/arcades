@@ -4,6 +4,7 @@ namespace App\Services\Timer;
 use App\Enums\BookedDevice\BookedDeviceEnum;
 use Carbon\Carbon;
 use App\Models\Timer\BookedDevice\BookedDevice;
+use App\Events\BookedDeviceChangeStatus;
 
 class DeviceTimerService
 {
@@ -38,6 +39,7 @@ class DeviceTimerService
         }
         $this->pauseService->createPause($id);
         $this->bookedDeviceService->updateBookedDevice($id, ['status' =>  BookedDeviceEnum::PAUSED->value]);
+        //  broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
     }
 
     public function resume(int $id)
@@ -49,6 +51,7 @@ class DeviceTimerService
         $this->pauseService->resumePause($id);
         //عايز اقوله لو الجهاز ليه نهاية حدث المبلغ برده
         $this->bookedDeviceService->updateBookedDevice($id, ['status' =>  BookedDeviceEnum::ACTIVE->value]);
+        // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
     }
 
     public function finish(int $id)
@@ -61,20 +64,23 @@ class DeviceTimerService
              return $bookedDevice;
             // throw new \Exception('Device is already finished.');
         }
-        return $this->bookedDeviceService->finishBookedDevice($id);
+        $finished = $this->bookedDeviceService->finishBookedDevice($id);
+        // broadcast(new BookedDeviceChangeStatus($finished))->toOthers();
+        return $finished;
     }
 
     public function changeDeviceTime($id, int $newTimeId)
     {
       $bookedDevice= $this->bookedDeviceService->finishBookedDevice($id);
-
-        return $this->bookedDeviceService->createBookedDevice([
-            'session_device_id' => $bookedDevice->session_device_id,
-            'device_id' => $bookedDevice->device_id,
-            'device_type_id' => $bookedDevice->device_type_id,
-            'device_time_id' => $newTimeId,
-            'start_date_time' => now(),
+      $BookedDeviceChange=$this->bookedDeviceService->createBookedDevice([
+            'sessionDeviceId' => $bookedDevice->session_device_id,
+            'deviceId' => $bookedDevice->device_id,
+            'deviceTypeId' => $bookedDevice->device_type_id,
+            'deviceTimeId' => $newTimeId,
+            'startDateTime' => now(),
             'status' => BookedDeviceEnum::ACTIVE->value,
         ]);
+        // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
+        return $BookedDeviceChange;
     }
 }

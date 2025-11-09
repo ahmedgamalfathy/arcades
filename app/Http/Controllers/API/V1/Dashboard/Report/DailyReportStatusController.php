@@ -11,27 +11,22 @@ use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Report\CreateReportRequest;
-use App\Http\Resources\Daily\Report\AllReportDailyResource;
+use App\Services\Report\DailyReportStatusService;
 use Throwable;
-class ReportController extends Controller implements HasMiddleware
+class DailyReportStatusController extends Controller implements HasMiddleware
 {
-       protected $dailyReportService;
+       protected $dailyReportStatusService;
 
 
-    public function __construct(DailyReportService $dailyReportService)
+    public function __construct(DailyReportStatusService $dailyReportStatusService)
     {
-        $this->dailyReportService = $dailyReportService;
+        $this->dailyReportStatusService = $dailyReportStatusService;
     }
 
     public static function middleware(): array
     {
-        return [//products , create_products,edit_product,update_product ,destroy_product
+        return [
             new Middleware('auth:api'),
-            // new Middleware('permission:daily', only:['index']),
-            // new Middleware('permission:create_daily', only:['create']),
-            // new Middleware('permission:edit_daily', only:['edit']),
-            // new Middleware('permission:update_daily', only:['update']),
-            // new Middleware('permission:destroy_daily', only:['destroy']),
             new Middleware('permission:products', only:['index']),
             new Middleware('permission:create_products', only:['create']),
             new Middleware('permission:edit_product', only:['edit']),
@@ -40,22 +35,10 @@ class ReportController extends Controller implements HasMiddleware
             new Middleware('tenant'),
         ];
     }  
-    //reports?startDateTime=2025-10-26&endDateTime=2025-10-26&include=orders,expenses,devices
-    public function getReport(CreateReportRequest $createReportRequest)
-    {
-        try {
-            $report= $this->dailyReportService->getReport($createReportRequest->validated());
-            return ApiResponse::success($report);
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
-        }
-    }
     public function getStatusReport(CreateReportRequest $createReportRequest)
     {
         try {
-            $report= $this->dailyReportService->getStatusReport($createReportRequest->validated());
+            $report= $this->dailyReportStatusService->getStatusReport($createReportRequest->validated());
             $report = collect($report)->map(fn($item) => (object) $item);
             return ApiResponse::success($report);
         }catch (ModelNotFoundException $th) {
@@ -64,5 +47,4 @@ class ReportController extends Controller implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-
 }

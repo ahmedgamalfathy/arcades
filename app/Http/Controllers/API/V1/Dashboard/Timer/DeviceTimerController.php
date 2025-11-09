@@ -19,6 +19,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
 use App\Http\Resources\ActivityLog\DeviceActivity\AllDeviceActivityResource;
+use App\Http\Resources\Timer\BookedDevice\BookedDeviceEditResource;
 use App\Http\Resources\Device\DeviceResource;
 use App\Models\User;
 use App\Notifications\BookedDeviceStatusNotification;
@@ -170,7 +171,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                 $device = $this->bookedDeviceService->editBookedDevice($id);
                 $newDevice = $this->timerService->changeDeviceTime($device->id, $request->deviceTimeId);
             DB::commit();
-            return ApiResponse::success($newDevice,__('crud.updated'));
+            return ApiResponse::success([],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
@@ -181,7 +182,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     public function show($id){
         try {
             $device = $this->bookedDeviceService->editBookedDevice($id);
-            return ApiResponse::success(new BookedDevcieResource($device));
+            return ApiResponse::success(new BookedDeviceEditResource($device));
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {

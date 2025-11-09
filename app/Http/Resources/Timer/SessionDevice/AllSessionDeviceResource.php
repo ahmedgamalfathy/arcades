@@ -18,7 +18,7 @@ class AllSessionDeviceResource extends JsonResource
     {
         return [
             'sessionId'=>$this->id,
-            'sessionName'=>$this->name,
+            'sessionName'=>$this->name == 'individual' ?'--': $this->name,
             'bookedDevices'=>AllBookedDeviceResource::collection($this->bookedDevices),
         ];
     }

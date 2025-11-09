@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 use App\Models\Setting\Param\Param;
+use Carbon\CarbonInterface;
 class AllBookedDeviceResource extends JsonResource
 {
     /**
@@ -41,8 +42,31 @@ class AllBookedDeviceResource extends JsonResource
             ],
             'startDateTime' => $this->start_date_time ? Carbon::parse($this->start_date_time)->format('H:i') : "",
             'endDateTime' => $this->end_date_time ? Carbon::parse($this->end_date_time)->format('H:i') : "",
-            'totalhour'=> $this->end_date_time? Carbon::parse($this->start_date_time)->diffForHumans($this->end_date_time):0,
             'status' => $this->status,
+            // 'totalHour'=> $this->end_date_time? Carbon::parse($this->start_date_time)->diffForHumans($this->end_date_time):0,
+            'totalHour' => $this->calculateTotalHour($this->start_date_time, $this->end_date_time),
+            'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time ?: Carbon::now()->utc()),
         ];
+    }
+     private function calculateTotalHour($startTime, $endTime)
+    {
+        if (!$endTime || $endTime->isFuture()) {
+            return $startTime->diffForHumans(Carbon::now(), [
+            'parts' => 2,
+            'syntax' => CarbonInterface::DIFF_ABSOLUTE
+            ]);
+        }
+        return $startTime->diffForHumans($endTime, [
+            'parts' => 2,
+            'syntax' => CarbonInterface::DIFF_ABSOLUTE
+         ]);
+    }
+    private function formatDuration($startTime, $endTime)
+    {
+        $start = Carbon::parse($startTime)->utc();
+        $end = Carbon::parse($endTime)->utc();
+        $diff = $start->diff($end);
+        $totalHours = ($diff->days * 24) + $diff->h;
+        return sprintf('%02d:%02d:%02d', $totalHours, $diff->i, $diff->s);
     }
 }

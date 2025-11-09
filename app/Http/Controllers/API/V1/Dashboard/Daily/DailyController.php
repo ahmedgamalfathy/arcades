@@ -17,15 +17,19 @@ use App\Http\Requests\Daily\UpdateDailyRequest;
 use App\Http\Resources\Daily\DailyEditResource;
 use App\Http\Resources\Daily\Income\AllDailyIncomeResource;
 use App\Http\Resources\ActivityLog\AllActionDailyActivityResource;
+use App\Services\Daily\DailyReportService;
+use App\Http\Requests\Daily\Report\ReportDailyRequestSearch;
 use Throwable;
 class DailyController extends Controller implements HasMiddleware
 {
        protected $dailyService;
+       protected $dailyReportService;
 
 
-    public function __construct(DailyService $dailyService)
+    public function __construct(DailyService $dailyService,DailyReportService $dailyReportService)
     {
         $this->dailyService = $dailyService;
+        $this->dailyReportService = $dailyReportService;
     }
 
     public static function middleware(): array
@@ -109,11 +113,11 @@ class DailyController extends Controller implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-    public function dailyReport()
+    public function dailyReport(ReportDailyRequestSearch $reportDailyRequestSearch)
     {
         try {
             //new DailyReportResource
-            $dailyReport= $this->dailyService->dailyReport();
+            $dailyReport= $this->dailyReportService->dailyReport($reportDailyRequestSearch->validated());
             return ApiResponse::success($dailyReport);
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
