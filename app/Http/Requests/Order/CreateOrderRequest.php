@@ -33,10 +33,10 @@ class CreateOrderRequest extends FormRequest
         return [
             'name' => [
                 'string',
-                'unique:orders,name',
-                'required_if:type,1',
+                'unique:orders,name','required'
+                // 'required_if:type,1',
             ],
-            'type' => ['required',new Enum(OrderTypeEnum::class)],
+            // 'type' => ['required',new Enum(OrderTypeEnum::class)],
             // 'bookedDeviceId' => [
             //     'nullable',
             //     'exists:booked_devices,id',
@@ -45,7 +45,7 @@ class CreateOrderRequest extends FormRequest
             'orderItems' => ['required', 'array', 'min:1'],
             'orderItems.*.productId' => ["required", 'integer', 'exists:products,id'],
             'orderItems.*.qty' => ['required', 'integer', 'min:1'],
-            'dailyId' => ['required_if:type,0', 'exists:dailies,id'],
+            'dailyId' => ['required', 'exists:dailies,id'],
         ];
     }
 
