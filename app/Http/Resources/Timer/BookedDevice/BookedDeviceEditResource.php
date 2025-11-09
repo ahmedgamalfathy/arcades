@@ -18,7 +18,7 @@ class BookedDeviceEditResource extends JsonResource
     public function toArray(Request $request): array
     {
         $bookedDeviceChangeTimes = BookedDevice::where('session_device_id',$this->session_device_id)->where('device_id',$this->device_id)->where('device_type_id',$this->device_type_id)->get(); 
-        if (count($bookedDeviceChangeTimes )>0) {
+        if (count($bookedDeviceChangeTimes )>1) {
             $totalBookedDevice=$bookedDeviceChangeTimes->sum('period_cost');
             $bookedDeviceChangeTimes = ChangeTimeDeviceResource::collection($bookedDeviceChangeTimes);
         }else{

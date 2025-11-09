@@ -16,11 +16,7 @@ class SessionDeviceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        if($this->bookedDevices->count() > 1){
-            $sessionDevice=$this->bookedDevices;
-        }else {
-            $sessionDevice=[];
-        }
+
         return [
             'sessionId'=>$this->id,
             'sessionName'=>$this->name=='individual'?'--':$this->name,
@@ -31,7 +27,7 @@ class SessionDeviceResource extends JsonResource
                 return $bookedDevice->orders->sum('price') ?? 0;
             }),
             //BookedDeviceResource
-            'bookedDevices'=>BookedDeviceEditResource::collection($sessionDevice),
+            'bookedDevices'=>BookedDeviceEditResource::collection($this->bookedDevices),
         ];
     }
 }
