@@ -67,7 +67,8 @@ class ProductService {
                     'path'     => $data['path'],
                     'type'     => MediaTypeEnum::PHOTO->value,
                     'category' => null,
-                ]);
+                ]);    
+                $this->mediaService->deleteMedia($product->media_id);
             } else {
                 $media = $this->mediaService->createMedia([
                     'path'     => $data['path'],
@@ -79,7 +80,7 @@ class ProductService {
         $product->name =$data['name'];
         $product->price =$data['price'];
         $product->status =$data['status']??$product->status;
-        $product->media_id =$media?->id;
+        $product->media_id =$media?->id??null;
         $product->save();
      return $product;
   }

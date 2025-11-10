@@ -31,7 +31,7 @@ class CreateProductRequest extends FormRequest
             'name' => ['string','required','unique:products,name'],
             'price'=> ['required','numeric','min:1'],
             // 'status' => ['nullable', new Enum(StatusEnum::class)],
-            'path' => ["required","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
+            'path' => ["nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
         ];
     }
 

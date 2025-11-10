@@ -29,6 +29,7 @@ class MediaSeeder extends Seeder
             ['path' => 'devices/Frame 1618873640.png', 'type' => 0, 'category' =>'devices','created_at' => now(), 'updated_at' => now()],
 
             ['path' => 'roles/admin.svg', 'type' => 0, 'category' =>'roles','created_at' => now(), 'updated_at' => now()],
+            ['path' => 'products/pro.png', 'type' => 0, 'category' =>'products','created_at' => now(), 'updated_at' => now()],
             ['path' => 'roles/superAdmin.svg', 'type' => 0, 'category' =>'roles','created_at' => now(), 'updated_at' => now()],
 
         ];
