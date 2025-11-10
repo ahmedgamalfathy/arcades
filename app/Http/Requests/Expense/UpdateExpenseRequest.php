@@ -32,7 +32,7 @@ class UpdateExpenseRequest extends FormRequest
     {
         return [
             'name' => ['string','required'],
-            'price'=> ['required','integer','min:1'],
+            'price'=> ['required','numeric','min:1'],
             // 'type' => ['required', new Enum(ExpenseTypeEnum::class)],
             'date'=>['required','string','date_format:Y-m-d'],
             'note'=>['nullable','string']
