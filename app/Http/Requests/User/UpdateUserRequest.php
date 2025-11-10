@@ -33,12 +33,12 @@ class UpdateUserRequest extends FormRequest
 
         return [
             'name' => 'required',
-            'email' => [
-                'required',
-                Rule::anyOf([
-                    ['string', 'email', Rule::unique('users', 'email')->ignore($this->route('user'))],
-                    ['string',  'min:3', Rule::unique('users', 'email')->ignore($this->route('user'))],
-                ]),
+            'email' => [ 
+                'required', 
+                'string', 
+                'email', 
+                'min:3', 
+                Rule::unique('users', 'email')->ignore($this->route('user')), 
             ],
           'mediaId' => ['nullable', 'integer'],
           'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
@@ -57,8 +57,10 @@ class UpdateUserRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            if (!$this->mediaId && !$this->hasFile('mediaFile')) {
-                $validator->errors()->add('media', 'You must select an existing image or upload a new one.');
+            if ($this->isMethod('POST')) {
+                if (!$this->mediaId && !$this->hasFile('mediaFile')) {
+                    $validator->errors()->add('media', 'You must select an existing image or upload a new one.');
+                }
             }
 
             if ($this->mediaId && $this->hasFile('mediaFile')) {
@@ -66,6 +68,7 @@ class UpdateUserRequest extends FormRequest
             }
         });
     }
+
 
     public function failedValidation(Validator $validator)
     {

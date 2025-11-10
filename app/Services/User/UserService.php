@@ -112,15 +112,15 @@ class UserService{
         //     $query->where('name', 'super admin');
         // })->first();
         $user = User::find($userId);
-         $finalEmail = $userData['email'] . $superAdmin->app_key;
-            if (User::where('email', $finalEmail)->exists()) {
-                throw ValidationException::withMessages([
-                    'email' => ['This email is already taken.'],
-                ]);
-            }
+        //  $finalEmail = $userData['email'] . $superAdmin->app_key;
+        //     if (User::where('email', $finalEmail)->exists()) {
+        //         throw ValidationException::withMessages([
+        //             'email' => ['This email is already taken.'],
+        //         ]);
+        //     }
         $oldMediaId = $user->media_id;
         $mediaId = $oldMediaId;
-        if (isset($userData['mediaFile']) && $userData['mediaFile'] instanceof UploadedFile) {
+        if (!empty($userData['mediaFile']) && $userData['mediaFile'] instanceof UploadedFile) {
                 $media = $this->mediaService->createMedia([
                     'path' => $userData['mediaFile'],
                     'type' => MediaTypeEnum::PHOTO,
@@ -128,14 +128,16 @@ class UserService{
                 ]);
                 $mediaId = $media->id;
                 if ($oldMediaId) {
-                $this->mediaService->deleteMedia($mediaId);
+                $this->mediaService->deleteMedia($oldMediaId);
                 }
         }
-        elseif (isset($userData['mediaId']) && $userData['mediaId'] != $oldMediaId) {
+        elseif (!empty($userData['mediaId']) && $userData['mediaId'] != $oldMediaId) {
                 $mediaId = $userData['mediaId'];
                 if ($oldMediaId) {
-                    $this->mediaService->deleteMedia($mediaId);
+                    $this->mediaService->deleteMedia($oldMediaId);
                 }
+        }else{
+            $mediaId = $oldMediaId;
         }
         $user->name = $userData['name'];
         $user->email = $userData['email'].$superAdmin->app_key;
