@@ -33,7 +33,7 @@ class CreateOrderRequest extends FormRequest
         return [
             'name' => [
                 'string',
-                'unique:orders,name','required'
+                'required'
                 // 'required_if:type,1',
             ],
             // 'type' => ['required',new Enum(OrderTypeEnum::class)],

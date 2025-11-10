@@ -19,6 +19,7 @@ class OrderItemResource extends JsonResource
         return [
             'price' => $this->price,
             'qty'=>$this->qty,
+            'total'=>round($this->price*$this->qty,2),
             'productName'=>$this->product->name,
         ];
 

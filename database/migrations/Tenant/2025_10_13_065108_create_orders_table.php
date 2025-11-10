@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('number')->unique();
-            $table->string('name')->nullable()->unique();
+            $table->string('name')->nullable();
             $table->tinyInteger('type')->default(OrderTypeEnum::EXTERNAL->value);
             $table->foreignIdFor(BookedDevice::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('price', 10, 2)->default(0);

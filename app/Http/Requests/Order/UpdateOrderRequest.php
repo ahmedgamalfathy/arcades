@@ -32,10 +32,11 @@ class UpdateOrderRequest extends FormRequest
     {
         //  ['string',  'min:3', Rule::unique('users', 'email')->ignore($this->route('user'))]
         return [
-            'name' => ['string',Rule::unique('orders', 'name')->ignore($this->route('order')),
+            'name' => ['string',
+            // Rule::unique('orders', 'name')->ignore($this->route('order')),
                 Rule::requiredIf(function () {
                 $order = Order::find($this->route('order'));
-                return $order && (int) $order->type === 1;
+                return $order && $order->booked_device_id !== null;
                 }),
             ],
              'orderItems' => ['required', 'array', 'min:1'],
