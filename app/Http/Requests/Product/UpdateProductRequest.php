@@ -30,7 +30,7 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             'name' => ['string','required',Rule::unique('products')->ignore($this->route('product'))],
-            'price'=> ['required','integer'],
+            'price'=> ['required','numeric','min:1'],
             // 'status' => ['nullable', new Enum(StatusEnum::class)],
             'path' => ["nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
         ];
