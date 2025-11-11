@@ -90,7 +90,9 @@ class ProductService {
     if(!$product){
         throw new ModelNotFoundException();
     }
-    $this->mediaService->deleteMedia($product->media->id);
+    if($product->media_id){
+        $this->mediaService->deleteMedia($product->media_id);
+    }
     $product->delete();
   }
 }
