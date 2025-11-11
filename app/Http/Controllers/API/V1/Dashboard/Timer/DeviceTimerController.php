@@ -57,9 +57,9 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             'daily_id'=>$data['dailyId']
         ]);
 
-        $start = Carbon::parse($data['startDateTime'])->utc();
+        $start = Carbon::parse($data['startDateTime']);
         $end = $data['endDateTime'] 
-            ? Carbon::parse($data['endDateTime'])->utc() 
+            ? Carbon::parse($data['endDateTime']) 
             : null;
 
         if ($end && $end->lessThanOrEqualTo($start)) {
@@ -94,9 +94,9 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             $sessionDevice= $this->sessionDeviceService->editSessionDevice($data['sessionDeviceId']);
             $data['sessionDeviceId']=$sessionDevice->id;    
         }
-        $start = Carbon::parse($data['startDateTime'])->utc();
+        $start = Carbon::parse($data['startDateTime']);  
         $end = $data['endDateTime'] 
-            ? Carbon::parse($data['endDateTime'])->utc() 
+            ? Carbon::parse($data['endDateTime']) 
             : null;
 
         if ($end && $end->lessThanOrEqualTo($start)) {

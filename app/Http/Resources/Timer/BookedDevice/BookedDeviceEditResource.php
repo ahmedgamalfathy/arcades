@@ -45,8 +45,9 @@ class BookedDeviceEditResource extends JsonResource
                 'status' => $this->status,
             ],
             'bookedDeviceChangeTimes'=>$bookedDeviceChangeTimes,
+            'timeRemaining'=>$this->timeRemaining(),
             'totalHour' => $this->calculateTotalHour($this->start_date_time, $this->end_date_time),
-            'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time ?: Carbon::now()),
+            'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time),
             'orders'=>$this->orders?AllOrderResource::collection($this->orders):"",
             'totalOrderPrice'=>$this->orders->sum('price'),
             'totalBookedDevicePrice'=>$totalBookedDevice,
@@ -66,12 +67,40 @@ class BookedDeviceEditResource extends JsonResource
             'syntax' => CarbonInterface::DIFF_ABSOLUTE
          ]);
     }
-    private function formatDuration($startTime, $endTime)
+    private function formatDuration($startTime, $endTime = null)
     {
-        $start = Carbon::parse($startTime)->utc();
-        $end = Carbon::parse($endTime)->utc();
-        $diff = $start->diff($end);
+        $start = Carbon::parse($startTime);
+        $now = Carbon::now();
+        if ($endTime) {
+            $end = Carbon::parse($endTime);
+            $effectiveEnd = $now->lessThan($end) ? $now : $end;
+        } else {
+            $effectiveEnd = $now;
+        }
+        if ($effectiveEnd->lessThan($start)) {
+            return "00:00:00";
+        }
+        $diff = $start->diff($effectiveEnd);
         $totalHours = ($diff->days * 24) + $diff->h;
+
         return sprintf('%02d:%02d:%02d', $totalHours, $diff->i, $diff->s);
     }
+    private function timeRemaining()
+    {
+        $now = Carbon::now();
+        if ($this->end_date_time) {
+            $end = Carbon::parse($this->end_date_time);
+            $effectiveEnd = $now->lessThan($end) ? $now : $end;
+        } else {
+            $effectiveEnd = $now;
+        }
+        if ($effectiveEnd->lessThan($this->start_date_time)) {
+            return "00:00:00";
+        }
+        $diff = $this->start_date_time->diff($effectiveEnd);
+        $totalHours = ($diff->days * 24) + $diff->h;
+
+        return sprintf('%02d:%02d:%02d', $totalHours, $diff->i, $diff->s);
+    }
+
 }

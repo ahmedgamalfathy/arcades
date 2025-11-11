@@ -22,7 +22,7 @@ class AllBookedDeviceResource extends JsonResource
             $statusParam = 'normal';
             $remainingMinutes = 0;
         } else {
-            $remainingMinutes = Carbon::now()->diffInMinutes(Carbon::parse($this->end_date_time), false);
+            $remainingMinutes = Carbon::now()->diffInMinutes(Carbon::parse($this->end_date_time),false);
             if ($remainingMinutes < 0) {
                 $statusParam = 'danger';
             } elseif ($remainingMinutes < $statuParam) {
@@ -45,7 +45,7 @@ class AllBookedDeviceResource extends JsonResource
             'status' => $this->status,
             // 'totalHour'=> $this->end_date_time? Carbon::parse($this->start_date_time)->diffForHumans($this->end_date_time):0,
             'totalHour' => $this->calculateTotalHour($this->start_date_time, $this->end_date_time),
-            'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time ?: Carbon::now()->utc()),
+            'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time),
         ];
     }
      private function calculateTotalHour($startTime, $endTime)
@@ -61,12 +61,23 @@ class AllBookedDeviceResource extends JsonResource
             'syntax' => CarbonInterface::DIFF_ABSOLUTE
          ]);
     }
-    private function formatDuration($startTime, $endTime)
+    private function formatDuration($startTime, $endTime = null)
     {
-        $start = Carbon::parse($startTime)->utc();
-        $end = Carbon::parse($endTime)->utc();
-        $diff = $start->diff($end);
+        $start = Carbon::parse($startTime);
+        $now = Carbon::now();
+        if ($endTime) {
+            $end = Carbon::parse($endTime);
+            $effectiveEnd = $now->lessThan($end) ? $now : $end;
+        } else {
+            $effectiveEnd = $now;
+        }
+        if ($effectiveEnd->lessThan($start)) {
+            return "00:00:00";
+        }
+        $diff = $start->diff($effectiveEnd);
         $totalHours = ($diff->days * 24) + $diff->h;
+
         return sprintf('%02d:%02d:%02d', $totalHours, $diff->i, $diff->s);
     }
+
 }
