@@ -47,7 +47,7 @@ class UpdateDeviceTypeRequest extends FormRequest
                             ->validate($attribute, $value, $fail);
                     },
                 ],
-            'times.*.rate'=>['required','integer','min:1'],
+            'times.*.rate'=>['required','numeric','min:1'],
             'times.*.actionStatus'=> ['required',new Enum(ActionStatusEnum::class)],
             'times.*.timeTypeId'=> [ 'nullable', 'exists:device_times,id'],
         ];

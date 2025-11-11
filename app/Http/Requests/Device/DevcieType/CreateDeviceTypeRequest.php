@@ -41,7 +41,7 @@ class CreateDeviceTypeRequest extends FormRequest
                 }
             }
         ],
-            'times.*.rate'=>['required','integer','min:1'],
+            'times.*.rate'=>['required','numeric','min:1'],
         ];
     }
 
