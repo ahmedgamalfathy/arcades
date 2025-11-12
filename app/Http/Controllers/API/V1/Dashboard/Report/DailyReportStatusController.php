@@ -12,6 +12,12 @@ use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Report\CreateReportRequest;
 use App\Services\Report\DailyReportStatusService;
+use Carbon\Carbon;
+use App\Models\Order\Order;
+use App\Models\Expense\Expense;
+use App\Models\Timer\SessionDevice\SessionDevice;
+use App\Models\Daily\Daily;
+use App\Enums\Expense\ExpenseTypeEnum;
 use Throwable;
 class DailyReportStatusController extends Controller implements HasMiddleware
 {
@@ -38,8 +44,8 @@ class DailyReportStatusController extends Controller implements HasMiddleware
     public function getStatusReport(CreateReportRequest $createReportRequest)
     {
         try {
-            $report= $this->dailyReportStatusService->getStatusReport($createReportRequest->validated());
-            $report = collect($report)->map(fn($item) => (object) $item);
+            $report= $this->dailyReportStatusService->reports($createReportRequest->validated());
+            // $report = collect($report)->map(fn($item) => (object) $item);
             return ApiResponse::success($report);
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
@@ -47,4 +53,5 @@ class DailyReportStatusController extends Controller implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
+
 }
