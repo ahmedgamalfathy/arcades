@@ -85,22 +85,22 @@ class BookedDeviceEditResource extends JsonResource
 
         return sprintf('%02d:%02d:%02d', $totalHours, $diff->i, $diff->s);
     }
-    private function timeRemaining()
-    {
-        $now = Carbon::now();
-        if ($this->end_date_time) {
-            $end = Carbon::parse($this->end_date_time);
-            $effectiveEnd = $now->lessThan($end) ? $now : $end;
-        } else {
-            $effectiveEnd = $now;
-        }
-        if ($effectiveEnd->lessThan($this->start_date_time)) {
-            return "00:00:00";
-        }
-        $diff = $this->start_date_time->diff($effectiveEnd);
-        $totalHours = ($diff->days * 24) + $diff->h;
+    private function timeRemaining() 
+    { 
+        $now = Carbon::now(); 
+        if (!$this->end_date_time) { 
+            return "--"; 
+        } 
+        $end = Carbon::parse($this->end_date_time); 
+        $effectiveEnd = $now->lessThan($end) ? $now : $end; 
+        if ($effectiveEnd->lessThan($this->start_date_time)) { 
+            return "00:00:00"; 
+        } 
+        $diff = $this->start_date_time->diff($effectiveEnd); 
+        $totalHours = ($diff->days * 24) + $diff->h; 
 
-        return sprintf('%02d:%02d:%02d', $totalHours, $diff->i, $diff->s);
+        return sprintf('%02d:%02d:%02d', $totalHours, $diff->i, $diff->s); 
     }
+
 
 }
