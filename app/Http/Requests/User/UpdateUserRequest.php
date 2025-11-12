@@ -36,8 +36,8 @@ class UpdateUserRequest extends FormRequest
             'email' => [ 
                 'required', 
                 'string', 
-                'email', 
-                'min:3', 
+                'min:3',
+                'max:255',
                 Rule::unique('users', 'email')->ignore($this->route('user')), 
             ],
           'mediaId' => ['nullable', 'integer'],
