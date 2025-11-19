@@ -28,7 +28,7 @@ class SendCodeController extends Controller
             $user =User::where("email", $data['email'])->first();
             if(!$user){
                 return response()->json([
-                    "message"=>__('messages.error.not_found')
+                    "message"=>__('crud.not_found')
                 ],404);
             }
             $user->update([
@@ -38,7 +38,7 @@ class SendCodeController extends Controller
             Mail::to($data['email'])->send(new ForgotPasswordSendCode($user, $user->code));
             DB::commit();
             // return ApiResponse::success(new SendCodeResource($user) );
-            return ApiResponse::success([],__('auth.error.not_found'));
+            return ApiResponse::success([],__('crud.not_found'));
             }catch(ValidationException $e){
                 DB::rollBack();
                 return ApiResponse::error($e->getMessage(), [], HttpStatusCode::UNPROCESSABLE_ENTITY);

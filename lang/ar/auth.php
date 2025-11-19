@@ -19,6 +19,7 @@ return [
     'not_authenticated' => 'غير مصرح لك.',
     'code_confirm' => 'رمز التحقق صحيح.',
     'send_code' => 'تم إرسال رمز التحقق بنجاح.',
+    'verify_code'=>"تم تأكيد الكود بنجاح.",
     'change_password' => 'تم تغيير كلمة المرور بنجاح.',
     'inactive_account' => 'حسابك غير مفعل.',
 ];
