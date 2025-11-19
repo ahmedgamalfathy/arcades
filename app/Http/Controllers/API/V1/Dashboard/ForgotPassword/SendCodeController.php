@@ -38,7 +38,7 @@ class SendCodeController extends Controller
             Mail::to($data['email'])->send(new ForgotPasswordSendCode($user, $user->code));
             DB::commit();
             // return ApiResponse::success(new SendCodeResource($user) );
-            return ApiResponse::success([],__('crud.not_found'));
+            return ApiResponse::success([],__('auth.send_code'));
             }catch(ValidationException $e){
                 DB::rollBack();
                 return ApiResponse::error($e->getMessage(), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
