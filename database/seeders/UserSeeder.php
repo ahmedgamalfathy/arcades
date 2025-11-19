@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
 //arcades
         $adminUser = User::create([
             'name' => 'admin',
-            'email' => 'admin@gmail.com',
+            'email' => 'ashraf.qopiah@gmail.com',
             'password' => Hash::make('elmo123456'),
             'app_key'=>'_h1234567',
             // 'database_name'=> 'subarcades',
