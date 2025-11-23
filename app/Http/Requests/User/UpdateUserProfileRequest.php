@@ -39,9 +39,9 @@ class UpdateUserProfileRequest extends FormRequest
      public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            if (!$this->mediaId && !$this->hasFile('mediaFile')) {
-                $validator->errors()->add('media', 'You must select an existing image or upload a new one.');
-            }
+            // if (!$this->mediaId && !$this->hasFile('mediaFile')) {
+            //     $validator->errors()->add('media', 'You must select an existing image or upload a new one.');
+            // }
 
             if ($this->mediaId && $this->hasFile('mediaFile')) {
                 $validator->errors()->add('media', 'You cannot upload an image and select an existing image at the same time.');
