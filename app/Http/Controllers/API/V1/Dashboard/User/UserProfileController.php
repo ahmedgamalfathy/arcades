@@ -52,7 +52,7 @@ class UserProfileController extends Controller implements HasMiddleware
         $superAdmin =Auth::user();
         $authUser = $request->user();
         $userData = $request->validated();
-        $oldMediaId = $authUser->media_id;
+        $oldMediaId = $authUser->media_id ?? null;
         $mediaId = $oldMediaId;
         if (isset($userData['mediaFile']) && $userData['mediaFile'] instanceof UploadedFile) {
                 $media = $this->mediaService->createMedia([
@@ -61,9 +61,9 @@ class UserProfileController extends Controller implements HasMiddleware
                     'category'=>null,
                 ]);
                 $mediaId = $media->id;
-                if ($oldMediaId) {
-                $this->mediaService->deleteMedia($oldMediaId);
-                }
+                // if ($oldMediaId ) {
+                // $this->mediaService->deleteMedia($oldMediaId);
+                // }
         }
         elseif (isset($userData['mediaId']) && $userData['mediaId'] != $oldMediaId) {
                 $mediaId = $userData['mediaId'];
