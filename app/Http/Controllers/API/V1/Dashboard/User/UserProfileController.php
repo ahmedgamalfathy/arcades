@@ -62,13 +62,13 @@ class UserProfileController extends Controller implements HasMiddleware
                 ]);
                 $mediaId = $media->id;
                 if ($oldMediaId) {
-                $this->mediaService->deleteMedia($mediaId);
+                $this->mediaService->deleteMedia($oldMediaId);
                 }
         }
         elseif (isset($userData['mediaId']) && $userData['mediaId'] != $oldMediaId) {
                 $mediaId = $userData['mediaId'];
                 if ($oldMediaId) {
-                    $this->mediaService->deleteMedia($mediaId);
+                    $this->mediaService->deleteMedia($oldMediaId);
                 }
         }
         $authUser->name = $userData['name'];
