@@ -4,10 +4,10 @@ namespace App\Http\Controllers\API\V1\Select;
 
 use App\Http\Controllers\Controller;
 use App\Services\Select\SelectService;
-use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Http\Request;
-
-class SelectController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+class SelectController extends Controller implements HasMiddleware
 {
     private $selectService;
 

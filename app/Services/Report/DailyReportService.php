@@ -54,7 +54,7 @@ class DailyReportService
         $query = Daily::query()
             ->where('start_date_time', '>=', $startDate)
             ->where('start_date_time', '<=', $endDate);
-            
+
         if ($search && !empty($includes)) {
             $query->where(function($q) use ($search, $includes) {
                 $this->applySearchFilters($q, $search, $includes);
@@ -172,7 +172,7 @@ class DailyReportService
     {
         $totalExpense = $dailies->sum(fn($daily) => $daily->expenses->sum('price'));
         $totalOrders = $dailies->sum(fn($daily) => $daily->orders->sum('price'));
-        
+
         $totalSessions = $dailies->sum(function($daily) {
             return $daily->sessions->sum(function($session) {
                 return $session->bookedDevices->sum('period_cost');
