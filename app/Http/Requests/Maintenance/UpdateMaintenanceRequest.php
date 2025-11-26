@@ -29,7 +29,7 @@ class UpdateMaintenanceRequest extends FormRequest
     {
         return [
             'deviceId' => ['required','exists:devices,id'],
-            'price'=> ['required','integer','min:1'],
+            'price'=> ['required','numeric','min:1'],
             'title' => ['required','string'],
             'place' => ['nullable','string'],
             'date'=>['required','string','date_format:Y-m-d'],
