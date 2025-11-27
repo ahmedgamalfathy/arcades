@@ -32,9 +32,10 @@ class CreateDeviceRequest extends FormRequest
           'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
           'name' =>['required','string','unique:devices,name'],
           'deviceTypeId'=>['required','integer','exists:device_types,id'],
-          'deviceTimeIds'=>['required','array'],
+          'deviceTimeIds'=>['nullable','array','min:1','required_without:deviceTimeSpecial'],
           'deviceTimeIds.*'=>['integer', 'exists:device_times,id'],
-          'deviceTimeSpecial'=>['nullable','array'],
+          'deviceTimeSpecial'=>['nullable','min:1',
+    'required_without:deviceTimeIds','array'],
           'deviceTimeSpecial.*.name'=>['required','string'],
           'deviceTimeSpecial.*.rate'=>['required','numeric'],
         ];

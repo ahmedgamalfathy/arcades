@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DeviceTimeService
 {
-    public function allDeviceTimes()
+    public function allDeviceTimes(Request $request)
     {
-      $deviceTimes =DeviceTime::select('id','name','rate')->get();
+      $deviceTypeId=$request->query('deviceTypeId');
+      $deviceTimes =DeviceTime::select('id','name','rate')
+      ->where('device_type_id',$deviceTypeId)
+      ->get();
       return $deviceTimes;
     }
     public function editDeviceTime(int $id)

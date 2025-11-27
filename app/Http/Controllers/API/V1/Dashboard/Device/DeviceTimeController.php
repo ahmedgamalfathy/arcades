@@ -39,9 +39,9 @@ class DeviceTimeController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $devcieTimes=$this->deviceTimeService->allDeviceTimes();
+        $devcieTimes=$this->deviceTimeService->allDeviceTimes($request);
         return ApiResponse::success(DeviceTimeResource::Collection($devcieTimes));
     }
 

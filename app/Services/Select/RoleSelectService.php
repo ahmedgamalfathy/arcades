@@ -8,7 +8,7 @@ class RoleSelectService
 {
     public function getAllRoles()
     {
-        return Role::whereNot('name', 'مدير عام')->get(['id as value', 'name as label']);
+       return Role::on('mysql')->whereNot('name', 'مدير عام')->get(['id as value', 'name as label']);
     }
 }
 
