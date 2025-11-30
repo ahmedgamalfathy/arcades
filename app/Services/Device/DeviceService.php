@@ -86,35 +86,56 @@ class DeviceService
     }
     public function updateDevice(int $id, array $data)
     {
-    $device = Device::find($id);
-    if(!$device){
-      throw new ModelNotFoundException("Device  with id {$id} not found");
-    }
-    $oldMediaId = $device->media_id;
-    $mediaId = $oldMediaId;
-    if (isset($data['mediaFile']) && $data['mediaFile'] instanceof UploadedFile) {
-            $media = $this->mediaService->createMedia([
-                'path' => $data['mediaFile'],
-                'type' => MediaTypeEnum::PHOTO,
-            ]);
-            $mediaId = $media->id;
-            if ($oldMediaId) {
-              $this->mediaService->deleteMedia($mediaId);
+        $device = Device::find($id);
+        if(!$device){
+        throw new ModelNotFoundException("Device  with id {$id} not found");
+        }
+        $oldMediaId = $device->media_id;
+        $mediaId = $oldMediaId;
+        if (isset($data['mediaFile']) && $data['mediaFile'] instanceof UploadedFile) {
+                $media = $this->mediaService->createMedia([
+                    'path' => $data['mediaFile'],
+                    'type' => MediaTypeEnum::PHOTO,
+                ]);
+                $mediaId = $media->id;
+                if ($oldMediaId) {
+                $this->mediaService->deleteMedia($mediaId);
+                }
+        }
+        elseif (isset($data['mediaId']) && $data['mediaId'] != $oldMediaId) {
+                $mediaId = $data['mediaId'];
+                if ($oldMediaId) {
+                    $this->mediaService->deleteMedia($mediaId);
+                }
+        }
+        $device->update([
+        'name' => $data['name'],
+        'device_type_id' => $data['deviceTypeId'],
+        'media_id' => $mediaId
+        ]);
+        if (isset($data['deviceTimeIds'])) {
+            $device->deviceTimes()->sync($data['deviceTimeIds']);
+        }
+        if (isset($data['deviceTimeSpecial'])) {
+        foreach ($data['deviceTimeSpecial'] as $deviceTimeSpecial) {
+            if ($deviceTimeSpecial['actionStatus'] !== 'delete' && isset($deviceTimeSpecial['name'])) {
+                $existingDeviceTime = DeviceTime::where('name', $deviceTimeSpecial['name'])
+                    ->where('device_id', $device->id)
+                    ->first();
+                if ($existingDeviceTime) {
+                    throw new Exception("Device time with name {$deviceTimeSpecial['name']} already exists for this device");
+                }
             }
-    }
-    elseif (isset($data['mediaId']) && $data['mediaId'] != $oldMediaId) {
-            $mediaId = $data['mediaId'];
-            if ($oldMediaId) {
-                 $this->mediaService->deleteMedia($mediaId);
+            if ($deviceTimeSpecial['actionStatus'] == 'update' && isset($deviceTimeSpecial['timeTypeId'])) {
+                  $deviceTimeSpecial['deviceId'] = $device->id;
+                $this->deviceTimeService->updateDeviceTime($deviceTimeSpecial['timeTypeId'], $deviceTimeSpecial);
+            } elseif ($deviceTimeSpecial['actionStatus'] == 'create') {
+                $deviceTimeSpecial['deviceId'] = $device->id;
+                $this->deviceTimeService->createDeviceTime($deviceTimeSpecial);
+            } elseif ($deviceTimeSpecial['actionStatus'] == 'delete' && isset($deviceTimeSpecial['timeTypeId'])) {
+                $this->deviceTimeService->deleteDeviceTime($deviceTimeSpecial['timeTypeId']);
             }
-    }
-    $device->update([
-    'name' => $data['name'],
-    'device_type_id' => $data['deviceTypeId'],
-    'media_id' => $mediaId
-    ]);
-    if (isset($data['deviceTimeIds'])) {
-        $device->deviceTimes()->sync($data['deviceTimeIds']);
+        }
     }
     return $device;
     }

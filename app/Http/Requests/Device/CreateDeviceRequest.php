@@ -35,7 +35,7 @@ class CreateDeviceRequest extends FormRequest
           'deviceTimeIds'=>['nullable','array','min:1','required_without:deviceTimeSpecial'],
           'deviceTimeIds.*'=>['integer', 'exists:device_times,id'],
           'deviceTimeSpecial'=>['nullable','min:1',
-    'required_without:deviceTimeIds','array'],
+          'required_without:deviceTimeIds','array'],
           'deviceTimeSpecial.*.name'=>['required','string'],
           'deviceTimeSpecial.*.rate'=>['required','numeric'],
         ];

@@ -38,7 +38,32 @@ class UpdateDeviceRequest extends FormRequest
         ],
           'deviceTypeId'=>['required','integer','exists:device_types,id'],
           'deviceTimeIds'=>['required','array'],
-          'deviceTimeIds.*'=>['integer', 'exists:device_times,id']
+          'deviceTimeIds.*'=>['integer', 'exists:device_times,id'],
+        'deviceTimeSpecial' => [
+                'nullable',
+                'array',
+                'required_without:deviceTimeIds',
+                'min:1'
+            ],
+            'deviceTimeSpecial.*.name' => [
+                'required_if:deviceTimeSpecial.*.actionStatus,create',
+                'string'
+            ],
+
+            'deviceTimeSpecial.*.rate' => [
+                'required_if:deviceTimeSpecial.*.actionStatus,create',
+                'numeric'
+            ],
+            'deviceTimeSpecial.*.actionStatus' => [
+                'required',
+                Rule::in(['create', 'update', 'delete']),
+            ],
+            'deviceTimeSpecial.*.timeTypeId' => [
+                'required_if:deviceTimeSpecial.*.actionStatus,update,delete',
+                'integer',
+                'exists:device_times,id'
+            ],
+
         ];
     }
 
