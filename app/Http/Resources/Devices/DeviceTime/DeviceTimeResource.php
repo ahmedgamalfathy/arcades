@@ -18,6 +18,8 @@ class DeviceTimeResource extends JsonResource
             'timeTypeId' => $this->id,
             'name' => $this->name,
             'rate' => $this->rate,
+            'deviceTypeId' => $this->device_type_id,
+            'deviceId' => $this->device_id,
         ];
     }
 }
