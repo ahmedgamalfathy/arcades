@@ -34,10 +34,11 @@ class DeviceResource extends JsonResource
                     ->where('status',BookedDeviceEnum::FINISHED->value)
                     ->sum('total_paused_seconds')) / 3600,2) ?? 0,
                 "deviceType"=> $this->deviceType->name??"",
+                "deviceTypeId"=> $this->deviceType->device_type_id??"",
                 "statusDevice"=> $this->bookedDevices()
                     ->orderBy('id', 'desc')
                     ->first()?->status ?? BookedDeviceEnum::FINISHED->value,
-                
+
             ],
             // 'deviceType'=>$this->whenLoaded('deviceType',new DeviceResource($this->deviceType)),
             'deviceTimes' =>$this->whenLoaded('deviceTimes',DeviceTimeResource::collection ($deviceTimes)),
