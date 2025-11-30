@@ -45,7 +45,7 @@ class DailyController extends Controller implements HasMiddleware
             new Middleware('permission:daily_report', only:['dailyReport']),
             new Middleware('tenant'),
         ];
-    }  
+    }
 
     public function index(Request $request)
     {
@@ -74,7 +74,7 @@ class DailyController extends Controller implements HasMiddleware
         }catch (Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),[],HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
-    }   
+    }
     public function update(int $id,UpdateDailyRequest $updateDailyRequest)
     {
         try {
@@ -103,10 +103,14 @@ class DailyController extends Controller implements HasMiddleware
     {
         try {
             DB::beginTransaction();
-            $this->dailyService->closeDaily();
-            
+         $daily=   $this->dailyService->closeDaily();
+
             DB::commit();
-            return ApiResponse::success([], __('crud.updated'));
+            return ApiResponse::success([
+                'incoming'=>$daily->total_income??0,
+                'expense'=>$daily->total_expense??0,
+                'profit'=>$daily->total_profit??0,
+            ], __('crud.updated'));
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
