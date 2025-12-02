@@ -63,6 +63,7 @@ class SelectService
             'dailynow' => ['getDailyNow', DailySelectService::class],
             'devicesAvailable' => ['getDevicesAvailable', DeviceTypeSelectService::class],
             'getMedia' => ['getMedia', MediaSelectService::class],
+            'sessionGroups' => ['getSessionGroup', SessionSelectService::class],
         ];
 
         $paramValue = null; // Initialize paramValue
