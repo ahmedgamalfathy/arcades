@@ -19,7 +19,7 @@ class DeviceTypeSelectService{
     public function getDeviceType(){
         $deviceType = DeviceType::on('tenant')->get(['id as value', 'name as label']);
         return $deviceType;
-    }   
+    }
     public function getDevicesByDeviceType($deviceTypeId=null){
         if($deviceTypeId == null){
             return Device::on('tenant')->get(['id as value', 'name as label']);
@@ -34,10 +34,7 @@ class DeviceTypeSelectService{
         $devices = Device::on('tenant')->where('device_type_id',$deviceTypeId)->whereNotIn('id',$bookedDevices)->get(['id as value', 'name as label']);
         return $devices;
     }
-    public function getTimesByDeviceID($deviceId=null){
-        if($deviceId == null){
-            return DeviceTime::on('tenant')->get(['id as value', 'name as label']);
-        }
+    public function getTimesByDeviceID($deviceId){
         $times = DeviceTime::on('tenant')->where('device_id',$deviceId)
         ->orWhere('device_type_id',$deviceId)->get(['id as value', 'name as label']);
         return $times;
