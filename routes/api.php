@@ -62,6 +62,7 @@ Route::prefix('v1/admin')->group(function () {
                 Route::put('devices/{id}/changeStatus',[DeviceController::class,'changeStatus']);
                 Route::apiResource('device-types', DeviceTypeController::class);
                 Route::apiResource('device-times', DeviceTimeController::class);
+                Route::get('get-device-times',[DeviceController::class,'getTimesByDeviceId']);
                 Route::apiResource('devices', DeviceController::class);
                 Route::apiResource('maintenances', MaintenanceController::class);
                 Route::post('/device-timer/end-group-times',EndGroupTimesController::class);

@@ -145,5 +145,26 @@ class DeviceController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
+    public function getTimesByDeviceId(Request $request)
+    {
+        try {
+            $request->validate([
+                'deviceId' => 'required|integer|exists:devices,id',
+            ]);
+            $id = $request->input('deviceId');
+            $deviceTimes = $this->deviceService->getTimesByDeviceId($id);
+            $schemaTimes = $deviceTimes->map(function ($deviceTime) {
+                return [
+                    'value' => $deviceTime->id,
+                    'lable' => $deviceTime->name,
+                ];
+            });
+            return ApiResponse::success($schemaTimes);
+        }catch(ModelNotFoundException $e){
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }

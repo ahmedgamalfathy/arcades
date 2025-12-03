@@ -158,5 +158,13 @@ class DeviceService
         $device->save();
 
     }
+    public function getTimesByDeviceId(int $deviceId)
+    {
+        $device = Device::with('deviceTimes')->find($deviceId);
+        if(!$device){
+        throw new ModelNotFoundException("Device  with id {$deviceId} not found");
+        }
+        return $device->deviceTimes;
+    }
 }
 
