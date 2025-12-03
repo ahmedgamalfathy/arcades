@@ -35,8 +35,7 @@ class DeviceTypeSelectService{
         return $devices;
     }
     public function getTimesByDeviceID($deviceId){
-        $times = DeviceTime::on('tenant')->where('device_id',$deviceId)
-        ->orWhere('device_type_id',$deviceId)->get(['id as value', 'name as label']);
+        $times = DeviceTime::on('tenant')->where('device_id',$deviceId)->get(['id as value', 'name as label']);
         return $times;
     }
 }
