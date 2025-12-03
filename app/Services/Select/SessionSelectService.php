@@ -9,7 +9,9 @@ class SessionSelectService
 //dailynow
     public function getSessionGroup()
     {
-        return SessionDevice::on('tenant')->where('type',1 )->get(['id as value', 'name as label']);
+        return  SessionDevice::on('tenant')->whereHas('bookedDevices', function ($q) {
+        $q->where('status','!=',0); 
+        })->get(['id as value', 'name as label']);
     }
 
 }
