@@ -25,7 +25,6 @@ class ExpenseResource extends JsonResource
             'note' => $this->note??"",
             'userName' => $this->user->name,
             'userAvatar'=>$this->user->media->path??Media::on('tenant')->where('category', 'avatar')->first()?->path??"",
-
         ];
     }
 }

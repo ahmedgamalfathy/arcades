@@ -18,7 +18,8 @@ class AllExpenseResource extends JsonResource
        $total = Expense::count();
         return [
             'expenses' => ExpenseResource::collection($this->resource->items()),
-            'count'=>$total,
+            'count'=>$this->resource->count()??0,
+            'total'=>$this->resource->sum('price')??0,
             'perPage' => $this->resource->count(),
             'nextPageUrl'  => $this->extractCursor($this->resource->nextPageUrl()),
             'prevPageUrl'  => $this->extractCursor($this->resource->previousPageUrl()),

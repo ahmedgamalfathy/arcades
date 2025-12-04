@@ -1,10 +1,11 @@
 <?php
 namespace App\Services\Expense;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Models\Expense\Expense;
 use Spatie\QueryBuilder\QueryBuilder;
+use App\Filters\Expense\FilterExpense;
 use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ExpenseService {
  public function allExpenses(Request $request) {
@@ -12,8 +13,9 @@ class ExpenseService {
     // $expenses = Expense::where('type',$type)->orderByDesc('id')->cursorPaginate($perPage);
     $expenses = QueryBuilder::for(Expense::class)
     ->allowedFilters([
-        // AllowedFilter::custom('search', new FilterExpense),
+        AllowedFilter::custom('search', new FilterExpense),
         AllowedFilter::exact('type', 'type'),
+        AllowedFilter::exact('dailyId', 'daily_id'),
     ])
     ->cursorPaginate($perPage);
     return $expenses;
