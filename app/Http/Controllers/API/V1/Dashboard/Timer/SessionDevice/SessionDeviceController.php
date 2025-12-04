@@ -74,4 +74,22 @@ class SessionDeviceController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
+    public function update(Request $request, string $id)
+    {
+        try {
+            DB::beginTransaction();
+            $data=$request->validate([
+                'name'=>'required|string|max:255',
+            ]);
+            $this->sessionDeviceService->updateSessionDevice($id, $data);
+            DB::commit();
+            return ApiResponse::success([], __('crud.updated'));
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return ApiResponse::error(__('crud.not_found'),$e->getMessage(), HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $e ) {
+            DB::rollBack();
+            return ApiResponse::error(__('crud.server_error'),$e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
 }

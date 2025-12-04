@@ -41,7 +41,8 @@ class SessionDeviceService
     public function updateSessionDevice(int $id, array $data)
     {
         $sessionDevice=SessionDevice::findOrFail($id);
-        $sessionDevice->update($data);
+        $sessionDevice->name = $data['name'];
+        $sessionDevice->save();
         return $sessionDevice;
     }
 

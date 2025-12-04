@@ -79,7 +79,7 @@ Route::prefix('v1/admin')->group(function () {
                     Route::put('{id}/update-end-date-time', 'updateEndDateTime');
                     Route::put('{id}/transfer_device_to_group','transferDeviceToGroup');
                 });
-                Route::apiResource('sessions', SessionDeviceController::class)->only(['index','show','destroy']);
+                Route::apiResource('sessions', SessionDeviceController::class)->only(['index','show','destroy','update']);
                 Route::prefix('parameter')->group(function () {
                     Route::apiResource('params', ParamController::class);
                 });
