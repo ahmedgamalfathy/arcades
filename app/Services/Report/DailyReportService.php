@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Services\Report;
-use App\Models\Daily\Daily;
 use Carbon\Carbon;
+use App\Models\Daily\Daily;
+use App\Models\Media\Media;
 use Illuminate\Support\Collection;
 
 class DailyReportService
@@ -202,6 +203,7 @@ class DailyReportService
             ->filter(fn($item) => $item->product)
             ->groupBy(fn($item) => $item->product->name)
             ->map(fn($items, $productName) => [
+                'productPath'=>$items->first()->product->media?->path??Media::where('category','products')->first()->path??'',
                 'productName' => $productName,
                 'totalOrders' => $items->count(),
                 'totalQuantity' => $items->sum('quantity'),
@@ -221,6 +223,8 @@ class DailyReportService
             ->filter(fn($bookedDevice) => $bookedDevice->device)
             ->groupBy(fn($bookedDevice) => $bookedDevice->device->name)
             ->map(fn($group, $deviceName) => [
+                'devicePath'=>$group->first()->device->media?->path,
+                'deviceType'=>$group->first()->device->deviceType?->name,
                 'deviceName' => $deviceName,
                 'totalHours' => round(
                     $group->sum(fn($bookedDevice) => $bookedDevice->calculateUsedSeconds()) / 3600,
