@@ -62,7 +62,8 @@ class SelectService
             'params' => ['getAllParameters', ParameterSelectService::class],
             'dailynow' => ['getDailyNow', DailySelectService::class],
             'devicesAvailable' => ['getDevicesAvailable', DeviceTypeSelectService::class],
-            'getMedia' => ['getMedia', MediaSelectService::class],
+            'getAvatar' => ['getMediaAvatar', MediaSelectService::class],
+            'getDevices' => ['getMediaDevices', MediaSelectService::class],
             'sessionGroups' => ['getSessionGroup', SessionSelectService::class],
         ];
 
