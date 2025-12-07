@@ -223,8 +223,8 @@ class DailyReportService
             ->filter(fn($bookedDevice) => $bookedDevice->device)
             ->groupBy(fn($bookedDevice) => $bookedDevice->device->name)
             ->map(fn($group, $deviceName) => [
-                'devicePath'=>$group->first()->device->media?->path,
-                'deviceType'=>$group->first()->device->deviceType?->name,
+                'devicePath'=>$group->first()?->device->media?->path,
+                'deviceType'=>$group->first()?->device->deviceType?->name,
                 'deviceName' => $deviceName,
                 'totalHours' => round(
                     $group->sum(fn($bookedDevice) => $bookedDevice->calculateUsedSeconds()) / 3600,
