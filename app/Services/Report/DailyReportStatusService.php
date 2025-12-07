@@ -120,7 +120,8 @@ $report = [];
 if (empty($includes) || in_array('orders', $includes)) {
     $ordersQuery = Order::whereNotNull('daily_id')
         ->whereNull('booked_device_id')
-        ->select('id', 'name', 'number', 'price', 'created_at');
+        ->select('id', 'name', 'number', 'price', 'created_at')
+        ->whereBetween('created_at', [$startDate, $endDate]);
 
     if ($search) {
         $ordersQuery->where(function($q) use ($search) {
@@ -183,7 +184,7 @@ if (empty($includes) || in_array('sessions', $includes)) {
     $sessions = $sessions->get()->map(function($session) {
         return [
                 'id' => $session->id,
-                'name' => $session->name == 'individual' ? $session->bookedDevices->first()->device->name : $session->name,
+                'name' => $session->name == 'individual' ? $session->bookedDevices->first()?->device->name : $session->name,
                 'price' => (($session->bookedDevices?->sum('period_cost') ?? 0) + ($session->orders?->sum('price') ?? 0)),
                 'date' => Carbon::parse($session->created_at)->format('d-M'),
                 'time' => Carbon::parse($session->created_at)->format('H:i a'),

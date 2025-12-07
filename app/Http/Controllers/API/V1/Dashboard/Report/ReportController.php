@@ -39,10 +39,11 @@ class ReportController extends Controller implements HasMiddleware
             new Middleware('permission:destroy_product', only:['destroy']),
             new Middleware('tenant'),
         ];
-    }  
+    }
     //reports?startDateTime=2025-10-26&endDateTime=2025-10-26&include=orders,expenses,devices
     public function getReport(CreateReportRequest $createReportRequest)
     {
+
         try {
             $report= $this->dailyReportService->getReport($createReportRequest->validated());
             return ApiResponse::success($report);
