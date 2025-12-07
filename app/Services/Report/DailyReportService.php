@@ -220,8 +220,8 @@ class DailyReportService
         return $dailies
             ->flatMap(fn($daily) => $daily->sessions ?? [])
             ->flatMap(fn($session) => $session->bookedDevices ?? [])
-            ->filter(fn($bookedDevice) => $bookedDevice->device)
-            ->groupBy(fn($bookedDevice) => $bookedDevice->device->name)
+            ->filter(fn($bookedDevice) => $bookedDevice?->device)
+            ->groupBy(fn($bookedDevice) => $bookedDevice?->device->name)
             ->map(fn($group, $deviceName) => [
                 'devicePath'=>$group->first()?->device->media?->path,
                 'deviceType'=>$group->first()?->device->deviceType?->name,
