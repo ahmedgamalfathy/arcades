@@ -69,7 +69,7 @@ class DailyService
                         });
                     }]);
                }
-                
+
                 if ($include === 'sessions') {
                     $query->with(['sessions' => function($q) use ($search) {
                         $q->where(function($sessionQ) use ($search) {
@@ -160,7 +160,7 @@ class DailyService
         }
       }
       $income =$totalBookedDevice + $daily->totalOrders();
-      $daily->end_date_time = Carbon::now('UTC')->format('Y-m-d H:i:s');
+      $daily->end_date_time = Carbon::now()->format('Y-m-d H:i:s');
       $daily->total_income = $income;
       $daily->total_expense = $daily->totalExpenses();
       $daily->total_profit = $income - $daily->totalExpenses();
@@ -189,11 +189,11 @@ class DailyService
                     // 'count' => $dailiesPerDay->count(), // عدد السجلات لهذا اليوم
                 ];
             })
-            ->values(); 
+            ->values();
 
         return $dailies;
     }
-    public function activityLog($dailyId) 
+    public function activityLog($dailyId)
     {
         $daily = Daily::findOrFail($dailyId);
         $sessionIds = $daily->sessions()->pluck('id')->toArray();
@@ -223,10 +223,10 @@ class DailyService
             ->get();
         $dailyActivities = Activity::where('subject_id', $dailyId)
             ->where('subject_type', Daily::class)
-            ->get(); 
+            ->get();
 
 
-        
+
             $activities = [
             'daily'=>$dailyActivities,
             'sessions' => $sessions,

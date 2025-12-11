@@ -17,6 +17,7 @@ class BookedDeviceService
 {
     public function createBookedDevice(array $data)
     {
+        
         return BookedDevice::create([
         'session_device_id'=>$data['sessionDeviceId'],
         'device_type_id'=>$data['deviceTypeId'],
@@ -67,7 +68,7 @@ class BookedDeviceService
     public function deleteBookedDevice(int $id)
     {
         $bookedDevice= BookedDevice::findOrFail($id);
-        if($bookedDevice && $bookedDevice->sessionDevice->type==SessionDeviceEnum::GROUP->value) 
+        if($bookedDevice && $bookedDevice->sessionDevice->type==SessionDeviceEnum::GROUP->value)
         {
             if($bookedDevice->sessionDevice->bookedDevices()->count() == 1){
                 $bookedDevice->sessionDevice->delete();

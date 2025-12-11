@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\QueryException;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -93,7 +94,9 @@ class DeviceTimeController extends Controller implements HasMiddleware
             return ApiResponse::success([],__('crud.deleted'));
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        } catch (\Throwable $th) {
+        }catch(QueryException  $e){
+            return ApiResponse::error(__('crud.dont_delete_device_time'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 

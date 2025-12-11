@@ -15,9 +15,9 @@ return new class extends Migration
         Schema::create('booked_devices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('session_device_id')->constrained('session_devices')->cascadeOnDelete();
-            $table->foreignId('device_type_id')->constrained('device_types')->cascadeOnDelete();
-            $table->foreignId('device_id')->constrained('devices')->cascadeOnDelete();
-            $table->foreignId('device_time_id')->constrained('device_times')->cascadeOnDelete();
+            $table->foreignId('device_type_id')->constrained('device_types')->restrictOnDelete();
+            $table->foreignId('device_id')->constrained('devices')->restrictOnDelete();
+            $table->foreignId('device_time_id')->constrained('device_times')->restrictOnDelete();
 
             $table->dateTime('start_date_time');
             $table->dateTime('end_date_time')->nullable();
@@ -32,6 +32,7 @@ return new class extends Migration
             $table->decimal('period_cost',10,2)->default(0);
             $table->boolean('is_notification_sent')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->tinyInteger('status')->default(DeviceStatusEnum::AVAILABLE->value);
             $table->foreignIdFor(DeviceType::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Media::class)->nullable()->constrained()->nullOnDelete();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

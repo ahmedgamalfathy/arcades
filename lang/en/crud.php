@@ -22,5 +22,7 @@ return [
 
     // orders
     'no_available_quantity' => 'No available quantity.',
+    'nullable_choice_upload' =>'You must select an existing image or upload a new one.',
+    'multi_choice_upload' =>'You cannot upload an image and select an existing image at the same time.'
 
 ];

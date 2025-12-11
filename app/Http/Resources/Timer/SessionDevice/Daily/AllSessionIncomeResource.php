@@ -16,9 +16,14 @@ class AllSessionIncomeResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $sessionName = $this->name;
+        if ($this->name == "individual") {
+        $firstDevice = $this->bookedDevices->first();
+        $sessionName = $firstDevice?->device?->name ?? 'Unknown Device';
+        }
         return [
             'sessionId'=>$this->id,
-            'sessioName'=> $this->name == "individual" ? $this->bookedDevices->first()->device->name : $this->name,
+            'sessioName'=> $sessionName,
             'totalPriceSession'=>$this->bookedDevices->sum('period_cost'),
             'createdAt' =>Carbon::parse($this->created_at)->format('Y-m-d'),
             'timeCreated' =>Carbon::parse($this->created_at)->format('H:i'),

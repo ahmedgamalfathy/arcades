@@ -56,11 +56,11 @@ class CreateUserRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             if (!$this->mediaId && !$this->hasFile('mediaFile')) {
-                $validator->errors()->add('media', 'You must select an existing image or upload a new one.');
+                $validator->errors()->add('media', __('crud.nullable_choice_upload'));
             }
 
             if ($this->mediaId && $this->hasFile('mediaFile')) {
-                $validator->errors()->add('media', 'You cannot upload an image and select an existing image at the same time.');
+                $validator->errors()->add('media',  __('crud.multi_choice_uploadmulti_choice_upload'));
             }
         });
     }

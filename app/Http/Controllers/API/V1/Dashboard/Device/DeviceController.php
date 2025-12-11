@@ -5,23 +5,24 @@ namespace App\Http\Controllers\API\V1\Dashboard\Device;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Enums\ActionStatusEnum;
-use App\Enums\Device\DeviceStatusEnum;
+use App\Enums\Order\OrderTypeEnum;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Services\Order\OrderService;
 use Illuminate\Validation\Rules\Enum;
+use App\Enums\Device\DeviceStatusEnum;
 use App\Services\Device\DeviceService;
+use Illuminate\Database\QueryException;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\Device\CreateDeviceRequest;
 use App\Http\Requests\Device\UpdateDeviceRequest;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use App\Http\Requests\Order\CreateOrderDeviceRequest;
 use App\Http\Resources\Devices\Device\DeviceResource;
 use App\Services\Device\DeviceTime\DeviceTimeService;
 use App\Http\Resources\Devices\Device\AllDeviceResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Services\Order\OrderService;
-use App\Http\Requests\Order\CreateOrderDeviceRequest;
-use App\Enums\Order\OrderTypeEnum;
 
 
 class DeviceController extends Controller  implements HasMiddleware
@@ -110,7 +111,9 @@ class DeviceController extends Controller  implements HasMiddleware
             return ApiResponse::success([],__('crud.deleted'));
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        } catch (\Throwable $th) {
+        }catch(QueryException  $e){
+            return ApiResponse::error(__('crud.dont_delete_device_time'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
