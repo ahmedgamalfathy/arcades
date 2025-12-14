@@ -120,7 +120,7 @@ class DailyService
         throw new ModelNotFoundException('Daily is already open');
       }
       if($data['startDateTime'] == null){
-        $data['startDateTime'] = Carbon::now('UTC')->format('Y-m-d H:i:s');
+        $data['startDateTime'] = Carbon::now()->format('Y-m-d H:i:s');
       }
         return Daily::create([
             'start_date_time' => $data['startDateTime'],
@@ -169,8 +169,8 @@ class DailyService
      }
     public function dailyReport()
     {
-        $startOfMonth = Carbon::now('UTC')->startOfMonth();
-        $endOfMonth = Carbon::now('UTC')->endOfMonth();
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
 
         $dailies = Daily::query()
             ->with(['orders', 'expenses', 'sessions.bookedDevices'])

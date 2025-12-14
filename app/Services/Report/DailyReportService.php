@@ -65,8 +65,8 @@ class DailyReportService
     private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes): Collection
     {
         $query = Daily::query()
+         ->with(['orders', 'expenses', 'sessions.bookedDevices'])
         ->whereBetween('start_date_time', [$startDate, $endDate]);
-
             // ->where('start_date_time', '>=', $startDate)
             // ->where('start_date_time', '<=', $endDate);
 
