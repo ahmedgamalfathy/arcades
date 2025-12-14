@@ -65,7 +65,8 @@ class DailyReportService
     private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes): Collection
     {
         $query = Daily::query()
-            ->whereBetween('start_date_time', [$startDate, $endDate]);
+            ->whereBetween('start_date_time', [$startDate, $endDate])
+            ->whereBetween('end_date_time', [$startDate, $endDate]);
 
         // ✅ تحميل العلاقات مع الفلترة
         if (!empty($includes)) {
