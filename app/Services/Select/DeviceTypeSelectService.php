@@ -16,10 +16,10 @@ public function getDevicesAvailable($deviceTypeId)
     $bookedDevices = BookedDevice::on('tenant')
         ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
         ->pluck('device_id');
-    $devicesInMaintenance = Maintenance::on('tenant')->pluck('device_id');
+
     $devices = Device::on('tenant')
         ->whereNotIn('id', $bookedDevices)
-        ->whereNotIn('id', $devicesInMaintenance)
+        ->whereNotIn('status', [0,2])
         ->where('device_type_id', $deviceTypeId)
         ->get(['id as value', 'name as label']);
 
