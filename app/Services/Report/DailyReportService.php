@@ -66,7 +66,7 @@ class DailyReportService
     {
         $query = Daily::query()
             ->where('start_date_time', '>=', $startDate)
-            ->where('start_date_time', '<=', $endDate);
+            ->where('end_date_time', '<=', $endDate);
 
         if ($search && !empty($includes)) {
             $query->where(function($q) use ($search, $includes, $startDate, $endDate) {
