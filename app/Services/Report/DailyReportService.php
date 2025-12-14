@@ -89,8 +89,7 @@ class DailyReportService
     {
         if (in_array('orders', $includes)) {
             $query->orWhereHas('orders', function($q) use ($search, $startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->where(function($searchQuery) use ($search) {
+                $q->where(function($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('number', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
@@ -100,8 +99,8 @@ class DailyReportService
 
         if (in_array('sessions', $includes)) {
             $query->orWhereHas('sessions', function($q) use ($search, $startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->where(function($searchQuery) use ($search) {
+                // $q->whereBetween('created_at', [$startDate, $endDate])
+                    $q->where(function($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhereHas('bookedDevices.device', function($deviceQuery) use ($search) {
                                 $deviceQuery->where('name', 'like', "%{$search}%");
@@ -112,8 +111,8 @@ class DailyReportService
 
         if (in_array('expenses', $includes)) {
             $query->orWhereHas('expenses', function($q) use ($search, $startDate, $endDate) {
-                $q->whereBetween('date', [$startDate, $endDate])
-                    ->where(function($searchQuery) use ($search) {
+                // $q->whereBetween('date', [$startDate, $endDate])
+                    $q->where(function($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
                     });
@@ -144,8 +143,8 @@ class DailyReportService
     {
         if ($search) {
             $query->with(['orders' => function($q) use ($search, $startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->where(function($searchQuery) use ($search) {
+                // $q->whereBetween('created_at', [$startDate, $endDate])
+                    $q->where(function($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('number', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
@@ -154,8 +153,8 @@ class DailyReportService
             }]);
         } else {
             $query->with(['orders' => function($q) use ($startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->with('items.product');
+                // $q->whereBetween('created_at', [$startDate, $endDate])
+                    $q->with('items.product');
             }]);
         }
     }
@@ -167,8 +166,8 @@ class DailyReportService
     {
         if ($search) {
             $query->with(['sessions' => function($q) use ($search, $startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->where(function($sessionQ) use ($search) {
+                // $q->whereBetween('created_at', [$startDate, $endDate])
+                    $q->where(function($sessionQ) use ($search) {
                         $sessionQ->where('name', 'like', "%{$search}%")
                             ->orWhereHas('bookedDevices.device', function($deviceQuery) use ($search) {
                                 $deviceQuery->where('name', 'like', "%{$search}%");
@@ -178,8 +177,8 @@ class DailyReportService
             }]);
         } else {
             $query->with(['sessions' => function($q) use ($startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->with('bookedDevices.device');
+                // $q->whereBetween('created_at', [$startDate, $endDate])
+                    $q->with('bookedDevices.device');
             }]);
         }
     }
@@ -191,15 +190,15 @@ class DailyReportService
     {
         if ($search) {
             $query->with(['expenses' => function($q) use ($search, $startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->where(function($searchQuery) use ($search) {
+                // $q->whereBetween('created_at', [$startDate, $endDate])
+                    $q->where(function($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
                     });
             }]);
         } else {
             $query->with(['expenses' => function($q) use ($startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate]);
+                $q->whereBetween('date', [$startDate, $endDate]);
             }]);
         }
     }
@@ -212,21 +211,21 @@ class DailyReportService
         // فلترة المصروفات حسب التاريخ
         $totalExpense = $dailies->sum(function($daily) use ($startDate, $endDate) {
             return $daily->expenses
-                ->whereBetween('created_at', [$startDate, $endDate])
+                // ->whereBetween('created_at', [$startDate, $endDate])
                 ->sum('price');
         });
 
         // فلترة الطلبات حسب التاريخ
         $totalOrders = $dailies->sum(function($daily) use ($startDate, $endDate) {
             return $daily->orders
-                ->whereBetween('created_at', [$startDate, $endDate])
+                // ->whereBetween('created_at', [$startDate, $endDate])
                 ->sum('price');
         });
 
         // فلترة الجلسات حسب التاريخ
         $totalSessions = $dailies->sum(function($daily) use ($startDate, $endDate) {
             return $daily->sessions
-                ->whereBetween('created_at', [$startDate, $endDate])
+                // ->whereBetween('created_at', [$startDate, $endDate])
                 ->sum(function($session) {
                     return $session->bookedDevices->sum('period_cost');
                 });
@@ -275,7 +274,8 @@ class DailyReportService
     {
         return $dailies
             ->flatMap(function($daily) use ($startDate, $endDate) {
-                return $daily->sessions?->whereBetween('created_at', [$startDate, $endDate]) ?? collect([]);
+                return $daily->sessions?? collect([]);
+                // ?->whereBetween('created_at', [$startDate, $endDate]) ?? collect([]);
             })
             ->flatMap(fn($session) => $session->bookedDevices ?? [])
             ->filter(fn($bookedDevice) => $bookedDevice?->device)
