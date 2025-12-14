@@ -148,6 +148,7 @@ if (empty($includes) || in_array('orders', $includes)) {
 if (empty($includes) || in_array('expenses', $includes)) {
     $expensesQuery = Expense::where('type', ExpenseTypeEnum::INTERNAL->value)
         ->whereNotNull('daily_id')
+        ->whereBetween('created_at', [$startDate, $endDate])
         ->select('id', 'name', 'price', 'created_at');
 
     if ($search) {
@@ -160,7 +161,7 @@ if (empty($includes) || in_array('expenses', $includes)) {
             'name' => $expense->name,
             'price' => $expense->price,
             'date' => Carbon::parse($expense->created_at)->format('d-M'),
-            'time' => Carbon::parse($expense->created_at)->format('H:i a'),
+            'time' => Carbon::parse($expense->created_at)->format('H:i'),
             'type' => 'expense'
         ];
     });
@@ -173,8 +174,9 @@ if (empty($includes) || in_array('sessions', $includes)) {
     $sessions = SessionDevice::whereBetween('created_at', [$startDate, $endDate]);
 
     if ($search) {
-        $sessions->where(function($q) use ($search) {
+        $sessions->where(function($q) use ($search,$startDate,$endDate) {
             $q->where('name', 'like', "%{$search}%")
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->orWhereHas('bookedDevices.device', function($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%");
             });
