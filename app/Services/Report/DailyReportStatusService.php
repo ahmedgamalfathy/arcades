@@ -111,8 +111,8 @@ $search = $data['search'] ?? null;
 $includes = $this->parseIncludes($data['include'] ?? null);
 
 // Get the daily record to extract start and end date times;
-$startDate = Carbon::parse($data['startDateTime']);
-$endDate = Carbon::parse($data['endDateTime']);
+$startDate = Carbon::parse($data['startDateTime'])->startOfDay();
+$endDate = Carbon::parse($data['endDateTime'])->endOfDay();
 
 $report = [];
 
@@ -174,9 +174,8 @@ if (empty($includes) || in_array('sessions', $includes)) {
     $sessions = SessionDevice::whereBetween('created_at', [$startDate, $endDate]);
 
     if ($search) {
-        $sessions->where(function($q) use ($search,$startDate,$endDate) {
+        $sessions->where(function($q) use ($search) {
             $q->where('name', 'like', "%{$search}%")
-            ->whereBetween('created_at', [$startDate, $endDate])
             ->orWhereHas('bookedDevices.device', function($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%");
             });
@@ -198,10 +197,18 @@ if (empty($includes) || in_array('sessions', $includes)) {
 }
 
 // Sort by date descending
+// usort($report, function($a, $b) {
+//     return strtotime($b['date'] . ' ' . $b['time']) - strtotime($a['date'] . ' ' . $a['time']);
+// });
 usort($report, function($a, $b) {
-    return strtotime($b['date'] . ' ' . $b['time']) - strtotime($a['date'] . ' ' . $a['time']);
+    try {
+        $dateA = Carbon::createFromFormat('d-M H:i a', $a['date'] . ' ' . $a['time']);
+        $dateB = Carbon::createFromFormat('d-M H:i a', $b['date'] . ' ' . $b['time']);
+        return $dateB->timestamp - $dateA->timestamp;
+    } catch (\Exception $e) {
+        return 0;
+    }
 });
-
 return $report;
 }
 private function parseIncludes(?string $includeParam): array
