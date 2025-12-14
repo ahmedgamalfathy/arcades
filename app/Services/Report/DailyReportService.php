@@ -18,7 +18,6 @@ class DailyReportService
         $endDate = Carbon::parse($data['endDateTime'])->endOfDay();
         $search = $data['search'] ?? null;
         $includes = $this->parseIncludes($data['include'] ?? null);
-
         $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes);
 
         $stats = $this->calculateStats($dailies, $startDate, $endDate);
@@ -101,7 +100,7 @@ class DailyReportService
 
         if (in_array('sessions', $includes)) {
             $query->orWhereHas('sessions', function($q) use ($search, $startDate, $endDate) {
-                $q->whereBetween('start_date_time', [$startDate, $endDate])
+                $q->whereBetween('created_at', [$startDate, $endDate])
                     ->where(function($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhereHas('bookedDevices.device', function($deviceQuery) use ($search) {
