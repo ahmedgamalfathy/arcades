@@ -14,8 +14,8 @@ class DailyReportService
      */
     public function getReport(array $data): array
     {
-        $startDate = Carbon::parse($data['startDateTime']);
-        $endDate = Carbon::parse($data['endDateTime']);
+        $startDate = Carbon::parse($data['startDateTime'])->startOfDay();
+        $endDate = Carbon::parse($data['endDateTime'])->endOfDay();
         $search = $data['search'] ?? null;
         $includes = $this->parseIncludes($data['include'] ?? null);
         $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes);
