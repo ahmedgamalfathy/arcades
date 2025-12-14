@@ -66,7 +66,7 @@ class DailyReportService
     {
         $query = Daily::query()
             ->where('start_date_time', '>=', $startDate)
-            ->where('end_date_time', '<=', $endDate);
+            ->where('start_date_time', '<=', $endDate);
 
         if ($search && !empty($includes)) {
             $query->where(function($q) use ($search, $includes, $startDate, $endDate) {
@@ -112,7 +112,7 @@ class DailyReportService
 
         if (in_array('expenses', $includes)) {
             $query->orWhereHas('expenses', function($q) use ($search, $startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate])
+                $q->whereBetween('date', [$startDate, $endDate])
                     ->where(function($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
@@ -167,7 +167,7 @@ class DailyReportService
     {
         if ($search) {
             $query->with(['sessions' => function($q) use ($search, $startDate, $endDate) {
-                $q->whereBetween('start_date_time', [$startDate, $endDate])
+                $q->whereBetween('created_at', [$startDate, $endDate])
                     ->where(function($sessionQ) use ($search) {
                         $sessionQ->where('name', 'like', "%{$search}%")
                             ->orWhereHas('bookedDevices.device', function($deviceQuery) use ($search) {
@@ -178,7 +178,7 @@ class DailyReportService
             }]);
         } else {
             $query->with(['sessions' => function($q) use ($startDate, $endDate) {
-                $q->whereBetween('start_date_time', [$startDate, $endDate])
+                $q->whereBetween('created_at', [$startDate, $endDate])
                     ->with('bookedDevices.device');
             }]);
         }
@@ -226,7 +226,7 @@ class DailyReportService
         // فلترة الجلسات حسب التاريخ
         $totalSessions = $dailies->sum(function($daily) use ($startDate, $endDate) {
             return $daily->sessions
-                ->whereBetween('start_date_time', [$startDate, $endDate])
+                ->whereBetween('created_at', [$startDate, $endDate])
                 ->sum(function($session) {
                     return $session->bookedDevices->sum('period_cost');
                 });
@@ -275,7 +275,7 @@ class DailyReportService
     {
         return $dailies
             ->flatMap(function($daily) use ($startDate, $endDate) {
-                return $daily->sessions?->whereBetween('start_date_time', [$startDate, $endDate]) ?? collect([]);
+                return $daily->sessions?->whereBetween('created_at', [$startDate, $endDate]) ?? collect([]);
             })
             ->flatMap(fn($session) => $session->bookedDevices ?? [])
             ->filter(fn($bookedDevice) => $bookedDevice?->device)
