@@ -23,10 +23,11 @@ public function toArray(Request $request): array
     ->orderBy('created_at', 'desc')
     ->first();
     $bookedDeviceChangeTimes = BookedDevice::where('session_device_id', $this->session_device_id)
-        ->where('device_id', $this->device_id)
-        ->where('device_type_id', $this->device_type_id)
-        ->orderBy('created_at', 'desc')
-        ->get();
+    ->where('device_id', $this->device_id)
+    ->where('device_type_id', $this->device_type_id)
+    ->whereNull("end_date_time")
+    ->latest('created_at')
+    ->get();
 
     if (count($bookedDeviceChangeTimes) >= 1) {
         // احسب الإجمالي (live للشغال + المحفوظة للمقفول)

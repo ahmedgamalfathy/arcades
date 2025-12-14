@@ -17,7 +17,7 @@ class BookedDeviceService
 {
     public function createBookedDevice(array $data)
     {
-        
+
         return BookedDevice::create([
         'session_device_id'=>$data['sessionDeviceId'],
         'device_type_id'=>$data['deviceTypeId'],

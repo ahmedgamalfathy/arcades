@@ -18,7 +18,7 @@ return new class extends Migration
             $table->id();
             $table->string('number')->unique();
             $table->string('name')->nullable();
-            $table->tinyInteger('type')->default(OrderTypeEnum::EXTERNAL->value);
+            $table->tinyInteger('type')->default(OrderTypeEnum::EXTERNAL->value);//booked_device_id
             $table->foreignIdFor(BookedDevice::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('price', 10, 2)->default(0);
             $table->foreignIdFor(Daily::class)->nullable()->constrained()->cascadeOnUpdate()->nullOnDelete();

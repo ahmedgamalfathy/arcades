@@ -33,6 +33,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         )
     {
     }
+
         public static function middleware(): array
     {
         return [//products , create_products,edit_product,update_product ,destroy_product
@@ -48,7 +49,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     public function individualTime(CreateIndividualRequest $createIndividualRequest)
     {
         try {
-        
+
          DB::beginTransaction();
          $data = $createIndividualRequest->validated();
         $sessionDevice= $this->sessionDeviceService->createSessionDevice([
@@ -58,14 +59,14 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         ]);
 
         $start = Carbon::parse($data['startDateTime']);
-        $end = $data['endDateTime'] 
-            ? Carbon::parse($data['endDateTime']) 
+        $end = $data['endDateTime']
+            ? Carbon::parse($data['endDateTime'])
             : null;
 
         if ($end && $end->lessThanOrEqualTo($start)) {
             return ApiResponse::error("The end time must be after the start time.");
         }
-        
+
         $data['startDateTime'] = $start;
         $data['endDateTime'] = $end;
         $data['sessionDeviceId'] = $sessionDevice->id;
@@ -92,11 +93,11 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             $data['sessionDeviceId']=$sessionDevice->id;
         }elseIf($data['sessionDeviceId']){
             $sessionDevice= $this->sessionDeviceService->editSessionDevice($data['sessionDeviceId']);
-            $data['sessionDeviceId']=$sessionDevice->id;    
+            $data['sessionDeviceId']=$sessionDevice->id;
         }
-        $start = Carbon::parse($data['startDateTime']);  
-        $end = $data['endDateTime'] 
-            ? Carbon::parse($data['endDateTime']) 
+        $start = Carbon::parse($data['startDateTime']);
+        $end = $data['endDateTime']
+            ? Carbon::parse($data['endDateTime'])
             : null;
 
         if ($end && $end->lessThanOrEqualTo($start)) {
@@ -111,7 +112,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-    
+
     public function pause($id)
     {
         try {

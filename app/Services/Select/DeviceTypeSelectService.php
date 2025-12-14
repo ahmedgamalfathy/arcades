@@ -14,7 +14,6 @@ class DeviceTypeSelectService{
 public function getDevicesAvailable($deviceTypeId)
 {
     $bookedDevices = BookedDevice::on('tenant')
-        ->whereNull('end_date_time')
         ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
         ->pluck('device_id');
     $devicesInMaintenance = Maintenance::on('tenant')->pluck('device_id');

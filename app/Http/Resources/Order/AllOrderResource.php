@@ -21,6 +21,7 @@ class AllOrderResource  extends JsonResource
             'orderNumber' => $this->number,
             'name' => $this->name??"",
             'price' => $this->price,
+            'bookedDeviceId'=>$this->booked_device_id??"",
             'orderItems'=> OrderItemResource::collection($this->items),
             // 'totalOrderItems'=>$this->items->count(),
             // 'date' =>Carbon::parse($this->created_at)->format('d/m/Y')
