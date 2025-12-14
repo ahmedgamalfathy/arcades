@@ -65,23 +65,28 @@ class DailyReportService
     private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes): Collection
     {
         $query = Daily::query()
-         ->with(['orders', 'expenses', 'sessions.bookedDevices'])
-        ->whereBetween('start_date_time', [$startDate, $endDate]);
-            // ->where('start_date_time', '>=', $startDate)
-            // ->where('start_date_time', '<=', $endDate);
+            ->whereBetween('start_date_time', [$startDate, $endDate]);
 
+        // ✅ تحميل العلاقات مع الفلترة
+        if (!empty($includes)) {
+            $this->loadRelations($query, $includes, $search, $startDate, $endDate);
+        } else {
+            // ✅ تحميل الكل بدون include للإحصائيات
+            $query->with([
+                'orders' => fn($q) => $q->whereBetween('created_at', [$startDate, $endDate])->with('items.product'),
+                'expenses' => fn($q) => $q->whereBetween('created_at', [$startDate, $endDate]),
+                'sessions' => fn($q) => $q->whereBetween('created_at', [$startDate, $endDate])->with('bookedDevices.device'),
+            ]);
+        }
+
+        // البحث
         if ($search && !empty($includes)) {
             $query->where(function($q) use ($search, $includes, $startDate, $endDate) {
                 $this->applySearchFilters($q, $search, $includes, $startDate, $endDate);
             });
         }
 
-        // تحميل العلاقات
-        if (!empty($includes)) {
-            $this->loadRelations($query, $includes, $search, $startDate, $endDate);
-        }
-
-        return $query->orderBy('created_at', 'asc')->get();
+        return $query->orderBy('start_date_time', 'asc')->get();
     }
 
     /**
@@ -209,29 +214,21 @@ class DailyReportService
     /**
      * حساب الإحصائيات مع فلترة التاريخ
      */
-    private function calculateStats(Collection $dailies, Carbon $startDate, Carbon $endDate): array
+  private function calculateStats(Collection $dailies, Carbon $startDate, Carbon $endDate): array
     {
-        // فلترة المصروفات حسب التاريخ
-        $totalExpense = $dailies->sum(function($daily) use ($startDate, $endDate) {
-            return $daily->expenses
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->sum('price');
+        // ✅ العلاقات مفلترة بالفعل من fetchDailies
+        $totalExpense = $dailies->sum(function($daily) {
+            return $daily->expenses->sum('price');
         });
 
-        // فلترة الطلبات حسب التاريخ
-        $totalOrders = $dailies->sum(function($daily) use ($startDate, $endDate) {
-            return $daily->orders
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->sum('price');
+        $totalOrders = $dailies->sum(function($daily) {
+            return $daily->orders->sum('price');
         });
 
-        // فلترة الجلسات حسب التاريخ
-        $totalSessions = $dailies->sum(function($daily) use ($startDate, $endDate) {
-            return $daily->sessions
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->sum(function($session) {
-                    return $session->bookedDevices->sum('period_cost');
-                });
+        $totalSessions = $dailies->sum(function($daily) {
+            return $daily->sessions->sum(function($session) {
+                return $session->bookedDevices->sum('period_cost');
+            });
         });
 
         $totalIncome = $totalOrders + $totalSessions;
@@ -249,12 +246,10 @@ class DailyReportService
     /**
      * المنتجات الأكثر طلباً مع فلترة التاريخ
      */
-    private function getMostRequestedProducts(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
+  private function getMostRequestedProducts(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
     {
         return $dailies
-            ->flatMap(function($daily) use ($startDate, $endDate) {
-                return $daily->orders->whereBetween('created_at', [$startDate, $endDate]);
-            })
+            ->flatMap(fn($daily) => $daily->orders) // ✅ مفلترة بالفعل
             ->flatMap(fn($order) => $order->items ?? [])
             ->filter(fn($item) => $item->product)
             ->groupBy(fn($item) => $item->product->name)
@@ -273,18 +268,16 @@ class DailyReportService
     /**
      * الأجهزة الأكثر استخداماً مع فلترة التاريخ
      */
-    private function getMostUsedDevices(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
+ private function getMostUsedDevices(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
     {
         return $dailies
-            ->flatMap(function($daily) use ($startDate, $endDate) {
-                return $daily->sessions?->whereBetween('created_at', [$startDate, $endDate]) ?? collect([]);
-            })
+            ->flatMap(fn($daily) => $daily->sessions ?? collect([])) // ✅ مفلترة بالفعل
             ->flatMap(fn($session) => $session->bookedDevices ?? [])
             ->filter(fn($bookedDevice) => $bookedDevice?->device)
-            ->groupBy(fn($bookedDevice) => $bookedDevice?->device->name)
+            ->groupBy(fn($bookedDevice) => $bookedDevice->device->name)
             ->map(fn($group, $deviceName) => [
-                'devicePath' => $group->first()?->device->media?->path,
-                'deviceType' => $group->first()?->device->deviceType?->name,
+                'devicePath' => $group->first()->device->media?->path,
+                'deviceType' => $group->first()->device->deviceType?->name,
                 'deviceName' => $deviceName,
                 'totalHours' => round(
                     $group->sum(fn($bookedDevice) => $bookedDevice->calculateUsedSeconds()) / 3600,
