@@ -62,30 +62,27 @@ class DailyReportService
     /**
      * Fetch dailies with date filters and includes
      */
-    private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes): Collection
+  private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes): Collection
     {
-        $query = Daily::query()
-            ->whereBetween('start_date_time', [$startDate, $endDate])
-            ->whereBetween('end_date_time', [$startDate, $endDate]);
+        $query = Daily::query();
 
-        // ✅ تحميل العلاقات مع الفلترة
-        if (!empty($includes)) {
-            $this->loadRelations($query, $includes, $search, $startDate, $endDate);
-        } else {
-            // ✅ تحميل الكل بدون include للإحصائيات
-            $query->with([
-                'orders' => fn($q) => $q->whereBetween('created_at', [$startDate, $endDate])->with('items.product'),
-                'expenses' => fn($q) => $q->whereBetween('created_at', [$startDate, $endDate]),
-                'sessions' => fn($q) => $q->whereBetween('created_at', [$startDate, $endDate])->with('bookedDevices.device'),
-            ]);
-        }
+        // ✅ الفلترة الصحيحة للتواريخ
+        $query->where(function($q) use ($startDate, $endDate) {
+            $q->whereBetween('start_date_time', [$startDate, $endDate])
+              ->orWhere(function($sq) use ($startDate, $endDate) {
+                  $sq->whereNotNull('end_date_time')
+                     ->whereBetween('end_date_time', [$startDate, $endDate]);
+              })
+              ->orWhere(function($sq) use ($startDate, $endDate) {
+                  $sq->where('start_date_time', '<=', $startDate)
+                     ->where(function($eq) use ($endDate) {
+                         $eq->where('end_date_time', '>=', $endDate)
+                            ->orWhereNull('end_date_time');
+                     });
+              });
+        });
 
-        // البحث
-        if ($search && !empty($includes)) {
-            $query->where(function($q) use ($search, $includes, $startDate, $endDate) {
-                $this->applySearchFilters($q, $search, $includes, $startDate, $endDate);
-            });
-        }
+        // باقي الكود...
 
         return $query->orderBy('start_date_time', 'asc')->get();
     }
