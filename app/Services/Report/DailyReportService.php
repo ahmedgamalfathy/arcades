@@ -65,7 +65,7 @@ class DailyReportService
     /**
      * Fetch dailies with date filters and includes
      */
-  private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes): Collection
+  private function fetchDailies( $startDate,  $endDate, ?string $search, array $includes): Collection
     {
         return Daily::query()
         ->where(function ($q) use ($startDate, $endDate) {
@@ -79,7 +79,7 @@ class DailyReportService
     /**
      * تطبيق فلاتر البحث مع فلترة التاريخ
      */
-    private function applySearchFilters($query, string $search, array $includes, Carbon $startDate, Carbon $endDate): void
+    private function applySearchFilters($query, string $search, array $includes,  $startDate,  $endDate): void
     {
         if (in_array('orders', $includes)) {
             $query->orWhereHas('orders', function($q) use ($search, $startDate, $endDate) {
@@ -118,7 +118,7 @@ class DailyReportService
     /**
      * تحميل العلاقات المطلوبة مع فلترة التاريخ
      */
-    private function loadRelations($query, array $includes, ?string $search, Carbon $startDate, Carbon $endDate): void
+    private function loadRelations($query, array $includes, ?string $search,  $startDate,  $endDate): void
     {
         foreach ($includes as $include) {
             if ($include === 'orders') {
@@ -134,7 +134,7 @@ class DailyReportService
     /**
      * تحميل الطلبات مع فلترة التاريخ
      */
-    private function loadOrders($query, ?string $search, Carbon $startDate, Carbon $endDate): void
+    private function loadOrders($query, ?string $search,  $startDate,  $endDate): void
     {
         if ($search) {
             $query->with(['orders' => function($q) use ($search, $startDate, $endDate) {
@@ -157,7 +157,7 @@ class DailyReportService
     /**
      * تحميل الجلسات مع فلترة التاريخ
      */
-    private function loadSessions($query, ?string $search, Carbon $startDate, Carbon $endDate): void
+    private function loadSessions($query, ?string $search,  $startDate,  $endDate): void
     {
         if ($search) {
             $query->with(['sessions' => function($q) use ($search, $startDate, $endDate) {
@@ -181,7 +181,7 @@ class DailyReportService
     /**
      * تحميل المصروفات مع فلترة التاريخ
      */
-    private function loadExpenses($query, ?string $search, Carbon $startDate, Carbon $endDate): void
+    private function loadExpenses($query, ?string $search,  $startDate,  $endDate): void
     {
         if ($search) {
             $query->with(['expenses' => function($q) use ($search, $startDate, $endDate) {
@@ -201,7 +201,7 @@ class DailyReportService
     /**
      * حساب الإحصائيات مع فلترة التاريخ
      */
-  private function calculateStats(Collection $dailies, Carbon $startDate, Carbon $endDate): array
+  private function calculateStats(Collection $dailies,  $startDate,  $endDate): array
     {
         // ✅ العلاقات مفلترة بالفعل من fetchDailies
         $totalExpense = $dailies->sum(function($daily) {
@@ -233,7 +233,7 @@ class DailyReportService
     /**
      * المنتجات الأكثر طلباً مع فلترة التاريخ
      */
-  private function getMostRequestedProducts(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
+  private function getMostRequestedProducts(Collection $dailies,  $startDate,  $endDate): Collection
     {
         return $dailies
             ->flatMap(fn($daily) => $daily->orders) // ✅ مفلترة بالفعل
@@ -255,7 +255,7 @@ class DailyReportService
     /**
      * الأجهزة الأكثر استخداماً مع فلترة التاريخ
      */
- private function getMostUsedDevices(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
+ private function getMostUsedDevices(Collection $dailies,  $startDate,  $endDate): Collection
     {
         return $dailies
             ->flatMap(fn($daily) => $daily->sessions ?? collect([])) // ✅ مفلترة بالفعل
