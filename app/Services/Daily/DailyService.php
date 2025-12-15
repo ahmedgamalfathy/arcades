@@ -150,16 +150,22 @@ class DailyService
       if(!$daily){
         throw new ModelNotFoundException('Daily is not open');
       }
-      $totalBookedDevice =0;
+       $daily->load('sessions.bookedDevices');
       if($daily->sessions()->count() > 0){
         foreach ($daily->sessions as $session) {
             foreach ($session->bookedDevices as $bookedDevice) {
                $this->timerService->finish($bookedDevice->id);
-               $totalBookedDevice += $bookedDevice->period_cost;
             }
         }
+        $totalBookedDevice =0;
+          $sessionsTotal = $daily->sessions->sum(function($session) {
+                return $session->bookedDevices->sum(function($bookedDevice) {
+                    $cost =$bookedDevice->calculatePrice();
+                    return round($cost, 2);
+                });
+            });
       }
-      $income =$totalBookedDevice + $daily->totalOrders();
+      $income =$sessionsTotal + $daily->totalOrders();
       $daily->end_date_time = Carbon::now()->format('Y-m-d H:i:s');
       $daily->total_income = $income;
       $daily->total_expense = $daily->totalExpenses();
