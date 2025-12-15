@@ -68,18 +68,29 @@ class DailyReportService
 
         // ✅ الفلترة الصحيحة للتواريخ
         $query->where(function($q) use ($startDate, $endDate) {
-            $q->whereBetween('start_date_time', [$startDate, $endDate])
-              ->orWhere(function($sq) use ($startDate, $endDate) {
-                  $sq->whereNotNull('end_date_time')
-                     ->whereBetween('end_date_time', [$startDate, $endDate]);
-              })
-              ->orWhere(function($sq) use ($startDate, $endDate) {
-                  $sq->where('start_date_time', '<=', $startDate)
-                     ->where(function($eq) use ($endDate) {
-                         $eq->where('end_date_time', '>=', $endDate)
-                            ->orWhereNull('end_date_time');
-                     });
-              });
+        $q->whereBetween('start_date_time', [$startDate, $endDate])
+        ->orWhere(function($sq) use ($startDate, $endDate) {
+            $sq->whereNotNull('end_date_time')
+               ->whereBetween('end_date_time', [$startDate, $endDate]);
+        })
+        ->orWhere(function($sq) use ($startDate, $endDate) {
+            $sq->where('start_date_time', '<', $startDate)
+               ->whereNotNull('end_date_time')
+               ->where('end_date_time', '>', $endDate);
+        });
+
+            // $q->whereBetween('start_date_time', [$startDate, $endDate])
+            //   ->orWhere(function($sq) use ($startDate, $endDate) {
+            //       $sq->whereNotNull('end_date_time')
+            //          ->whereBetween('end_date_time', [$startDate, $endDate]);
+            //   })
+            //   ->orWhere(function($sq) use ($startDate, $endDate) {
+            //       $sq->where('start_date_time', '<=', $startDate)
+            //          ->where(function($eq) use ($endDate) {
+            //              $eq->where('end_date_time', '>=', $endDate)
+            //                 ->orWhereNull('end_date_time');
+            //          });
+            //   });
         });
 
         // باقي الكود...
