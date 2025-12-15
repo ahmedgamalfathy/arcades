@@ -76,8 +76,7 @@ class DailyReportService
             ->orWhere(function($sq) use ($startDate, $endDate) {
                 $sq->whereNull('end_date_time')
                 ->whereBetween('start_date_time', [
-                    // $startDate->copy()->subDays(7), // آخر 7 أيام
-                    $startDate,
+                    $startDate->copy()->subDays(7), // آخر 7 أيام
                     $endDate
                 ]);
             });
