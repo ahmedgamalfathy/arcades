@@ -73,13 +73,14 @@ class DailyReportService
                   $sq->whereNotNull('end_date_time')
                      ->whereBetween('end_date_time', [$startDate, $endDate]);
               })
-              ->orWhere(function($sq) use ($startDate, $endDate) {
-                  $sq->where('start_date_time', '<=', $startDate)
-                     ->where(function($eq) use ($endDate) {
-                         $eq->where('end_date_time', '>=', $endDate)
-                            ->orWhereNull('end_date_time');
-                     });
-              });
+            ->orWhere(function($sq) use ($startDate, $endDate) {
+                $sq->whereNull('end_date_time')
+                ->whereBetween('start_date_time', [
+                    // $startDate->copy()->subDays(7), // آخر 7 أيام
+                    $startDate,
+                    $endDate
+                ]);
+            });
         });
 
         // باقي الكود...
