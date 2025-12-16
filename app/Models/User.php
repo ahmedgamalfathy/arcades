@@ -60,22 +60,13 @@ class User extends Authenticatable
         ];
     }
 
-    // public function media()
-    // {
-    //    return  $this->setConnection('tenant')->belongsTo(Media::class);
-    // }
+    public function media()
+    {
+       return  $this->setConnection('tenant')->belongsTo(Media::class);
+    }
 
     public function expenses()
     {
         return $this->hasMany(Expense::class);
     }
-    public function getMediaAttribute()
-{
-    if (!$this->media_id) {
-        return null;
-    }
-
-    return Media::on('tenant')->find($this->media_id);
-}
-
 }
