@@ -142,7 +142,6 @@ public function getMonthlyChartData(int $dailyId)
 
     // Get Orders grouped by day (with specific daily_id)
     $orders = Order::where('daily_id', $dailyId)
-        ->whereNull('booked_device_id')
         ->selectRaw('DATE(created_at) as date, SUM(price) as total')
         ->groupBy(DB::raw('DATE(created_at)'))
         ->get();
