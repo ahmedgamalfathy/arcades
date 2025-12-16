@@ -36,7 +36,7 @@ class Daily extends Model
     }
     public function orders()
     {
-        return $this->hasMany(Order::class)->where('type',OrderTypeEnum::INTERNAL->value);
+        return $this->hasMany(Order::class);
     }
     public function totalExpenses()
     {
@@ -47,9 +47,7 @@ class Daily extends Model
 
     public function totalOrders()
     {
-        return $this->orders()
-            ->where('type', OrderTypeEnum::INTERNAL->value)
-            ->sum('price');
+        return $this->orders()->sum('price');
     }
     public function totalSessionDevices()
     {
@@ -82,7 +80,7 @@ class Daily extends Model
         return $this->sessions->sum(function($session) {
             return $session->bookedDevices->sum('period_cost');
         });
-    } 
+    }
     public function getTotalExpensesAttribute()
     {
         return $this->expenses()->sum('price');
@@ -91,5 +89,5 @@ class Daily extends Model
     {
         return ($this->total_orders + $this->total_session_devices) - $this->total_expenses;
     }
-   
+
 }
