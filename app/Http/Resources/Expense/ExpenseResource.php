@@ -24,7 +24,8 @@ class ExpenseResource extends JsonResource
             'time' => Carbon::parse($this->date)->format('H:i:s')??"",
             'note' => $this->note??"",
             'userName' => $this->user->name,
-            'userAvatar'=>$this->user->media->path??Media::on('tenant')->where('category', 'avatar')->first()?->path??"",
+            'userAvatar'=>$this->user->media->path??"",
+            // 'userAvatar'=>$this->user->media->path??Media::on('tenant')->where('category', 'avatar')->first()?->path??"",
         ];
     }
 }

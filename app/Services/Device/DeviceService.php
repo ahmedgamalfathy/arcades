@@ -160,11 +160,14 @@ class DeviceService
     }
     public function getTimesByDeviceId(int $deviceId)
     {
-        $device = Device::with('deviceTimes')->find($deviceId);
+        $device = Device::with('deviceTimes','deviceTimeSpecial')->find($deviceId);
         if(!$device){
         throw new ModelNotFoundException("Device  with id {$deviceId} not found");
         }
-        return $device->deviceTimes;
+        return $device->deviceTimes
+        ->merge($device->deviceTimeSpecial)
+        ->unique('id')
+        ->values();
     }
 }
 
