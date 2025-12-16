@@ -3,9 +3,10 @@
 namespace App\Http\Resources\Expense;
 
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\Media\Media;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class ExpenseResource extends JsonResource
 {
@@ -24,8 +25,9 @@ class ExpenseResource extends JsonResource
             'time' => Carbon::parse($this->date)->format('H:i:s')??"",
             'note' => $this->note??"",
             'userName' => $this->user->name,
-            'userAvatar'=>$this->user->avatar_path ?? '',
-            // 'userAvatar'=>$this->user->media->path??Media::on('tenant')->where('category', 'avatar')->first()?->path??"",
+            // 'userAvatar'=>$this->user->avatar_path ?? '',
+            'userAvatar'=> DB::connection('tenant')->table('media')->where('id', $this->user->media_id)->value('path') ?? '',
+
         ];
     }
 }
