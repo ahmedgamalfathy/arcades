@@ -55,24 +55,15 @@ class UserProfileController extends Controller implements HasMiddleware
         $oldMediaId = $authUser->media_id ?? null;
         $mediaId = $oldMediaId;
         if (isset($userData['mediaFile']) && $userData['mediaFile'] instanceof UploadedFile) {
-            if($oldMediaId ) {
+            if (!empty($oldMediaId)) {
                 $this->mediaService->deleteMedia($oldMediaId);
-                // $media = $this->mediaService->updateMedia($oldMediaId,[
-                //     'path' => $userData['mediaFile'],
-                //     'type' => MediaTypeEnum::PHOTO,
-                //     'category'=>null,
-                // ]);
-                // $mediaId = $media->id;
-
-            }else{
-                $media = $this->mediaService->createMedia([
-                    'path' => $userData['mediaFile'],
-                    'type' => MediaTypeEnum::PHOTO,
-                    'category'=>null,
-                ]);
-                $mediaId = $media->id;
             }
-            //   $authUser->media_id =$media?->id??null;
+            $media = $this->mediaService->createMedia([
+                'path' => $userData['mediaFile'],
+                'type' => MediaTypeEnum::PHOTO,
+                'category' => null,
+            ]);
+            $mediaId = $media->id;
         }
         elseif (isset($userData['mediaId']) && $userData['mediaId'] != $oldMediaId) {
                 $mediaId = $userData['mediaId'];
