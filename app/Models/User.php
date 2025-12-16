@@ -69,4 +69,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Expense::class);
     }
+    public function getAvatarPathAttribute(): string
+    {
+        return Media::on('tenant')
+            ->where('id', $this->media_id)
+            ->value('path') ?? '';
+    }
+
 }
