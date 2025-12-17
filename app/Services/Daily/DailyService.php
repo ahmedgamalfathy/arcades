@@ -151,6 +151,7 @@ class DailyService
         throw new ModelNotFoundException('Daily is not open');
       }
        $daily->load('sessions.bookedDevices');
+       $sessionsTotal = 0;
       if($daily->sessions()->count() > 0){
         foreach ($daily->sessions as $session) {
             foreach ($session->bookedDevices as $bookedDevice) {
