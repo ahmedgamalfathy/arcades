@@ -23,6 +23,7 @@ class OrderService
         ->allowedFilters([
            AllowedFilter::custom('search', new FilterOrder),
            AllowedFilter::exact('type', 'type'),
+           AllowedFilter::exact('dailyId', 'daily_id'),
         ])
         ->with(['items'])
         ->cursorPaginate($perPage);

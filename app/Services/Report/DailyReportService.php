@@ -66,8 +66,8 @@ class DailyReportService
     {
         return Daily::query()
         ->where(function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('start_date_time', [$startDate, $endDate])
-              ->orWhereBetween('end_date_time', [$startDate, $endDate]);
+            $q->whereBetween('start_date_time', [$startDate, $endDate]);
+            //   ->orWhereBetween('end_date_time', [$startDate, $endDate]);
         })
         ->orderBy('start_date_time', 'asc')
         ->get();

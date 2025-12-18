@@ -25,7 +25,7 @@ public function toArray(Request $request): array
     $bookedDeviceChangeTimes = BookedDevice::where('session_device_id', $this->session_device_id)
     ->where('device_id', $this->device_id)
     ->where('device_type_id', $this->device_type_id)
-    ->whereNull("end_date_time")
+    // ->whereNull("end_date_time")
     ->latest('created_at')
     ->get();
 
