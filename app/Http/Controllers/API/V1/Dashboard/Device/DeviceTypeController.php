@@ -133,7 +133,7 @@ class DeviceTypeController extends Controller  implements HasMiddleware
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch(QueryException  $e){
-            return ApiResponse::error(__('crud.dont_delete_device_type'),[],HttpStatusCode::NOT_FOUND);
+            return ApiResponse::error(__('crud.dont_delete_device_type'),[],HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
