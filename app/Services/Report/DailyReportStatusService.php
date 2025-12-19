@@ -2,11 +2,12 @@
 
 namespace App\Services\Report;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use App\Models\Order\Order;
+use App\Models\Device\Device;
 use App\Models\Expense\Expense;
-use App\Models\Timer\BookedDevice\BookedDevice;
+use Illuminate\Support\Collection;
 use App\Enums\Expense\ExpenseTypeEnum;
+use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Timer\SessionDevice\SessionDevice;
 
 class DailyReportStatusService
@@ -119,8 +120,9 @@ $report = [];
 // Orders with the specific daily_id
 if (empty($includes) || in_array('orders', $includes)) {
     $ordersQuery = Order::whereNotNull('daily_id')
+         ->with('bookedDevice.deviceTime')
         // ->whereNull('booked_device_id')
-        ->select('id', 'name', 'number', 'price', 'created_at')
+        ->select('id', 'name', 'number', 'price', 'created_at','booked_device_id')
         ->whereBetween('created_at', [$startDate, $endDate]);
 
     if ($search) {
@@ -134,6 +136,7 @@ if (empty($includes) || in_array('orders', $includes)) {
         return [
             'id' => $order->id,
             'name' => $order->name,
+            'bookedDeviceName'=>$order->bookedDevice?->deviceTime?->name,
             'price' => $order->price,
             'date' => Carbon::parse($order->created_at)->format('d-M'),
             'time' => Carbon::parse($order->created_at)->format('H:i a'),
