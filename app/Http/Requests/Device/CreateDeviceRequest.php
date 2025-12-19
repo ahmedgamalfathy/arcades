@@ -44,11 +44,11 @@ class CreateDeviceRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             if (!$this->mediaId && !$this->hasFile('mediaFile')) {
-                $validator->errors()->add('media', 'You must select an existing image or upload a new one.');
+                $validator->errors()->add('media', 'يجب عليك اختيار صورة موجودة أو تحميل صورة جديدة.');
             }
 
             if ($this->mediaId && $this->hasFile('mediaFile')) {
-                $validator->errors()->add('media', 'You cannot upload an image and select an existing image at the same time.');
+                $validator->errors()->add('media', 'لا يمكنك تحميل صورة واختيار صورة موجودة في نفس الوقت.');
             }
         });
     }
