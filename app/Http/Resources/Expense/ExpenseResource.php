@@ -18,21 +18,17 @@ class ExpenseResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $userAvatarPath = '';
-        if ($this->user && $this->user->media_id) {
-            $media = DB::connection('tenant')
-                ->table('media')
-                ->where('id', $this->user->media_id)
-                ->first();
-
-            $userAvatarPath =Storage::disk('public')->url($media->path)??"";
-        }else{
-            $default = DB::connection('tenant')
-                ->table('media')
-                ->where('category','avatar')
-                ->first();
-            $userAvatarPath =Storage::disk('public')->url($default->path)??"";
-        }
+        // $userAvatarPath = '';
+        // if ($this->user && $this->user->media_id) {
+        //     $media =media;:
+        //     $userAvatarPath =Storage::disk('public')->url($media->path)  ?? Storage::disk('public')->url($default->path)??"";
+        // }else{
+        //     $default = DB::connection('tenant')
+        //         ->table('media')
+        //         ->where('category','avatar')
+        //         ->first();
+        //     $userAvatarPath =Storage::disk('public')->url($default->path)??;
+        // }
         return [
             'expenseId' => $this->id,
             'name' => $this->name,
@@ -42,7 +38,13 @@ class ExpenseResource extends JsonResource
             'note' => $this->note??"",
             'userName' => $this->user->name,
             // 'userAvatar'=>$this->user->avatar_path ?? '',
-            'userAvatar'=> $userAvatarPath,
+            // 'userAvatar'=> $this->user->media->path ? $this->user->media->path : Media::setConnection('tenant')->where('category','avatar')->first()->path??""
+            'userAvatar' => ($path =
+                    $this->user->media->path
+                    ?? Media::where('category', 'avatar')->first()->path)
+                    ? Storage::disk('public')->url($path)
+                    : ''
+
 
         ];
     }
