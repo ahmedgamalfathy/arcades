@@ -119,7 +119,7 @@ $report = [];
 // Orders with the specific daily_id
 if (empty($includes) || in_array('orders', $includes)) {
     $ordersQuery = Order::whereNotNull('daily_id')
-        ->whereNull('booked_device_id')
+        // ->whereNull('booked_device_id')
         ->select('id', 'name', 'number', 'price', 'created_at')
         ->whereBetween('created_at', [$startDate, $endDate]);
 
