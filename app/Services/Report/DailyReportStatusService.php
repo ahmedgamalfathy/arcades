@@ -120,7 +120,7 @@ $report = [];
 // Orders with the specific daily_id
 if (empty($includes) || in_array('orders', $includes)) {
     $ordersQuery = Order::whereNotNull('daily_id')
-         ->with('bookedDevice.deviceTime')
+         ->with('bookedDevice.device')
         // ->whereNull('booked_device_id')
         ->select('id', 'name', 'number', 'price', 'created_at','booked_device_id')
         ->whereBetween('created_at', [$startDate, $endDate]);
@@ -136,7 +136,7 @@ if (empty($includes) || in_array('orders', $includes)) {
         return [
             'id' => $order->id,
             'name' => $order->name,
-            'bookedDeviceName'=>$order->bookedDevice?->deviceTime?->name,
+            'bookedDeviceName'=>$order->bookedDevice?->device?->name,
             'price' => $order->price,
             'date' => Carbon::parse($order->created_at)->format('d-M'),
             'time' => Carbon::parse($order->created_at)->format('H:i a'),
