@@ -12,6 +12,7 @@ class ExpenseService {
     $perPage =$request->query('perPage',10);
     // $expenses = Expense::where('type',$type)->orderByDesc('id')->cursorPaginate($perPage);
     $expenses = QueryBuilder::for(Expense::class)
+    ->with('user')
     ->allowedFilters([
         AllowedFilter::custom('search', new FilterExpense),
         AllowedFilter::exact('type', 'type'),
