@@ -18,17 +18,10 @@ class ExpenseResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // $userAvatarPath = '';
-        // if ($this->user && $this->user->media_id) {
-        //     $media =media;:
-        //     $userAvatarPath =Storage::disk('public')->url($media->path)  ?? Storage::disk('public')->url($default->path)??"";
-        // }else{
-        //     $default = DB::connection('tenant')
-        //         ->table('media')
-        //         ->where('category','avatar')
-        //         ->first();
-        //     $userAvatarPath =Storage::disk('public')->url($default->path)??;
-        // }
+        $mediaPath = DB::connection('tenant')
+        ->table('media')
+        ->where('id', $this->user->media_id)
+        ->value('path');
         return [
             'expenseId' => $this->id,
             'name' => $this->name,
@@ -37,15 +30,7 @@ class ExpenseResource extends JsonResource
             'time' => Carbon::parse($this->date)->format('H:i:s')??"",
             'note' => $this->note??"",
             'userName' => $this->user->name,
-            // 'userAvatar'=>$this->user->avatar_path ?? '',
-            // 'userAvatar'=> $this->user->media->path ? $this->user->media->path : Media::setConnection('tenant')->where('category','avatar')->first()->path??""
-            'userAvatar' => ($path =
-                    $this->user->media->path
-                    ?? Media::where('category', 'avatar')->first()->path)
-                    ? Storage::disk('public')->url($path)
-                    : ''
-
-
+            'userAvatar' => $mediaPath ? Storage::disk('public')->url( $mediaPath) :Media::where('category', 'avatar')->first()->path
         ];
     }
 }

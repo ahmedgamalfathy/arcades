@@ -62,7 +62,7 @@ class User extends Authenticatable
 
     public function media()
     {
-       return  $this->setConnection('tenant')->belongsTo(Media::class);
+       return  $this->setConnection('tenant')->belongsTo(Media::class,'media_id');
     }
 
     public function expenses()
