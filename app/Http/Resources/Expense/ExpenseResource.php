@@ -25,7 +25,7 @@ class ExpenseResource extends JsonResource
                 ->where('id', $this->user->media_id)
                 ->first();
 
-            $userAvatarPath =Storage::disk('public')->url($media->path);
+            $userAvatarPath =Storage::disk('public')->url($media->path)??"";
         }else{
             $default = DB::connection('tenant')
                 ->table('media')
