@@ -172,7 +172,9 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                 $device = $this->bookedDeviceService->editBookedDevice($id);
                 $newDevice = $this->timerService->changeDeviceTime($device->id, $request->deviceTimeId);
             DB::commit();
-            return ApiResponse::success([],__('crud.updated'));
+            return ApiResponse::success([
+                "newBookedDeviceId"=>$newDevice->id ??0
+            ],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {

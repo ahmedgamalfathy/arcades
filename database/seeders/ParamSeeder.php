@@ -32,7 +32,8 @@ class ParamSeeder extends Seeder
             ]
        ]);
         $params = [
-            ['type' => '5', 'note' =>'5 minutes','parameter_order'=>1],        
+            ['type' => '5', 'note' =>'5 minutes','parameter_order'=>1],
+            ['type' => 'voice', 'note' =>'voice','parameter_order'=>2],
         ];
         foreach ($params as $param) {
             Param::create($param);
