@@ -18,10 +18,18 @@ class ExpenseResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $mediaPath = DB::connection('tenant')
-        ->table('media')
-        ->where('id', $this->user->media_id)
-        ->value('path');
+    if ($this->user && $this->user->media_id) {
+        $media = DB::connection('tenant')
+            ->table('media')
+            ->where('id', $this->user->media_id)
+            ->first();
+
+        $userAvatarPath = $media->path ?? '';
+    }
+        // $mediaPath = DB::connection('tenant')
+        // ->table('media')
+        // ->where('id', $this->user->media_id)
+        // ->value('path');
         return [
             'expenseId' => $this->id,
             'name' => $this->name,
@@ -30,7 +38,8 @@ class ExpenseResource extends JsonResource
             'time' => Carbon::parse($this->date)->format('H:i:s')??"",
             'note' => $this->note??"",
             'userName' => $this->user->name,
-            'userAvatar' => $mediaPath ? Storage::disk('public')->url( $mediaPath) :Media::where('category', 'avatar')->first()->path
+            'userAvatar' =>  $userAvatarPath ? asset('storage/'.$userAvatarPath) :Media::where('category', 'avatar')->first()->path
+            // 'userAvatar' =>  $userAvatarPath ? Storage::disk('public')->url($userAvatarPath) :Media::where('category', 'avatar')->first()->path
         ];
     }
 }
