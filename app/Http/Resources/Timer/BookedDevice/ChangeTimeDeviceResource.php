@@ -16,9 +16,6 @@ class ChangeTimeDeviceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-             $cost = ($this->status != 0)
-            ? $this->calculatePrice()
-            : ($this->period_cost ?? 0);
         return [//sessionDevice,deviceType,deviceTime,device
                 // 'bookedDeviceId'=>$this->id,
                 'deviceTypeName' => $this->deviceType->name,
@@ -28,7 +25,7 @@ class ChangeTimeDeviceResource extends JsonResource
                 'startDateTime' => $this->start_date_time ? Carbon::parse($this->start_date_time)->format('H:i') : "",
                 'endDateTime' => $this->end_date_time ? Carbon::parse($this->end_date_time)->format('H:i') : "",
                 'realTimeUsed' => round($this->calculateUsedSeconds()/60,2),
-                'priceUsed'=>$cost,
+                'priceUsed'=>$this->current_device_cost,
         ];
     }
 }

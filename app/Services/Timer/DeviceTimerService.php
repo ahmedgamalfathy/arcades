@@ -71,6 +71,18 @@ class DeviceTimerService
 
     public function changeDeviceTime($id, int $newTimeId)
     {
+      $oldBookedDevice = BookedDevice::findOrFail($id);
+         $newEndDateTime = null;
+        if ($oldBookedDevice->end_date_time) {
+            $endDateTime = Carbon::parse($oldBookedDevice->end_date_time);
+            $now = Carbon::now();
+
+            if ($endDateTime->lessThan($now)) {
+                throw new \Exception('لا يمكن تغيير نوع الوقت لأن وقت الجهاز انتهى');
+            }
+
+            $newEndDateTime = $endDateTime;
+        }
       $bookedDevice= $this->bookedDeviceService->finishBookedDevice($id);
       $BookedDeviceChange=$this->bookedDeviceService->createBookedDevice([
             'sessionDeviceId' => $bookedDevice->session_device_id,
@@ -78,6 +90,7 @@ class DeviceTimerService
             'deviceTypeId' => $bookedDevice->device_type_id,
             'deviceTimeId' => $newTimeId,
             'startDateTime' => now(),
+            'endDateTime' => $newEndDateTime,
             'status' => BookedDeviceEnum::ACTIVE->value,
         ]);
         // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();

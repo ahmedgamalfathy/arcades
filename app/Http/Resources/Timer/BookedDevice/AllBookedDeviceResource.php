@@ -43,8 +43,7 @@ class AllBookedDeviceResource extends JsonResource
             'startDateTime' => $this->start_date_time ? Carbon::parse($this->start_date_time)->format('H:i') : "",
             'endDateTime' => $this->end_date_time ? Carbon::parse($this->end_date_time)->format('H:i') : "",
             'status' => $this->status,
-            // 'totalHour'=> $this->end_date_time? Carbon::parse($this->start_date_time)->diffForHumans($this->end_date_time):0,
-            'totalHour' => $this->calculateTotalHour($this->start_date_time, $this->end_date_time),
+            // 'totalHour' => $this->calculateTotalHour($this->start_date_time, $this->end_date_time),
             'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time),
         ];
     }
@@ -65,10 +64,8 @@ class AllBookedDeviceResource extends JsonResource
     {
         $start = Carbon::parse($startTime);
         $now = Carbon::now();
-
         // احسب إجمالي وقت الـ pauses
-        $totalPauseDuration = $this->calculateTotalPauseDuration();
-
+        // $totalPauseDuration = $this->calculateTotalPauseDuration();
         // لو الـ status = 2 (paused) حالياً
         if ($this->status == 2) {
             // جيب آخر pause اللي مفتوح (resumed_at = null)
@@ -76,23 +73,19 @@ class AllBookedDeviceResource extends JsonResource
                 ->whereNull('resumed_at')
                 ->orderBy('paused_at', 'desc')
                 ->first();
-
-            if ($currentPause) {
-                // احسب الوقت لحد ما عمل pause
-                $pausedAt = Carbon::parse($currentPause->paused_at);
-                $effectiveEnd = $pausedAt;
-            } else {
-                $effectiveEnd = $now;
-            }
-        } else {
-            // لو مش paused، احسب عادي
+            $effectiveEnd = $currentPause
+            ? Carbon::parse($currentPause->paused_at)
+            : $now;
+        } elseif ($this->status == 0) {
+          $effectiveEnd = Carbon::parse($endTime);
+        } else {//1,3
             if ($endTime) {
                 $end = Carbon::parse($endTime);
                 $effectiveEnd = $now->lessThan($end) ? $now : $end;
             } else {
                 $effectiveEnd = $now;
             }
-        }
+       }
 
         if ($effectiveEnd->lessThan($start)) {
             return "00:00:00";
@@ -100,7 +93,8 @@ class AllBookedDeviceResource extends JsonResource
 
         // احسب الفرق الكلي واطرح منه وقت الـ pauses
         $totalSeconds = $start->diffInSeconds($effectiveEnd);
-        $totalSeconds -= $totalPauseDuration;
+         $totalSeconds -= $this->calculateTotalPauseDuration();
+         $totalSeconds = max(0, $totalSeconds);
 
         // تأكد إن الوقت مش سالب
         $totalSeconds = max(0, $totalSeconds);
@@ -121,7 +115,6 @@ class AllBookedDeviceResource extends JsonResource
 
         // جيب كل الـ pauses اللي اتعملت
         $pauses = $this->pauses;
-
         foreach ($pauses as $pause) {
             if ($pause->resumed_at) {
                 // لو الـ pause اتقفل (في resumed_at)

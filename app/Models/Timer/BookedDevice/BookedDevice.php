@@ -65,7 +65,7 @@ class BookedDevice extends Model
     public function calculateUsedSeconds(): int
     {
         $start=$this->start_date_time;
-        $end = $this->end_date_time ?? Carbon::now('UTC');
+        $end = $this->end_date_time ?? Carbon::now();
         $total = $start->diffInSeconds($end);
         return max(0, $total - $this->total_paused_seconds);
     }
@@ -75,5 +75,61 @@ class BookedDevice extends Model
         $hours = $this->calculateUsedSeconds() / 3600;
         return round($hours * ($this->deviceTime->rate ?? 0), 2);
     }
+// في BookedDevice Model
+    public function getCurrentDeviceCostAttribute(): float
+    {
+        // لو الجهاز منتهي
+        if ($this->status == 0) {
+            return $this->period_cost ?? 0;
+        }
+
+        // لو الجهاز لسه شغال
+        $start = Carbon::parse($this->start_date_time);
+        $now = Carbon::now();
+
+        // حدد نقطة النهاية
+        if ($this->end_date_time) {
+            $end = Carbon::parse($this->end_date_time);
+            $effectiveEnd = $now->lessThan($end) ? $now : $end;
+        } else {
+            $effectiveEnd = $now;
+        }
+
+        // احسب الوقت الفعلي (مع خصم الـ pauses)
+        $totalSeconds = $start->diffInSeconds($effectiveEnd);
+        $totalSeconds -= $this->calculateTotalPauseDuration();
+        $totalSeconds = max(0, $totalSeconds);
+
+        // حول لساعات واضرب في السعر
+        $hours = $totalSeconds / 3600;
+        return round($hours * ($this->deviceTime->rate ?? 0), 2);
+    }
+
+    // دالة مساعدة لحساب وقت الـ pauses
+    private function calculateTotalPauseDuration(): int
+    {
+        $totalSeconds = 0;
+
+        if (!method_exists($this, 'pauses')) {
+            return 0;
+        }
+
+        $pauses = $this->pauses;
+
+        if (!$pauses || $pauses->isEmpty()) {
+            return 0;
+        }
+
+        foreach ($pauses as $pause) {
+            if ($pause->resumed_at) {
+                $pausedAt = Carbon::parse($pause->paused_at);
+                $resumedAt = Carbon::parse($pause->resumed_at);
+                $totalSeconds += $pausedAt->diffInSeconds($resumedAt);
+            }
+        }
+
+        return $totalSeconds;
+    }
+
 
 }

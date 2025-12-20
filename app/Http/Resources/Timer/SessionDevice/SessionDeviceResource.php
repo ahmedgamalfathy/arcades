@@ -26,7 +26,7 @@ class SessionDeviceResource extends JsonResource
             'totalOrderPrice'=>$this->bookedDevices->sum(function ($bookedDevice) {
                 return $bookedDevice->orders->sum('price') ?? 0;
             }),
-            'totalPriceSessionOrder'=>$this->bookedDevices->sum('period_cost') + $this->bookedDevices->sum(function ($bookedDevice) {
+            'totalPriceSessionOrder'=>$this->bookedDevices->sum('current_device_cost') + $this->bookedDevices->sum(function ($bookedDevice) {
                 return $bookedDevice->orders->sum('price') ?? 0;
             }),
             //BookedDeviceResource
