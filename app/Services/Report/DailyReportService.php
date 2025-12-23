@@ -14,11 +14,19 @@ class DailyReportService
      */
     public function getReport(array $data): array
     {
-        $startDate = Carbon::parse($data['startDateTime'])->startOfDay();
-        $endDate = Carbon::parse($data['endDateTime'])->endOfDay();
+        $hasDates = isset($data['startDateTime'], $data['endDateTime']);
         $search = $data['search'] ?? null;
         $includes = $this->parseIncludes($data['include'] ?? null);
-        $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes);
+        if ($hasDates) {
+            $startDate = Carbon::parse($data['startDateTime'])->startOfDay();
+            $endDate   = Carbon::parse($data['endDateTime'])->endOfDay();
+            $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes);
+        } else {
+            $daily = Daily::whereNull('end_date_time')->first();
+            $startDate = Carbon::parse($daily->start_date_time??now())->startOfDay();
+            $endDate   = Carbon::parse($daily->start_date_time??now())->endOfDay();
+            $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes);
+        }
 
         $stats = $this->calculateStats($dailies, $startDate, $endDate);
         $mostRequested = $this->getMostRequestedProducts($dailies, $startDate, $endDate);

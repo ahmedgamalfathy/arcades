@@ -30,6 +30,7 @@ class UserProfileController extends Controller implements HasMiddleware
     {
         return [// profile ,profileUpdate
             new Middleware('auth:api'),
+            new Middleware('tenant'),
         ];
     }
 

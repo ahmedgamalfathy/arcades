@@ -48,7 +48,7 @@ class UserService{
             ])
             ->whereNot('id', $auth->id)
             ->where('user_id',$auth->id)
-            ->whereNull('database_name')
+            // ->whereNull('database_name')
             ->orderBy('created_at', 'desc')
             ->cursorPaginate($perPage);
 
@@ -87,6 +87,9 @@ class UserService{
             'is_active' => isset($userData['isActive']) ? StatusEnum::from($userData['isActive'])->value : StatusEnum::ACTIVE,
             'media_id' => $mediaId,
             'user_id'=>$superAdmin->user_id ?? $superAdmin->id,
+            'database_name'=>$superAdmin->database_name??null,
+            'database_username'=>$superAdmin->database_username??null,
+            'database_password'=>$superAdmin->database_password??null,
         ]);
 
         $role = Role::find($userData['roleId']);

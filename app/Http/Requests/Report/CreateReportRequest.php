@@ -28,8 +28,8 @@ class CreateReportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'startDateTime' => ['required', 'date'],
-            'endDateTime' => ['required', 'date', 'after_or_equal:startDateTime'],
+            'startDateTime' => ['nullable', 'date', 'required_with:endDateTime'],
+            'endDateTime'   => ['nullable', 'date', 'required_with:startDateTime', 'after_or_equal:startDateTime'],
             'include' => ['nullable', 'string'],
             'search' => ['nullable', 'string'],
         ];

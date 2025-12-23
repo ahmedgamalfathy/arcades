@@ -25,8 +25,8 @@ class BookedDevicePauseService
 
         if ($pause) {
             $pause->update([
-                'resumed_at' => Carbon::now('UTC'),
-                'duration_seconds' => $pause->paused_at->diffInSeconds(Carbon::now('UTC')),
+                'resumed_at' => Carbon::now(),
+                'duration_seconds' => $pause->paused_at->diffInSeconds(Carbon::now()),
             ]);
 
             $bookedDevice->increment('total_paused_seconds', $pause->duration_seconds);

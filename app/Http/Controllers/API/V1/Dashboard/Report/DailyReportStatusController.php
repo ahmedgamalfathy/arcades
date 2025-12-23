@@ -40,11 +40,11 @@ class DailyReportStatusController extends Controller implements HasMiddleware
             new Middleware('permission:destroy_product', only:['destroy']),
             new Middleware('tenant'),
         ];
-    }  
+    }
     public function getStatusReport(CreateReportRequest $createReportRequest)
     {
         try {
-            $report= $this->dailyReportStatusService->reports($createReportRequest->validated());
+            $report= $this->dailyReportStatusService->getStatusReport($createReportRequest->validated());
             // $report = collect($report)->map(fn($item) => (object) $item);
             return ApiResponse::success($report);
         }catch (ModelNotFoundException $th) {
