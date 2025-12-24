@@ -247,7 +247,7 @@ if (empty($includes) || in_array('orders', $includes)) {
 
 // Expenses with the specific daily_id
 if (empty($includes) || in_array('expenses', $includes)) {
-    $expensesQuery = Expense::where('type', ExpenseTypeEnum::INTERNAL)
+    $expensesQuery = Expense::where('type', ExpenseTypeEnum::INTERNAL->value)
         ->whereNotNull('daily_id')
         ->whereBetween('created_at', [$startDate, $endDate])
         ->select('id', 'name', 'price', 'created_at');
@@ -344,7 +344,7 @@ private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $searc
     if (empty($includes) || in_array('expenses', $includes)) {
         $query->with([
          'expenses' => function ($q) {
-            $q->where('type', ExpenseTypeEnum::INTERNAL);
+            $q->where('type', ExpenseTypeEnum::INTERNAL->value);
         }
     ]);
     }
