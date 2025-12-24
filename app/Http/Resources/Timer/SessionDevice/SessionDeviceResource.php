@@ -23,7 +23,7 @@ class SessionDeviceResource extends JsonResource
             'sessionName'=>$this->name=='individual'?'--':$this->name,
             'sessionType'=>$this->type,
             'createdAt'=>$this->created_at?Carbon::parse($this->created_at)->format('Y-m-d'):"",
-            'totalPriceSession'=>$this->bookedDevices->sum('period_cost'),
+            'totalPriceSession'=>$this->bookedDevices->sum('current_device_cost'),
             'totalOrderPrice'=>$this->bookedDevices->sum(function ($bookedDevice) {
                 return $bookedDevice->orders->sum('price') ?? 0;
             }),
