@@ -249,6 +249,7 @@ if (empty($includes) || in_array('orders', $includes)) {
 if (empty($includes) || in_array('expenses', $includes)) {
     $expensesQuery = Expense::where('type', ExpenseTypeEnum::INTERNAL->value)
         ->whereNotNull('daily_id')
+        ->where('type',ExpenseTypeEnum::INTERNAL->value)
         ->whereBetween('created_at', [$startDate, $endDate])
         ->select('id', 'name', 'price', 'created_at');
 
