@@ -2,12 +2,14 @@
 
 namespace App\Http\Resources\Timer\BookedDevice;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Illuminate\Http\Request;
+use App\Models\Setting\Param\Param;
 use App\Http\Resources\Order\AllOrderResource;
 use App\Models\Timer\BookedDevice\BookedDevice;
-use Carbon\CarbonInterface;
+use Illuminate\Http\Resources\Json\JsonResource;
+
 class BookedDeviceEditResource extends JsonResource
 {
     /**
@@ -17,6 +19,21 @@ class BookedDeviceEditResource extends JsonResource
      */
 public function toArray(Request $request): array
 {
+    $statuParam = Param::select('type')->where('parameter_order', 1)->first()->type;
+    if (!$this->end_date_time) {
+        // لو end_date_time فاضي
+        $statusParam = 'normal';
+        $remainingMinutes = 0;
+    } else {
+        $remainingMinutes = Carbon::now()->diffInMinutes(Carbon::parse($this->end_date_time),false);
+        if ($remainingMinutes < 0) {
+            $statusParam = 'danger';
+        } elseif ($remainingMinutes < $statuParam) {
+            $statusParam = 'warning';
+        } else {
+            $statusParam = 'normal';
+        }
+    }
     $lastBookedDevice = BookedDevice::where('session_device_id', $this->session_device_id)
     ->where('device_id', $this->device_id)
     ->where('device_type_id', $this->device_type_id)
@@ -61,6 +78,7 @@ public function toArray(Request $request): array
             'endDateTime' => $this->end_date_time ? Carbon::parse($this->end_date_time)->format('H:i') : "",
             'createdAt' => Carbon::parse($this->created_at)->format('Y-m-d'),
             'status' => $this->status,
+            'statusParam' => $statusParam,
         ],
         'bookedDeviceChangeTimes' => $bookedDeviceChangeTimes, // هنا الـ Resource
         'timeRemaining' => $this->formatDuration($this->start_date_time, $this->end_date_time),

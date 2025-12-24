@@ -2,9 +2,10 @@
 
 namespace App\Http\Resources\Timer\SessionDevice;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use App\Models\Setting\Param\Param;
+use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\Timer\BookedDevice\BookedDeviceEditResource;
 
 class SessionDeviceResource extends JsonResource
