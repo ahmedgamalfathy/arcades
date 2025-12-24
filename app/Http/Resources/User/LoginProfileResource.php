@@ -19,6 +19,7 @@ class LoginProfileResource extends JsonResource
             'avatar' => $this->avatar??"",
             'name' => $this->name,
             'email' => $this->email,
+            'appKey'=>$this->app_key??"",
         ];
     }
 }
