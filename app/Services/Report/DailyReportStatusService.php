@@ -343,7 +343,11 @@ private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $searc
     }
 
     if (empty($includes) || in_array('expenses', $includes)) {
-        $query->with('expenses');
+        $query->with([
+         'expenses' => function ($q) {
+            $q->where('type', ExpenseTypeEnum::INTERNAL->value);
+        }
+    ]);
     }
 
     return $query->get();
