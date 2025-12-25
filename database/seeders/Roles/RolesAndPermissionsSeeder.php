@@ -121,7 +121,7 @@ class RolesAndPermissionsSeeder extends Seeder
         //     'products',
         //     'edit_product',
 
-          
+
 
         //     'devices',
         //     'edit_device',
@@ -139,6 +139,6 @@ class RolesAndPermissionsSeeder extends Seeder
         // $admin->givePermissionTo($adminPermissions);
         $superAdmin = Role::create(['name' => 'super admin']);
         $superAdmin->givePermissionTo(Permission::get());
-
+        $admin->givePermissionTo(Permission::get());
     }
 }
