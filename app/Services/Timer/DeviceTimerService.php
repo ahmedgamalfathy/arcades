@@ -91,7 +91,7 @@ class DeviceTimerService
             'deviceTimeId' => $newTimeId,
             'startDateTime' => now(),
             'endDateTime' => $newEndDateTime,
-            'status' => $bookedDevice->status === BookedDeviceEnum::PAUSED->value ? BookedDeviceEnum::PAUSED->value : BookedDeviceEnum::ACTIVE->value,
+            'status' => $oldBookedDevice->status == BookedDeviceEnum::PAUSED->value ? BookedDeviceEnum::PAUSED->value : BookedDeviceEnum::ACTIVE->value,
         ]);
         // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
         return $BookedDeviceChange;
