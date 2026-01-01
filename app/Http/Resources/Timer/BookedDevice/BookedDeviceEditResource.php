@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Timer\BookedDevice;
 
 use Carbon\Carbon;
+use App\Models\Order\Order;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use App\Models\Setting\Param\Param;
@@ -54,9 +55,13 @@ public function toArray(Request $request): array
 
         // حول للـ Resource
         $bookedDeviceChangeTimes = ChangeTimeDeviceResource::collection($bookedDeviceChangeTimes);
+        $bookedDeviceIds = $bookedDeviceChangeTimes->pluck('id');
+        $deviceOrders = Order::whereIn('booked_device_id', $bookedDeviceIds)->get();
+
     } else {
         $bookedDeviceChangeTimes = [];
         $totalBookedDevice = 0;
+        $deviceOrders = collect();
     }
 
     // احسب تكلفة الجهاز الحالي
@@ -84,26 +89,16 @@ public function toArray(Request $request): array
         'timeRemaining' => $this->formatDuration($this->start_date_time, $this->end_date_time),
         // 'totalHour' => $this->calculateTotalHour($this->start_date_time, $this->end_date_time),
         'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time),
-        'orders' => $this->orders ? AllOrderResource::collection($this->orders) : "",
-        'totalOrderPrice' => $this->orders->sum('price'),
+        // 'orders' => $this->orders ? AllOrderResource::collection($this->orders) : "",
+        'orders' => AllOrderResource::collection($deviceOrders),
+        // 'totalOrderPrice' => $this->orders->sum('price'),
+        'totalOrderPrice' => $deviceOrders->sum('price'),
         'totalBookedDevicePrice' => $totalBookedDevice, // الإجمالي (live + محفوظ)
         // 'currentDevicePrice' => $this->current_device_cost, // تكلفة الجهاز الحالي
-        'totalPrice' => $this->orders->sum('price') + $totalBookedDevice,
+        'totalPrice' => $deviceOrders->sum('price') + $totalBookedDevice,
     ];
 }
-         private function calculateTotalHour($startTime, $endTime)
-    {
-        if (!$endTime || $endTime->isFuture()) {
-            return $startTime->diffForHumans(Carbon::now(), [
-            'parts' => 2,
-            'syntax' => CarbonInterface::DIFF_ABSOLUTE
-            ]);
-        }
-        return $startTime->diffForHumans($endTime, [
-            'parts' => 2,
-            'syntax' => CarbonInterface::DIFF_ABSOLUTE
-         ]);
-    }
+
     private function formatDuration($startTime, $endTime = null)
     {
         $start = Carbon::parse($startTime);
@@ -179,38 +174,5 @@ public function toArray(Request $request): array
 
         return $totalSeconds;
     }
-    private function timeRemaining()
-    {
-        $now = Carbon::now();
-        if (!$this->end_date_time) {
-            return "--";
-        }
-        $end = Carbon::parse($this->end_date_time);
-        $effectiveEnd = $now->lessThan($end) ? $now : $end;
-        if ($effectiveEnd->lessThan($this->start_date_time)) {
-            return "00:00:00";
-        }
-        $diff = $this->start_date_time->diff($effectiveEnd);
-        $totalHours = ($diff->days * 24) + $diff->h;
 
-        return sprintf('%02d:%02d:%02d', $totalHours, $diff->i, $diff->s);
-    }
-
-    private function calculateTotalDevicesCost($devices)
-    {
-        if ($devices->isEmpty()) {
-            return 0;
-        }
-        return $devices->sum(function($device) {
-            return $device->status != 0
-                ? $device->calculatePrice()  // لو شغال احسب live
-                : ($device->period_cost ?? 0); // لو مقفول خد المحفوظ
-        });
-    }
-    private function getCurrentDeviceCost()
-    {
-        return $this->status != 0
-            ? $this->calculatePrice()  // لو شغال احسب live
-            : ($this->period_cost ?? 0); // لو مقفول خد المحفوظ
-    }
 }

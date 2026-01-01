@@ -62,7 +62,7 @@ class ParamController extends Controller implements HasMiddleware
         $param = $this->paramService->getParamById($id);
         return ApiResponse::success($param);
         } catch (ModelNotFoundException $th) {
-        return ApiResponse::error('Param not found', [], HttpStatusCode::NOT_FOUND);
+        return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         }catch (\Exception $e) {
         return ApiResponse::error($e->getMessage(), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
@@ -75,7 +75,7 @@ class ParamController extends Controller implements HasMiddleware
     {
         try{
         $this->paramService->updateParam($id,$updateParamRequest->validated());
-        return ApiResponse::success([],"updated successfully");
+        return ApiResponse::success([], __('crud.updated'));
         } catch (ModelNotFoundException $th) {
         return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         }catch (\Exception $e) {
