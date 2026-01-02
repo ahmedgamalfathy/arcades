@@ -26,6 +26,7 @@ class ChangeTimeDeviceResource extends JsonResource
                 'endDateTime' => $this->end_date_time ? Carbon::parse($this->end_date_time)->format('H:i') : "",
                 'realTimeUsed' => round($this->calculateUsedSeconds()/60,2),
                 'priceUsed'=>$this->current_device_cost,
+                'status'=>$this->status??""
         ];
     }
 }
