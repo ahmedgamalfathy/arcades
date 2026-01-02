@@ -18,6 +18,7 @@ class ExpenseResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+    $userAvatarPath=null;
     if ($this->user && $this->user->media_id) {
         $media = DB::connection('tenant')
             ->table('media')
