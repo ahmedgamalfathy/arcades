@@ -35,7 +35,11 @@ class SessionDeviceService
 
     public function editSessionDevice(int $id)
     {
-        return SessionDevice::with('bookedDevices')->findOrFail($id);
+        // return SessionDevice::with('bookedDevices')->findOrFail($id);
+    return SessionDevice::with([
+        'bookedDevices', 
+        'bookedDevicesLatest' 
+    ])->findOrFail($id);
     }
 
     public function updateSessionDevice(int $id, array $data)

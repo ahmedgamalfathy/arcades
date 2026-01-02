@@ -37,5 +37,14 @@ class SessionDevice extends Model
     {
         return $this->hasMany(BookedDevice::class);
     }
+    public function bookedDevicesLatest()
+    {
+        return $this->hasMany(BookedDevice::class)
+            ->whereIn('id', function ($q) {
+                $q->selectRaw('MAX(id)')
+                ->from('booked_devices')
+                ->groupBy('device_id');
+            });
+    }
 
 }

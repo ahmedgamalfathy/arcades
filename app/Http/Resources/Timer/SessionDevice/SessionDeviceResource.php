@@ -31,7 +31,10 @@ class SessionDeviceResource extends JsonResource
                 return $bookedDevice->orders->sum('price') ?? 0;
             }),
             //BookedDeviceResource
-            'bookedDevices'=>BookedDeviceEditResource::collection($this->bookedDevices),
+            'bookedDevices'=>BookedDeviceEditResource::collection(
+                // $this->bookedDevices
+                $this->bookedDevicesLatest
+            ),
         ];
     }
 }
