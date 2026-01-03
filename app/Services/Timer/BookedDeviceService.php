@@ -123,10 +123,15 @@ class BookedDeviceService
         if ($bookedDevice->session_device_id === $data['sessionDeviceId']) {
             throw new Exception("The booked device is already in this session device.");
         }
-
-        $bookedDevice->update(['session_device_id' => $data['sessionDeviceId']]);
+         $updated = BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
+        ->where('device_id', $bookedDevice->device_id)
+        ->where('device_type_id', $bookedDevice->device_type_id)
+        // ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
+        ->update([
+        'session_device_id' => $data['sessionDeviceId'],
+        ]);
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
-        return $bookedDevice;
+        return $updated;
     }
    public function getActivityLogToDevice($id)
    {
