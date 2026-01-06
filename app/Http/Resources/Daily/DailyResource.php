@@ -48,7 +48,7 @@ class DailyResource extends JsonResource
         if (in_array('sessions', $includes) && $this->relationLoaded('sessions')) {
             // احسب الإجمالي (live للشغال + المحفوظ للمقفول)
             $sessionsTotal = $this->sessions->sum(function($session) {
-                return $session->bookedDevices->sum(function($bookedDevice) {
+                return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
                     $cost = ($bookedDevice->status != 0)
                         ? $bookedDevice->calculatePrice()
                         : ($bookedDevice->period_cost ?? 0);
@@ -88,7 +88,7 @@ class DailyResource extends JsonResource
 
         if ($this->relationLoaded('sessions')) {
             $sessionsTotal = $this->sessions->sum(function($session) {
-                return $session->bookedDevices->sum(function($bookedDevice) {
+                return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
                     $cost = ($bookedDevice->status != 0)
                         ? $bookedDevice->calculatePrice()
                         : ($bookedDevice->period_cost ?? 0);
