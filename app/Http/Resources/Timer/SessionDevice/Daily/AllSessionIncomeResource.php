@@ -24,7 +24,7 @@ class AllSessionIncomeResource extends JsonResource
         return [
             'sessionId'=>$this->id,
             'sessioName'=> $sessionName,
-            'totalPriceSession'=>$this->bookedDevices->sum('period_cost'),
+            'totalPriceSession'=>$this->bookedDevices->sum('actual_paid_amount')??0,
             'createdAt' =>Carbon::parse($this->created_at)->format('d-m-Y'),
             'timeCreated' =>Carbon::parse($this->created_at)->format('H:i'),
             'periodCost'=>$this->bookedDevices->sum('actual_paid_amount')??"",
