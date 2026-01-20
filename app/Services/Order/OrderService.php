@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Enums\Order\OrderStatus;
 
 class OrderService
 {
@@ -23,9 +24,12 @@ class OrderService
         ->allowedFilters([
            AllowedFilter::custom('search', new FilterOrder),
            AllowedFilter::exact('type', 'type'),
+           AllowedFilter::exact('isPaid', 'is_paid'),
+           AllowedFilter::exact('status', 'status'),
            AllowedFilter::exact('dailyId', 'daily_id'),
         ])
         ->with(['items'])
+        ->orderByDesc('created_at')
         ->cursorPaginate($perPage);
         return $orders;
     }
@@ -44,6 +48,8 @@ class OrderService
             $order = Order::create([
                 'name'=>$data['name']??null,
                 'type' => OrderTypeEnum::from($data['type'])->value,
+                'is_paid'=>$data['isPaid']??false,
+                'status'=>$data['status']??OrderStatus::PENDING->value,
                 'booked_device_id'=>$data['bookedDeviceId']??null,
                 'daily_id'=>$data['dailyId']??null,
             ]);
@@ -75,6 +81,8 @@ class OrderService
             throw new ModelNotFoundException();
         }
         $order->name = $data['name']??null;
+        $order->is_paid = $data['isPaid'];
+        $order->status = $data['status'];
         $order->save();
 
         foreach ($data['orderItems'] as $itemData) {
@@ -114,6 +122,20 @@ class OrderService
                 throw new ModelNotFoundException();
             }
             $order->delete();
+    }
+    public function changeOrderStatus(int $id, array $data)
+    {
+        $order = Order::findOrFail($id);
+        $order->status = $data['status'];
+        $order->save();
+        return $order;
+    }
+    public function changeOrderPaymentStatus(int $id, array $data)
+    {
+        $order = Order::findOrFail($id);
+        $order->is_paid = $data['isPaid'];
+        $order->save();
+        return $order;
     }
 
 }

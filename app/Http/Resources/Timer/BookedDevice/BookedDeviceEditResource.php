@@ -79,6 +79,7 @@ public function toArray(Request $request): array
         'sessionDevice' => [
             'sessionDeviceId' => $this->session_device_id ?? "",
             'name' => $this->sessionDevice->name == "individual" ? "--" : $this->sessionDevice->name,
+            'sessionType' => $this->sessionDevice->type,
             'startDateTime' => $this->start_date_time ? Carbon::parse($this->start_date_time)->format('H:i') : "",
             'endDateTime' => $this->end_date_time ? Carbon::parse($this->end_date_time)->format('H:i') : "",
             'createdAt' => Carbon::parse($this->created_at)->format('Y-m-d'),

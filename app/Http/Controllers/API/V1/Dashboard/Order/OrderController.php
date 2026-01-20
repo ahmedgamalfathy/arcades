@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Order;
 
-use App\Enums\Order\OrderTypeEnum;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
+use App\Enums\Order\OrderStatus;
 use App\Utils\PaginateCollection;
+use App\Enums\Order\OrderTypeEnum;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\Order\OrderService;
+use Illuminate\Validation\Rules\Enum;
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Http\Resources\Order\OrderResource;
 use Illuminate\Routing\Controllers\Middleware;
@@ -96,5 +98,33 @@ class OrderController extends Controller implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
+    }
+    public function changeOrderStatus(Request $request, int $id)
+    {
+        try {
+            $request->validate([
+                'status'=>['required',new Enum(OrderStatus::class)],
+            ]);
+            $this->orderService->changeOrderStatus($id, $request->all());
+            return ApiResponse::success([],__('crud.updated'));
+        }catch(ModelNotFoundException $e){
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    public function changeOrderPaymentStatus(Request $request, int $id)
+    {
+        try {
+           $request->validate([
+                'isPaid'=>'required|boolean',
+            ]);
+            $this->orderService->changeOrderPaymentStatus($id, $request->all());
+            return ApiResponse::success([],__('crud.updated'));
+        }catch(ModelNotFoundException $e){
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
     }
 }

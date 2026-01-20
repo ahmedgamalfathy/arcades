@@ -1,19 +1,22 @@
 <?php
 namespace App\Services\Daily;
-use App\Models\Daily\Daily;
-use Illuminate\Http\Request;
-use Spatie\QueryBuilder\QueryBuilder;
-use App\Filters\Daily\DailySearchFilter;
-use Spatie\QueryBuilder\AllowedFilter;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Services\Timer\DeviceTimerService;
-use Spatie\Activitylog\Models\Activity;
+use App\Models\Daily\Daily;
 use App\Models\Order\Order;
-use App\Models\Expense\Expense;
-use App\Models\Timer\SessionDevice\SessionDevice;
+use Illuminate\Http\Request;
 use App\Models\Device\Device;
+use App\Models\Expense\Expense;
+use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\Activitylog\Models\Activity;
+use App\Filters\Daily\DailySearchFilter;
+use App\Services\Timer\DeviceTimerService;
+use App\Enums\BookedDevice\BookedDeviceEnum;
+use Illuminate\Validation\ValidationException;
 use App\Models\Timer\BookedDevice\BookedDevice;
+use App\Models\Timer\SessionDevice\SessionDevice;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Resources\ActivityLog\DailyActivityResource;
 
 class DailyService
@@ -146,33 +149,50 @@ class DailyService
      }
      public function closeDaily()
      {
-      $daily =Daily::where('end_date_time',null)->first();
-      if(!$daily){
-        throw new ModelNotFoundException('Daily is not open');
-      }
-       $daily->load('sessions.bookedDevices');
-       $sessionsTotal = 0;
-      if($daily->sessions()->count() > 0){
-        foreach ($daily->sessions as $session) {
-            foreach ($session->bookedDevices as $bookedDevice) {
-               $this->timerService->finish($bookedDevice->id);
+       return DB::transaction(function () {
+            $daily =Daily::where('end_date_time',null)->first();
+            if(!$daily){
+            throw new ModelNotFoundException('Daily is not open');
             }
-        }
-        $totalBookedDevice =0;
-          $sessionsTotal = $daily->sessions->sum(function($session) {
-                return $session->bookedDevices->sum(function($bookedDevice) {
-                    $cost =$bookedDevice->calculatePrice();
-                    return round($cost, 2);
-                });
+            $daily->load('sessions.bookedDevices');
+        // Check if any booked device still active or paused
+            $isBookedDeviceOpen = false;
+            foreach ($daily->sessions as $session) {
+            foreach ($session->bookedDevices as $bookedDevice) {
+            if($bookedDevice->status == BookedDeviceEnum::ACTIVE->value || $bookedDevice->status == BookedDeviceEnum::PAUSED->value){
+                $isBookedDeviceOpen = true;
+                break 2;
+            }
+            }
+            }
+            if($isBookedDeviceOpen){
+            throw ValidationException::withMessages([
+            "closeDaily"=> [ __('validation.validation_daily')],
+            ]);
+            }
+         // sum sessions total
+            $sessionsTotal = 0;
+            if($daily->sessions()->count() > 0){
+            // foreach ($daily->sessions as $session) {
+            //     foreach ($session->bookedDevices as $bookedDevice) {
+            //         $this->timerService->finish($bookedDevice->id);
+            //     }
+            // }
+            $sessionsTotal = $daily->sessions->sum(function($session) {
+            return $session->bookedDevices->sum(function($bookedDevice) {
+                $cost =$bookedDevice->calculatePrice();
+                return round($cost, 2);
             });
-      }
-      $income =$sessionsTotal + $daily->totalOrders();
-      $daily->end_date_time = Carbon::now()->format('Y-m-d H:i:s');
-      $daily->total_income = $income;
-      $daily->total_expense = $daily->totalExpenses();
-      $daily->total_profit = $income - $daily->totalExpenses();
-      $daily->save();
-      return $daily;
+            });
+            }
+            $income =$sessionsTotal + $daily->totalOrders();
+            $daily->end_date_time = Carbon::now()->format('Y-m-d H:i:s');
+            $daily->total_income = $income;
+            $daily->total_expense =round($daily->totalExpenses(),2);
+            $daily->total_profit = round($income - $daily->totalExpenses(),2);
+            $daily->save();
+            return $daily;
+        });
      }
     public function dailyReport()
     {
@@ -244,5 +264,18 @@ class DailyService
         return $activities;
     }
 
-
+    public function checkOpenBookedDevicesInDaily($dailyId)
+    {
+        $daily=Daily::find($dailyId);
+        $daily->load('sessions.bookedDevices');
+        // Check if any booked device still active or paused
+        foreach ($daily->sessions as $session) {
+            foreach ($session->bookedDevices as $bookedDevice) {
+                if ($bookedDevice->status == BookedDeviceEnum::ACTIVE->value || $bookedDevice->status == BookedDeviceEnum::PAUSED->value) {
+                    return true; // هناك جهاز محجوز لا يزال مفتوحًا
+                }
+            }
+        }
+        return false; // جميع الأجهزة المحجوزة مغلقة
+    }
 }

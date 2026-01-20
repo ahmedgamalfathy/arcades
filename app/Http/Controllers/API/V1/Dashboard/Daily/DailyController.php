@@ -2,24 +2,26 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Daily;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
-use App\Services\Daily\DailyService;
-use App\Http\Resources\Daily\AllDailyResource;
+use Throwable;
 use App\Helpers\ApiResponse;
-use App\Http\Requests\Daily\CreateDailyRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Services\Daily\DailyService;
 use App\Enums\ResponseCode\HttpStatusCode;
+use App\Services\Daily\DailyReportService;
+use App\Http\Resources\Daily\AllDailyResource;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Validation\ValidationException;
+use App\Http\Requests\Daily\CreateDailyRequest;
 use App\Http\Requests\Daily\UpdateDailyRequest;
 use App\Http\Resources\Daily\DailyEditResource;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Resources\Daily\Income\AllDailyIncomeResource;
-use App\Http\Resources\ActivityLog\AllActionDailyActivityResource;
-use App\Services\Daily\DailyReportService;
 use App\Http\Requests\Daily\Report\ReportDailyRequestSearch;
-use Throwable;
+use App\Http\Resources\ActivityLog\AllActionDailyActivityResource;
+
 class DailyController extends Controller implements HasMiddleware
 {
        protected $dailyService;
@@ -102,10 +104,7 @@ class DailyController extends Controller implements HasMiddleware
     public function closeDaily()
     {
         try {
-            DB::beginTransaction();
-         $daily=   $this->dailyService->closeDaily();
-
-            DB::commit();
+            $daily=   $this->dailyService->closeDaily();
             return ApiResponse::success([
                 'incoming'=>$daily->total_income??0,
                 'expense'=>$daily->total_expense??0,
@@ -113,6 +112,8 @@ class DailyController extends Controller implements HasMiddleware
             ], __('crud.updated'));
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (ValidationException $th) {
+            return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch (Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
@@ -146,6 +147,20 @@ class DailyController extends Controller implements HasMiddleware
         try {
             $activities= $this->dailyService->activityLog($request->query('dailyId'));
             return ApiResponse::success(new AllActionDailyActivityResource($activities));
+        }catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    public function checkBookedDeviceOpen(Request $request)
+    {
+        try {
+            $request->validate([
+                'dailyId'=>'required|exists:dailies,id',
+            ]);
+            $daily= $this->dailyService->checkOpenBookedDevicesInDaily($request->dailyId);
+            return ApiResponse::success($daily);
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {

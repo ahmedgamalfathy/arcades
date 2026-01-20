@@ -30,6 +30,7 @@ return new class extends Migration
             $table->integer('end_date_static')->nullable();
 
             $table->decimal('period_cost',10,2)->default(0);
+            $table->decimal('actual_paid_amount', 10, 2)->nullable();
             $table->boolean('is_notification_sent')->default(false);
             $table->timestamps();
             $table->softDeletes();

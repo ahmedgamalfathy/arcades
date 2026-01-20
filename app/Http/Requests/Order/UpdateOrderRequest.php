@@ -13,6 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Models\Order\Order;
+
 class UpdateOrderRequest extends FormRequest
 {
     /**
@@ -39,6 +40,8 @@ class UpdateOrderRequest extends FormRequest
                 return $order && $order->booked_device_id == null;
                 }),
             ],
+             'isPaid' => ['required', 'boolean'],
+             'status' => ['required', new Enum(OrderStatus::class)],
              'orderItems' => ['required', 'array', 'min:1'],
              'orderItems.*.productId' => ['required', 'integer', 'exists:products,id'],
              'orderItems.*.qty' => ['required', 'integer', 'min:1'],

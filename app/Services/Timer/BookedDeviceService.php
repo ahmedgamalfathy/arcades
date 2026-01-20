@@ -3,21 +3,35 @@ namespace App\Services\Timer;
 
 use Exception;
 use Carbon\Carbon;
-use App\Enums\BookedDevice\BookedDeviceEnum;
-use App\Models\Timer\BookedDevice\BookedDevice;
-use App\Models\Timer\SessionDevice\SessionDevice;
-use App\Enums\SessionDevice\SessionDeviceEnum;
-use App\Models\Timer\BookedDevicePause\BookedDevicePause;
-use Spatie\Activitylog\Models\Activity;
 use App\Models\Order\Order;
 use App\Models\Order\OrderItem;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Spatie\Activitylog\Models\Activity;
 use App\Events\BookedDeviceChangeStatus;
+use App\Enums\BookedDevice\BookedDeviceEnum;
+use App\Enums\SessionDevice\SessionDeviceEnum;
+use Illuminate\Validation\ValidationException;
+use App\Models\Timer\BookedDevice\BookedDevice;
+use App\Models\Timer\SessionDevice\SessionDevice;
+use App\Models\Timer\BookedDevicePause\BookedDevicePause;
+
 class BookedDeviceService
 {
     public function createBookedDevice(array $data)
     {
-
+        $alreadyBooked = BookedDevice::where('device_id', $data['deviceId'])
+        ->where('device_type_id', $data['deviceTypeId'])
+        ->whereIn('status', [
+            BookedDeviceEnum::ACTIVE->value,
+            BookedDeviceEnum::PAUSED->value
+        ])
+        ->exists();
+        if ($alreadyBooked) {
+            throw ValidationException::withMessages([
+              "alreadyBooked" => __('validation.validation_create_booked_device')
+              ]);
+        }
         return BookedDevice::create([
         'session_device_id'=>$data['sessionDeviceId'],
         'device_type_id'=>$data['deviceTypeId'],
@@ -42,7 +56,7 @@ class BookedDeviceService
         return $bookedDevice;
     }
 
-    public function finishBookedDevice(int $id)
+    public function finishBookedDevice(int $id, array $data = [])
     {
         $bookedDevice=BookedDevice::findOrFail($id);
         if($bookedDevice->status == BookedDeviceEnum::FINISHED->value)
@@ -62,6 +76,7 @@ class BookedDeviceService
             'status' => BookedDeviceEnum::FINISHED->value
         ]);
         $bookedDevice->period_cost=$bookedDevice->calculatePrice();
+        $bookedDevice->actual_paid_amount = $data['actualPaidAmount'] ?? $bookedDevice->period_cost;
         $bookedDevice->save();
         return $bookedDevice->fresh();
     }
@@ -132,6 +147,29 @@ class BookedDeviceService
         ]);
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $updated;
+    }
+    public function transferBookedDeviceToSessionDevice(int $bookedDeviceId)
+    {
+        return DB::transaction(function () use ($bookedDeviceId) {
+        $bookedDevice = BookedDevice::findOrFail($bookedDeviceId);
+        if ($bookedDevice->sessionDevice->type === SessionDeviceEnum::INDIVIDUAL->value) {
+            throw new Exception("The session device type must be group.");
+        }
+        if ($bookedDevice->status === BookedDeviceEnum::FINISHED->value) {
+            throw new Exception("The booked device has a finished status.");
+        }
+
+        $newSessionDevice = SessionDevice::create([
+            'name' =>'individual',
+            'type' => SessionDeviceEnum::INDIVIDUAL->value,
+        ]);
+        return BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
+        ->where('device_id', $bookedDevice->device_id)
+        ->where('device_type_id', $bookedDevice->device_type_id)
+        ->update([
+        'session_device_id' => $newSessionDevice->id,
+        ]);
+        });
     }
    public function getActivityLogToDevice($id)
    {

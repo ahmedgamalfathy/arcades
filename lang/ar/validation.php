@@ -12,6 +12,9 @@ return [
     | as the size rules. Feel free to tweak each of these messages here.
     |
     */
+    'validation_error' => 'تحقق من البيانات',
+    'validation_daily'=>'هناك أجهزة محجوزة نشطة أو متوقفة مؤقتاً. يرجى إنهاء جميع الأجهزة المحجوزة قبل إغلاق اليومية.',
+    'validation_create_booked_device'=>'الجهاز محجوز بالفعل ونشط.',
     'accepted' => 'يجب قبول حقل :attribute.',
     'accepted_if' => 'يجب قبول حقل :attribute عندما يكون :other بقيمة :value.',
     'active_url' => 'يجب أن يكون حقل :attribute رابط URL صالحاً.',

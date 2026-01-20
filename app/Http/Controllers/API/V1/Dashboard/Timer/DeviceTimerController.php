@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Timer;
 
+use Exception;
 use Carbon\Carbon;
+use App\Models\User;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,19 +13,21 @@ use App\Enums\ResponseCode\HttpStatusCode;
 use App\Services\Timer\DeviceTimerService;
 use App\Services\Timer\BookedDeviceService;
 use App\Services\Timer\SessionDeviceService;
+use App\Http\Resources\Device\DeviceResource;
 use App\Enums\SessionDevice\SessionDeviceEnum;
-use App\Http\Requests\Timer\Group\CreateGroupRequest;
-use App\Http\Requests\Timer\Individual\CreateIndividualRequest;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
-use App\Http\Resources\ActivityLog\DeviceActivity\AllDeviceActivityResource;
-use App\Http\Resources\Timer\BookedDevice\BookedDeviceEditResource;
-use App\Http\Resources\Device\DeviceResource;
-use App\Models\User;
+use App\Http\Requests\Timer\Group\CreateGroupRequest;
 use App\Notifications\BookedDeviceStatusNotification;
-use Exception;
+use App\Http\Requests\Timer\FinishBookedDeviceRequest;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Requests\Timer\Individual\CreateIndividualRequest;
+use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
+use App\Http\Resources\Timer\BookedDevice\BookedDeviceEditResource;
+use App\Http\Resources\ActivityLog\DeviceActivity\AllDeviceActivityResource;
+use Illuminate\Validation\ValidationData;
+use League\Config\Exception\ValidationException;
+
 class DeviceTimerController extends Controller  implements HasMiddleware
 {
     public function __construct(
@@ -73,7 +77,10 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                $this->timerService->startOrSetTime($data);
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
+        } catch (\Illuminate\Validation\ValidationException $th) {
+            return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
@@ -108,7 +115,10 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         $device = $this->timerService->startOrSetTime($data);
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
-        } catch (\Throwable $th) {
+        } catch (\Illuminate\Validation\ValidationException $th) {
+            return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
+        }catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
@@ -144,11 +154,12 @@ class DeviceTimerController extends Controller  implements HasMiddleware
 
     }
 
-    public function finish($id)
+    public function finish(FinishBookedDeviceRequest $request, $id)
     {
         try {
             DB::beginTransaction();
-                $finished = $this->timerService->finish($id);
+                $data = $request->validated();
+                $finished = $this->timerService->finish($id,$data);
                 // $data=[
                 //     'message' => 'Device finished',
                 //     'total_seconds' => $finished->total_used_seconds,
@@ -159,6 +170,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
@@ -178,6 +190,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
@@ -264,6 +277,19 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
+    public function transferBookedDeviceToSessionDevice($id){
+        try {
+            $this->bookedDeviceService->transferBookedDeviceToSessionDevice($id);
+            return ApiResponse::success([],__('crud.updated'));
+        }catch (ValidationException $th) {
+            return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
+        }catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
 
 

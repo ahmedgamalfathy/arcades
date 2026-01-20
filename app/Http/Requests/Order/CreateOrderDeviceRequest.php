@@ -35,6 +35,8 @@ class CreateOrderDeviceRequest extends FormRequest
                 'required',
                 'exists:booked_devices,id',
             ],
+            'isPaid' => ['required', 'boolean'],
+            'status' => ['required', new Enum(OrderStatus::class)],
             'orderItems' => ['required', 'array', 'min:1'],
             'orderItems.*.productId' => ["required", 'integer', 'exists:products,id'],
             'orderItems.*.qty' => ['required', 'integer', 'min:1'],

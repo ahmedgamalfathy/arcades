@@ -43,6 +43,8 @@ class CreateOrderRequest extends FormRequest
             //     'required_if:type,0',
             // ],
             'orderItems' => ['required', 'array', 'min:1'],
+            'isPaid' => ['required', 'boolean'],
+            'status' => ['required', new Enum(OrderStatus::class)],
             'orderItems.*.productId' => ["required", 'integer', 'exists:products,id'],
             'orderItems.*.qty' => ['required', 'integer', 'min:1'],
             'dailyId' => ['required', 'exists:dailies,id'],

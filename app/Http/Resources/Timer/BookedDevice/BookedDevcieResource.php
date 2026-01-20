@@ -34,8 +34,9 @@ class BookedDevcieResource extends JsonResource
             'totalHour' => $this->calculateTotalHour($this->start_date_time, $this->end_date_time),
             'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time),
             'price'=>$this->period_cost,
+            'actualPaidAmount'=>$this->actual_paid_amount,
             'orders'=>$this->orders?AllOrderResource::collection($this->orders):"",
-
+            // 'totalPaidAmount'=>$this->orders?$this->orders->sum('paid_amount'):"",,
         ];
     }
      private function calculateTotalHour($startTime, $endTime)

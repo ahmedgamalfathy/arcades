@@ -35,7 +35,8 @@ class EndGroupTimesController extends Controller  implements HasMiddleware
     public function __invoke(Request $request)
     {
             $validated=$request->validate([
-                 'sessionDeviceId' => 'required|exists:session_devices,id'
+                 'sessionDeviceId' => 'required|exists:session_devices,id',
+                 'actualPaidAmount'=>'nullable|numeric|min:0'
             ]);
         try {
             DB::beginTransaction();
@@ -43,11 +44,19 @@ class EndGroupTimesController extends Controller  implements HasMiddleware
                if(!$sessionDevice){
                 return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
                }
+               $totalCost = 0;
                foreach($sessionDevice->bookedDevices as $device){
                     if ($device->status != BookedDeviceEnum::FINISHED->value) {
-                        $this->timerService->finish($device->id);
+                        $finished = $this->timerService->finish($device->id);
+                        $totalCost += $finished->period_cost;
+                    } else {
+                        $totalCost += $device->period_cost;
                     }
-               }
+                }
+                $sessionDevice->update([
+                    'total_period_cost' => $totalCost,
+                    'actual_paid_amount' => $validated['actualPaidAmount'] ?? $totalCost,
+                ]);
                //, 'bookedDevices.device.media'
                //sessionDevice,deviceType,deviceTime,device
                 $sessionDevice = $sessionDevice->fresh([
@@ -61,6 +70,7 @@ class EndGroupTimesController extends Controller  implements HasMiddleware
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }

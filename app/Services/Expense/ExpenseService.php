@@ -18,6 +18,7 @@ class ExpenseService {
         AllowedFilter::exact('type', 'type'),
         AllowedFilter::exact('dailyId', 'daily_id'),
     ])
+    ->orderByDesc('created_at')
     ->cursorPaginate($perPage);
     return $expenses;
  }

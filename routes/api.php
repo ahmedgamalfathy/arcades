@@ -48,6 +48,8 @@ use App\Http\Controllers\API\V1\Dashboard\Report\DailyReportStatusController;
     });
 
     Route::prefix('v1/admin')->group(function () {
+                    Route::put('orders/{id}/changeStatus',[OrderController::class,'changeOrderStatus']);
+                    Route::put('orders/{id}/changeTypePay',[OrderController::class,'changeOrderPaymentStatus']);
                     Route::put('users/changePassword',[UserController::class,'userChangePassword']);
                     Route::post('expenses/{id}/restore', [ExpenseController::class, 'restore']);
                     Route::delete('expenses/{id}/force', [ExpenseController::class, 'forceDelete']);
@@ -78,6 +80,7 @@ use App\Http\Controllers\API\V1\Dashboard\Report\DailyReportStatusController;
                         Route::delete('{id}/delete','destroy');
                         Route::put('{id}/update-end-date-time', 'updateEndDateTime');
                         Route::put('{id}/transfer_device_to_group','transferDeviceToGroup');
+                        Route::put('{id}/transfer_booked_device_to_session_device','transferBookedDeviceToSessionDevice');
                     });
                     Route::apiResource('sessions', SessionDeviceController::class)->only(['index','show','destroy','update']);
                     Route::prefix('parameter')->group(function () {
@@ -98,13 +101,13 @@ use App\Http\Controllers\API\V1\Dashboard\Report\DailyReportStatusController;
                         Route::get('daily-report', 'dailyReport');
                         Route::get('monthly-chart-data', 'monthlyChartData');
                         Route::get('activity-log', 'activityLog');
+                        Route::get('check-booked-device-open', 'checkBookedDeviceOpen');
                         Route::get('', 'index');
                         Route::post('', 'create');
                         Route::get('{id}', 'show');
                         Route::put('{id}', 'update');
                         Route::delete('{id}', 'delete');
                         Route::post('close', 'closeDaily');
-
                     });
                     Route::prefix('reports')->controller(ReportController::class)->group(function(){
                         Route::get('', 'getReport');

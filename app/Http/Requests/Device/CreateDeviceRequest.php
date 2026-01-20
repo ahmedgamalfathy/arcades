@@ -7,6 +7,7 @@ use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 
 
@@ -30,7 +31,14 @@ class CreateDeviceRequest extends FormRequest
         return [
           'mediaId' => ['nullable', 'integer', 'exists:media,id'],
           'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
-          'name' =>['required','string','unique:devices,name'],
+          'name' => [
+            'required',
+             Rule::unique('devices')
+                ->where(fn ($q) =>
+                    $q->where('device_type_id',$this->deviceTypeId)
+                      ->whereNull('deleted_at')
+                )
+            ],
           'deviceTypeId'=>['required','integer','exists:device_types,id'],
           'deviceTimeIds'=>['nullable','array','min:1','required_without:deviceTimeSpecial'],
           'deviceTimeIds.*'=>['integer', 'exists:device_times,id'],

@@ -54,7 +54,7 @@ class DeviceTimerService
         // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
     }
 
-    public function finish(int $id)
+    public function finish(int $id ,array $data = [])
     {
         $bookedDevice=BookedDevice::findOrFail($id);
         if($bookedDevice->status== BookedDeviceEnum::PAUSED->value){
@@ -64,7 +64,7 @@ class DeviceTimerService
              return $bookedDevice;
             // throw new \Exception('Device is already finished.');
         }
-        $finished = $this->bookedDeviceService->finishBookedDevice($id);
+        $finished = $this->bookedDeviceService->finishBookedDevice($id ,$data);
         // broadcast(new BookedDeviceChangeStatus($finished))->toOthers();
         return $finished;
     }

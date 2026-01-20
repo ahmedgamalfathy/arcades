@@ -18,6 +18,8 @@ class OrderResource extends JsonResource
     {
         return [
             'orderId' => $this->id,
+            'isPaid' => $this->is_paid,
+            'status' => $this->status,
             'bookedDeviceId'=>$this->booked_device_id??"",
             'orderNumber' => $this->number,
             'name' => $this->name??"",

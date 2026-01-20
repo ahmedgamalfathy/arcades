@@ -18,6 +18,8 @@ return new class extends Migration
             $table->id();
             $table->string('number')->unique();
             $table->string('name')->nullable();
+            $table->tinyInteger('is_paid')->default(0);
+            $table->tinyInteger('status')->default(OrderStatus::PENDING->value);
             $table->tinyInteger('type')->default(OrderTypeEnum::EXTERNAL->value);//booked_device_id
             $table->foreignIdFor(BookedDevice::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('price', 10, 2)->default(0);

@@ -34,7 +34,12 @@ class UpdateDeviceRequest extends FormRequest
           'name' => [
             'required',
             'string',
-            Rule::unique('devices', 'name')->ignore($this->route('device')),
+            Rule::unique('devices')
+            ->ignore($this->device)
+            ->where(fn ($q) =>
+            $q->where('device_type_id', $this->deviceTypeId)
+            ->whereNull('deleted_at')
+            )
         ],
           'deviceTypeId'=>['required','integer','exists:device_types,id'],
           'deviceTimeIds'=>['required','array'],

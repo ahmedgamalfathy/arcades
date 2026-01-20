@@ -18,7 +18,13 @@ class AllOrderResource  extends JsonResource
     {
         return [
             'orderId' => $this->id,
+            'BookedDeviceInfo' =>$this->bookedDevice ? [
+                'bookedDeviceId'=>$this->booked_device_id??"",
+                'bookedDeviceName'=>$this->bookedDevice ? $this->bookedDevice->device->name : "",
+            ] : [],
             'orderNumber' => $this->number,
+            'isPaid' => $this->is_paid,
+            'status' => $this->status,
             'name' => $this->name??"",
             'price' => $this->price,
             'bookedDeviceId'=>$this->booked_device_id??"",

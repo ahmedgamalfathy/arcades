@@ -16,6 +16,8 @@ return new class extends Migration
             $table->id();
             $table->tinyInteger('type')->default(SessionDeviceEnum::INDIVIDUAL->value);
             $table->string('name');
+            $table->decimal('total_period_cost', 10, 2)->default(0);
+            $table->decimal('actual_paid_amount', 10, 2)->nullable();
             $table->foreignIdFor(Daily::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
         });

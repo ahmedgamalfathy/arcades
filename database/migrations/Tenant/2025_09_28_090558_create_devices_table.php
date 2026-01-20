@@ -16,10 +16,11 @@ return new class extends Migration
     {//name , status , device_type_id ,media_id
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name');
             $table->tinyInteger('status')->default(DeviceStatusEnum::AVAILABLE->value);
             $table->foreignIdFor(DeviceType::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Media::class)->nullable()->constrained()->nullOnDelete();
+            $table->unique(['name', 'device_type_id']);
             $table->softDeletes();
             $table->timestamps();
         });
