@@ -214,12 +214,12 @@ class DailyReportService
         });
 
         $totalOrders = $dailies->sum(function($daily) {
-            return $daily->orders->sum('price');
+            return $daily->totalOrders();
         });
 
         $totalSessions = $dailies->sum(function($daily) {
             return $daily->sessions->sum(function($session) {
-                return $session->bookedDevices->sum('period_cost');
+                return $session->bookedDevices->sum('actual_paid_amount');
             });
         });
 

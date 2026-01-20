@@ -58,6 +58,8 @@ class OrderService
                 'name'=>$data['name']??null,
                 'type' => OrderTypeEnum::from($data['type'])->value,
                 'daily_id'=>$data['dailyId']??null,
+                'is_paid'=>$data['isPaid']??false,
+                'status'=>$data['status']??OrderStatus::PENDING->value,
             ]);
         }
         foreach ($data['orderItems'] as $itemData) {

@@ -20,7 +20,7 @@ class AllOrderIncomeResource  extends JsonResource
             'orderId' => $this->id,
             'name' => $this->name??$this->bookedDevice->device->name ??"",
             'price' => $this->price,
-            'createdAt' =>Carbon::parse($this->created_at)->format('Y-m-d'),
+            'createdAt' =>Carbon::parse($this->created_at)->format('d-m-Y'),
             'timeCreated' =>Carbon::parse($this->created_at)->format('H:i')
         ];
     }

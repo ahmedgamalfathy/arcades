@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Daily;
 
+use App\Enums\Order\OrderTypeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
     use App\Http\Resources\Expense\Daily\AllExpenseDailyResource;
@@ -51,7 +52,7 @@ class DailyResource extends JsonResource
                 return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
                     $cost = ($bookedDevice->status != 0)
                         ? $bookedDevice->calculatePrice()
-                        : ($bookedDevice->period_cost ?? 0);
+                        : ($bookedDevice->actual_paid_amount ?? 0);
                     return round($cost, 2);
                 });
             });
@@ -91,14 +92,13 @@ class DailyResource extends JsonResource
                 return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
                     $cost = ($bookedDevice->status != 0)
                         ? $bookedDevice->calculatePrice()
-                        : ($bookedDevice->period_cost ?? 0);
+                        : ($bookedDevice->actual_paid_amount ?? 0);
                     return round($cost, 2);
                 });
             });
         }
 
         $ordersTotal = $this->relationLoaded('orders') ? $this->totalOrders() : 0;
-
         return round($sessionsTotal + $ordersTotal, 2);
     }
 

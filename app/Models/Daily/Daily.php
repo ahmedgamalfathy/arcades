@@ -47,7 +47,7 @@ class Daily extends Model
 
     public function totalOrders()
     {
-        return $this->orders()->sum('price');
+        return $this->orders()->where('type', OrderTypeEnum::EXTERNAL->value)->sum('price');
     }
     public function totalSessionDevices()
     {

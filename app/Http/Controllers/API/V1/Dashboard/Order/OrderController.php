@@ -62,7 +62,7 @@ class OrderController extends Controller implements HasMiddleware
         try {
             DB::beginTransaction();
             $data=$createOrderRequest->validated();
-            $data['type']=OrderTypeEnum::INTERNAL->value;
+            $data['type']=OrderTypeEnum::EXTERNAL->value;
             $order=$this->orderService->createOrder($data);
             DB::commit();
             return ApiResponse::success([],__('crud.created'));

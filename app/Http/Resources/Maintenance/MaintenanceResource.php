@@ -21,7 +21,7 @@ class MaintenanceResource extends JsonResource
             'title' => $this->title,
             'price' => $this->price,
             'place'=>$this->place ?? "",
-            'date' => Carbon::parse($this->date)->format('Y-m-d'),
+            'date' => Carbon::parse($this->date)->format('d-m-Y'),
             'note' => $this->note??"",
         ];
     }

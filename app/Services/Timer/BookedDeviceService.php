@@ -76,7 +76,7 @@ class BookedDeviceService
             'status' => BookedDeviceEnum::FINISHED->value
         ]);
         $bookedDevice->period_cost=$bookedDevice->calculatePrice();
-        $bookedDevice->actual_paid_amount = $data['actualPaidAmount'] ?? $bookedDevice->period_cost;
+        $bookedDevice->actual_paid_amount = $data['actualPaidAmount'] ?? $bookedDevice->total_cost;
         $bookedDevice->save();
         return $bookedDevice->fresh();
     }

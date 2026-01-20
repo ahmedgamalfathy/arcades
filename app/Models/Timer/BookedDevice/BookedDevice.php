@@ -130,6 +130,10 @@ class BookedDevice extends Model
 
         return $totalSeconds;
     }
+    public function getTotalCostAttribute()
+    {
+        return ($this->period_cost ?? 0) + ($this->orders->sum('price') ?? 0);
+    }
 
 
 }
