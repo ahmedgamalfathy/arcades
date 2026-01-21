@@ -50,9 +50,14 @@ class DailyResource extends JsonResource
         if (in_array('sessions', $includes) && $this->relationLoaded('sessions')) {
             // احسب الإجمالي (live للشغال + المحفوظ للمقفول)
             $sessionsTotal = $this->sessions->sum(function($session) {
-                return $session->bookedDevices
-                ->where('status', BookedDeviceEnum::FINISHED->value)
-                ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
+            return $session->bookedDevices
+            ->where('status', BookedDeviceEnum::FINISHED->value)
+            ->groupBy('device_id')
+            ->map(function($devices) {
+                // آخر سجل لكل جهاز
+                return $devices->sortByDesc('id')->first();
+            })
+            ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
                 // return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
                 //     $cost = ($bookedDevice->status != 0)
                 //         ? $bookedDevice->calculatePrice()
@@ -93,9 +98,14 @@ class DailyResource extends JsonResource
 
         if ($this->relationLoaded('sessions')) {
             $sessionsTotal = $this->sessions->sum(function($session) {
-                return $session->bookedDevices
-                ->where('status', BookedDeviceEnum::FINISHED->value)
-                ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
+             return $session->bookedDevices
+            ->where('status', BookedDeviceEnum::FINISHED->value)
+            ->groupBy('device_id')
+            ->map(function($devices) {
+                // آخر سجل لكل جهاز
+                return $devices->sortByDesc('id')->first();
+            })
+            ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
                 // return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
                 //     $cost = ($bookedDevice->status != 0)
                 //         ? $bookedDevice->calculatePrice()
