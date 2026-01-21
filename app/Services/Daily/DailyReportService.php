@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\Expense\Expense;
 use Illuminate\Support\Facades\DB;
 use App\Enums\Expense\ExpenseTypeEnum;
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Enums\SessionDevice\SessionDeviceEnum;
 use App\Models\Timer\SessionDevice\SessionDevice;
 
@@ -94,7 +95,12 @@ public function dailyReport(array $data)
             return [
                  'id' => $session->id,
                  'name' => $session->type == SessionDeviceEnum::INDIVIDUAL->value ? $session->bookedDevices->first()?->device?->name ?? $session->name: $session->name,
-                 'price' => (($session->bookedDevices?->sum('period_cost') ?? 0) + ($session->orders?->sum('price') ?? 0)),
+                 'price'=> $session->bookedDevices
+                ->where('status', BookedDeviceEnum::FINISHED->value)
+                ->groupBy('device_id')
+                ->map(fn($devices) => $devices->sortByDesc('id')->first())
+                ->sum(fn($device) => (float) ($device->actual_paid_amount ?? 0)),
+                //  'price' => (($session->bookedDevices?->sum('period_cost') ?? 0) + ($session->orders?->sum('price') ?? 0)),
                  'date' => Carbon::parse($session->created_at)->format('d-M'),
                  'time' => Carbon::parse($session->created_at)->format('H:i a'),
                  'type' => 'session'
