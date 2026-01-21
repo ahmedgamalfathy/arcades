@@ -1,23 +1,41 @@
 <?php
 namespace App\Services\Timer;
-
 use Exception;
 use Carbon\Carbon;
 use App\Models\Order\Order;
+use Illuminate\Http\Request;
 use App\Models\Order\OrderItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\Activitylog\Models\Activity;
 use App\Events\BookedDeviceChangeStatus;
+use App\Filters\Timer\FilterBookedDevice;
 use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Enums\SessionDevice\SessionDeviceEnum;
 use Illuminate\Validation\ValidationException;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Timer\SessionDevice\SessionDevice;
+use App\Filters\Timer\FilterTypeBookedDeviceParam;
 use App\Models\Timer\BookedDevicePause\BookedDevicePause;
 
 class BookedDeviceService
 {
+    public function allBookedDevices(Request $request)
+    {
+        $perPage = $request->query('perPage', 10);
+        $bookedDevices= QueryBuilder::for(BookedDevice::class)
+        ->with('sessionDevice','deviceType','deviceTime','device')
+        ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
+        ->allowedFilters([
+             AllowedFilter::exact('status', 'status'),
+             AllowedFilter::custom('search', new FilterBookedDevice),
+             AllowedFilter::custom('bookedDevicesStatus', new FilterTypeBookedDeviceParam),
+        ])
+        ->cursorPaginate($perPage);
+        return $bookedDevices;
+    }
     public function createBookedDevice(array $data)
     {
         $alreadyBooked = BookedDevice::where('device_id', $data['deviceId'])

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Timer\BookedDevice;
 
+use App\Enums\SessionDevice\SessionDeviceEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
@@ -45,6 +46,11 @@ class AllBookedDeviceResource extends JsonResource
             'status' => $this->status,
             // 'totalHour' => $this->calculateTotalHour($this->start_date_time, $this->end_date_time),
             'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time),
+            'sessionDevice' => [
+                'id' => $this->sessionDevice->id,
+                'name' =>$this->sessionDevice->type == SessionDeviceEnum::GROUP->value ? $this->sessionDevice->name :"--",
+                'type' => $this->sessionDevice->type,
+            ],
         ];
     }
      private function calculateTotalHour($startTime, $endTime)

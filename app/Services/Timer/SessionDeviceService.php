@@ -37,8 +37,8 @@ class SessionDeviceService
     {
         // return SessionDevice::with('bookedDevices')->findOrFail($id);
     return SessionDevice::with([
-        'bookedDevices', 
-        'bookedDevicesLatest' 
+        'bookedDevices',
+        'bookedDevicesLatest'
     ])->findOrFail($id);
     }
 
