@@ -19,7 +19,7 @@ class AllSessionIncomeResource extends JsonResource
         $sessionName = $this->name;
         if ($this->name == "individual") {
         $firstDevice = $this->bookedDevices->first();
-        $sessionName = $firstDevice?->device?->name ?? 'Unknown Device';
+        $sessionName = $firstDevice?->device?->name ?? 'individualSession';
         }
         return [
             'sessionId'=>$this->id,

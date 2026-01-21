@@ -277,9 +277,12 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-    public function transferBookedDeviceToSessionDevice($id){
+    public function transferBookedDeviceToSessionDevice($id, Request $request){
         try {
-            $this->bookedDeviceService->transferBookedDeviceToSessionDevice($id);
+            $data = $request->validate([
+                'dailyId' => 'required|exists:dailies,id',
+            ]);
+            $this->bookedDeviceService->transferBookedDeviceToSessionDevice($id,$data['dailyId']);
             return ApiResponse::success([],__('crud.updated'));
         }catch (ValidationException $th) {
             return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Daily;
 
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Enums\Order\OrderTypeEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -49,12 +50,15 @@ class DailyResource extends JsonResource
         if (in_array('sessions', $includes) && $this->relationLoaded('sessions')) {
             // احسب الإجمالي (live للشغال + المحفوظ للمقفول)
             $sessionsTotal = $this->sessions->sum(function($session) {
-                return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
-                    $cost = ($bookedDevice->status != 0)
-                        ? $bookedDevice->calculatePrice()
-                        : ($bookedDevice->actual_paid_amount ?? 0);
-                    return round($cost, 2);
-                });
+                return $session->bookedDevices
+                ->where('status', BookedDeviceEnum::FINISHED->value)
+                ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
+                // return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
+                //     $cost = ($bookedDevice->status != 0)
+                //         ? $bookedDevice->calculatePrice()
+                //         : ($bookedDevice->actual_paid_amount ?? 0);
+                //     return round($cost, 2);
+                // });
             });
 
             $data['sessions'] = [
@@ -89,12 +93,15 @@ class DailyResource extends JsonResource
 
         if ($this->relationLoaded('sessions')) {
             $sessionsTotal = $this->sessions->sum(function($session) {
-                return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
-                    $cost = ($bookedDevice->status != 0)
-                        ? $bookedDevice->calculatePrice()
-                        : ($bookedDevice->actual_paid_amount ?? 0);
-                    return round($cost, 2);
-                });
+                return $session->bookedDevices
+                ->where('status', BookedDeviceEnum::FINISHED->value)
+                ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
+                // return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
+                //     $cost = ($bookedDevice->status != 0)
+                //         ? $bookedDevice->calculatePrice()
+                //         : ($bookedDevice->actual_paid_amount ?? 0);
+                //     return round($cost, 2);
+                // });
             });
         }
 

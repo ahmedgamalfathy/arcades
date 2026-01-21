@@ -168,9 +168,9 @@ class BookedDeviceService
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $updated;
     }
-    public function transferBookedDeviceToSessionDevice(int $bookedDeviceId)
+    public function transferBookedDeviceToSessionDevice(int $bookedDeviceId ,$dailyId)
     {
-        return DB::transaction(function () use ($bookedDeviceId) {
+        return DB::transaction(function () use ($bookedDeviceId, $dailyId) {
         $bookedDevice = BookedDevice::findOrFail($bookedDeviceId);
         if ($bookedDevice->sessionDevice->type === SessionDeviceEnum::INDIVIDUAL->value) {
             throw new Exception("The session device type must be group.");
@@ -182,6 +182,7 @@ class BookedDeviceService
         $newSessionDevice = SessionDevice::create([
             'name' =>'individual',
             'type' => SessionDeviceEnum::INDIVIDUAL->value,
+            'daily_id' => $dailyId,
         ]);
         return BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
         ->where('device_id', $bookedDevice->device_id)
