@@ -14,6 +14,7 @@ use App\Events\BookedDeviceChangeStatus;
 use App\Filters\Timer\FilterBookedDevice;
 use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Enums\SessionDevice\SessionDeviceEnum;
+use App\Filters\Timer\FiltersessionDeviceType;
 use Illuminate\Validation\ValidationException;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Timer\SessionDevice\SessionDevice;
@@ -30,6 +31,7 @@ class BookedDeviceService
         ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
         ->allowedFilters([
              AllowedFilter::exact('status', 'status'),
+             AllowedFilter::custom('type', new FiltersessionDeviceType),
              AllowedFilter::custom('search', new FilterBookedDevice),
              AllowedFilter::custom('bookedDevicesStatus', new FilterTypeBookedDeviceParam),
         ])
