@@ -35,7 +35,7 @@ class ExpenseResource extends JsonResource
             'expenseId' => $this->id,
             'name' => $this->name,
             'price' => $this->price,
-            'date' => Carbon::parse($this->date)->format('d-m-Y')??"",
+            'date' => Carbon::parse($this->date)->format('d/m/Y')??"",
             'time' => Carbon::parse($this->date)->format('H:i:s')??"",
             'note' => $this->note??"",
             'userName' => $this->user->name,
