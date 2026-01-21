@@ -19,7 +19,7 @@ class AllExpenseDailyResource extends JsonResource
             'expenseId' => $this->id,
             'name' => $this->name,
             'price' => $this->price,
-            'date' => Carbon::parse($this->date)->format('d-m-Y')??"",
+            'date' => Carbon::parse($this->date)->format('d/m/Y')??"",
             'timeCreated' =>Carbon::parse($this->created_at)->format('H:i')
         ];
     }
