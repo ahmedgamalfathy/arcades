@@ -120,4 +120,5 @@ use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesEdite
                     Route::get('reports/dailyStatusData',[ DailyReportStatusController::class,'getStatusReport']);
                     Route::get('dailyActivity',DailyActivityController::class);
 
+
     });

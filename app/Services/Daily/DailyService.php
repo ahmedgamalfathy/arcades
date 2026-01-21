@@ -159,10 +159,10 @@ class DailyService
             $isBookedDeviceOpen = false;
             foreach ($daily->sessions as $session) {
             foreach ($session->bookedDevices as $bookedDevice) {
-            if($bookedDevice->status == BookedDeviceEnum::ACTIVE->value || $bookedDevice->status == BookedDeviceEnum::PAUSED->value){
-                $isBookedDeviceOpen = true;
-                break 2;
-            }
+                if($bookedDevice->status == BookedDeviceEnum::ACTIVE->value || $bookedDevice->status == BookedDeviceEnum::PAUSED->value){
+                    $isBookedDeviceOpen = true;
+                    break 2;
+                }
             }
             }
             if($isBookedDeviceOpen){
@@ -173,17 +173,17 @@ class DailyService
          // sum sessions total
             $sessionsTotal = 0;
             if($daily->sessions()->count() > 0){
-            // foreach ($daily->sessions as $session) {
-            //     foreach ($session->bookedDevices as $bookedDevice) {
-            //         $this->timerService->finish($bookedDevice->id);
-            //     }
-            // }
-            $sessionsTotal = $daily->sessions->sum(function($session) {
-            return $session->bookedDevices->sum(function($bookedDevice) {
-                $cost =$bookedDevice->calculatePrice();
-                return round($cost, 2);
-            });
-            });
+                // foreach ($daily->sessions as $session) {
+                //     foreach ($session->bookedDevices as $bookedDevice) {
+                //         $this->timerService->finish($bookedDevice->id);
+                //     }
+                // }
+                $sessionsTotal = $daily->sessions->sum(function($session) {
+                    return $session->bookedDevices->sum(function($bookedDevice) {
+                        $cost =$bookedDevice->actual_paid_amount;
+                        return round($cost, 2);
+                    });
+                });
             }
             $income =$sessionsTotal + $daily->totalOrders();
             $daily->end_date_time = Carbon::now()->format('Y-m-d H:i:s');
