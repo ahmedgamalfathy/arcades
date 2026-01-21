@@ -3,13 +3,15 @@
 namespace App\Services\Daily;
 
 use Carbon\Carbon;
-use App\Models\Order\Order;
-use App\Models\Expense\Expense;
-use App\Models\Timer\SessionDevice\SessionDevice;
-use App\Enums\Expense\ExpenseTypeEnum;
 use App\Models\Daily\Daily;
-use Illuminate\Support\Facades\DB;
+use App\Models\Order\Order;
 use Illuminate\Http\Request;
+use App\Models\Expense\Expense;
+use Illuminate\Support\Facades\DB;
+use App\Enums\Expense\ExpenseTypeEnum;
+use App\Enums\SessionDevice\SessionDeviceEnum;
+use App\Models\Timer\SessionDevice\SessionDevice;
+
 class DailyReportService
 {
 public function dailyReport(array $data)
@@ -91,7 +93,7 @@ public function dailyReport(array $data)
         $sessions = $sessions->get()->map(function($session) {
             return [
                  'id' => $session->id,
-                 'name' => $session->name == 'individual' ? $session->bookedDevices->first()->device->name : $session->name,
+                 'name' => $session->type == SessionDeviceEnum::INDIVIDUAL->value ? $session->bookedDevices->first()?->device?->name ?? $session->name: $session->name,
                  'price' => (($session->bookedDevices?->sum('period_cost') ?? 0) + ($session->orders?->sum('price') ?? 0)),
                  'date' => Carbon::parse($session->created_at)->format('d-M'),
                  'time' => Carbon::parse($session->created_at)->format('H:i a'),
