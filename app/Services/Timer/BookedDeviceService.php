@@ -190,12 +190,19 @@ class BookedDeviceService
             'type' => SessionDeviceEnum::INDIVIDUAL->value,
             'daily_id' => $dailyId,
         ]);
-        return BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
+        //
+        $updated = BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
         ->where('device_id', $bookedDevice->device_id)
         ->where('device_type_id', $bookedDevice->device_type_id)
         ->update([
         'session_device_id' => $newSessionDevice->id,
         ]);
+        //delete any session device if no booked devices left
+        $oldSessionDevice = SessionDevice::find($bookedDevice->session_device_id);
+        if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
+            $oldSessionDevice->delete();
+        }
+        return $updated;
         });
     }
    public function getActivityLogToDevice($id)
