@@ -14,6 +14,7 @@ class SessionDeviceService
     {
         $perPage= $request->query('perPage',10);
         $sessions=QueryBuilder::for(SessionDevice::class)
+        ->where('daily_id', $request->query('dailyId'))
         ->allowedFilters([
             AllowedFilter::custom('search', new FilterSessionDevice),
             AllowedFilter::exact('type', 'type'),
