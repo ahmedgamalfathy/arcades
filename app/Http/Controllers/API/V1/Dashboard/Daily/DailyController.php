@@ -101,15 +101,19 @@ class DailyController extends Controller implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),[],HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-    public function closeDaily()
+    public function closeDaily(Request $request)
     {
         try {
-            $daily=   $this->dailyService->closeDaily();
-            return ApiResponse::success([
+            $data= $request->validate([
+                'dailyId'=>'required|exists:dailies,id',
+            ]);
+            $daily=$this->dailyService->closeDaily($data);
+            $result=[
                 'incoming'=>$daily->total_income??0,
                 'expense'=>$daily->total_expense??0,
-                'profit'=>$daily->total_profit??0,
-            ], __('crud.updated'));
+                'profit'=>round($daily->total_income - $daily->total_expense,2),
+            ];
+            return ApiResponse::success($result, __('crud.updated'));
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (ValidationException $th) {

@@ -147,10 +147,10 @@ class DailyService
      {
         return Daily::findOrFail($id)->delete();
      }
-     public function closeDaily()
+     public function closeDaily($data)
      {
-       return DB::transaction(function () {
-            $daily =Daily::where('end_date_time',null)->first();
+       return DB::transaction(function () use ($data) {
+            $daily =Daily::where('id', $data['dailyId'])->where('end_date_time',null)->first();
             if(!$daily){
             throw new ModelNotFoundException('Daily is not open');
             }
@@ -178,11 +178,20 @@ class DailyService
                 //         $this->timerService->finish($bookedDevice->id);
                 //     }
                 // }
-                $sessionsTotal = $daily->sessions->sum(function($session) {
-                    return $session->bookedDevices->sum(function($bookedDevice) {
-                        $cost =$bookedDevice->actual_paid_amount;
-                        return round($cost, 2);
-                    });
+               $sessionsTotal = $daily->sessions->sum(function($session) {
+                    return $session->bookedDevices
+                        ->where('status', BookedDeviceEnum::FINISHED->value)
+                        ->groupBy('device_id')
+                        ->map(function ($devices) {
+                            return $devices->sortByDesc('id')->first();
+                        })
+                        ->sum(fn ($bookedDevice) =>
+                            round($bookedDevice->actual_paid_amount ?? 0, 2)
+                        );
+                    // return $session->bookedDevices->sum(function($bookedDevice) {
+                    //     $cost =$bookedDevice->actual_paid_amount;
+                    //     return round($cost, 2);
+                    // });
                 });
             }
             $income =$sessionsTotal + $daily->totalOrders();
