@@ -69,7 +69,7 @@ class UserController extends Controller implements HasMiddleware
 
         }catch(ValidationException $e){
             DB::rollBack();
-            return  ApiResponse::error($e->getMessage(),$e->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return  ApiResponse::error("هذا الايميل موجود من قبل",$e->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
         }
         catch (\Exception $e) {
             DB::rollBack();

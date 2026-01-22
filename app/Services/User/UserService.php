@@ -77,7 +77,7 @@ class UserService{
             $finalEmail = $userData['email'] . $superAdmin->app_key;
             if (User::where('email', $finalEmail)->exists()) {
                 throw ValidationException::withMessages([
-                    'email' => [__('validation.unique')],
+                    'email' => ["هذا الايميل موجود من قبل "],
                 ]);
             }
         $user = User::create([
