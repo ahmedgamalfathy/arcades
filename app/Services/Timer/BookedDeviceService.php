@@ -178,7 +178,6 @@ class BookedDeviceService
         if ($bookedDevice->status === BookedDeviceEnum::FINISHED->value) {
             throw new Exception("The booked device has a finished status.");
         }
-
         $newSessionDevice = SessionDevice::create([
             'name' =>'individual',
             'type' => SessionDeviceEnum::INDIVIDUAL->value,

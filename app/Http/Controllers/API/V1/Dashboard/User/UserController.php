@@ -68,7 +68,8 @@ class UserController extends Controller implements HasMiddleware
 
 
         }catch(ValidationException $e){
-            return  ApiResponse::error(__('crud.server_error'),$e->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
+            DB::rollBack();
+            return  ApiResponse::error($e->getMessage(),$e->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
         }
         catch (\Exception $e) {
             DB::rollBack();
