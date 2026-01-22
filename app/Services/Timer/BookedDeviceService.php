@@ -147,6 +147,7 @@ class BookedDeviceService
             $sessionDevice = SessionDevice::create([
                 'name' => $data['name'],
                 'type' => SessionDeviceEnum::GROUP->value,
+                'daily_id' => $bookedDevice->sessionDevice->daily_id,
             ]);
             $data['sessionDeviceId'] = $sessionDevice->id;
         }
