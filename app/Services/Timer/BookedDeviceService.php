@@ -144,6 +144,7 @@ class BookedDeviceService
                 throw new Exception("The session device type must be group.");
             }
         } elseif ($data['name'] ?? null) {
+
             $sessionDevice = SessionDevice::create([
                 'name' => $data['name'],
                 'type' => SessionDeviceEnum::GROUP->value,
@@ -166,6 +167,11 @@ class BookedDeviceService
         ->update([
         'session_device_id' => $data['sessionDeviceId'],
         ]);
+       //delete any session device if no booked devices left
+       $oldSessionDevice = SessionDevice::find($bookedDevice->session_device_id);
+       if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
+           $oldSessionDevice->delete();
+       }
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $updated;
     }
