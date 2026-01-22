@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Daily\Daily;
 use App\Models\Media\Media;
 use Illuminate\Support\Collection;
+use App\Enums\BookedDevice\BookedDeviceEnum;
 
 class DailyReportService
 {
@@ -219,8 +220,13 @@ class DailyReportService
 
         $totalSessions = $dailies->sum(function($daily) {
             return $daily->sessions->sum(function($session) {
-                return $session->bookedDevices->sum('actual_paid_amount');
+                // return $session->bookedDevices->sum('actual_paid_amount');
+            return   $session->bookedDevices->where('status', BookedDeviceEnum::FINISHED->value)
+                    ->groupBy('device_id')
+                    ->map(fn($devices) => $devices->sortByDesc('id')->first())
+                    ->sum(fn($device) => (float) ($device->actual_paid_amount ?? 0));
             });
+
         });
 
         $totalIncome = $totalOrders + $totalSessions;

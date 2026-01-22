@@ -8,6 +8,7 @@ use App\Models\Device\Device;
 use App\Models\Expense\Expense;
 use Illuminate\Support\Collection;
 use App\Enums\Expense\ExpenseTypeEnum;
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Timer\SessionDevice\SessionDevice;
 
@@ -91,8 +92,13 @@ class DailyReportStatusService
                     'name' => $session->name == 'individual'
                         ? $session->bookedDevices->first()?->device->name
                         : $session->name,
-                    'price' => ($session->bookedDevices?->sum('period_cost') ?? 0) +
-                               ($session->orders?->sum('price') ?? 0),
+                    // 'price' => ($session->bookedDevices?->sum('period_cost') ?? 0) +
+                    //            ($session->orders?->sum('price') ?? 0),
+                    'price'=>   $session->bookedDevices->where('status', BookedDeviceEnum::FINISHED->value)
+                    ->groupBy('device_id')
+                    ->map(fn($devices) => $devices->sortByDesc('id')->first())
+                    ->sum(fn($device) => (float) ($device->actual_paid_amount ?? 0)),
+
                     'date' => Carbon::parse($session->created_at)->format('d-M'),
                     'time' => Carbon::parse($session->created_at)->format('H:i a'),
                     'type' => 'session'
