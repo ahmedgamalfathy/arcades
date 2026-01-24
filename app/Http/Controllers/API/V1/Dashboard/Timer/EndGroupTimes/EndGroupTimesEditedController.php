@@ -44,6 +44,7 @@ class EndGroupTimesEditedController extends Controller  implements HasMiddleware
 
             $sessionDevice = SessionDevice::with('bookedDevices')->findOrFail($validated['sessionDeviceId']);
 
+
             if (!$sessionDevice) {
                 return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
             }
@@ -97,6 +98,29 @@ class EndGroupTimesEditedController extends Controller  implements HasMiddleware
                 foreach ($finishedDevices as $device) {
                     $device->update([
                         'actual_paid_amount' => $equalAmount
+                    ]);
+                }
+            }
+            $groupedDevices = collect($finishedDevices)->groupBy(function ($device) {
+                return $device->device_id . '-' . $device->device_type_id;
+            });
+            foreach ($groupedDevices as $devices) {
+
+                // ترتيب حسب آخر سجل
+                $devices = $devices->sortBy('id')->values();
+
+                // إجمالي مبلغ الجهاز (مثلاً 100)
+                $deviceTotalAmount = $devices->sum('actual_paid_amount');
+
+                // آخر record فقط
+                $lastDevice = $devices->last();
+
+                foreach ($devices as $device) {
+                    $device->update([
+                        'actual_paid_amount' =>
+                            $device->id === $lastDevice->id
+                                ? $deviceTotalAmount
+                                : 0
                     ]);
                 }
             }

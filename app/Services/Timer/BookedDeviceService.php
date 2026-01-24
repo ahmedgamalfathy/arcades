@@ -138,6 +138,7 @@ class BookedDeviceService
         $bookedDevice = BookedDevice::findOrFail($id);
 
         if ($data['sessionDeviceId'] ?? null) {
+
             $sessionDevice = SessionDevice::findOrFail($data['sessionDeviceId']);
 
             if ($sessionDevice->type === SessionDeviceEnum::INDIVIDUAL->value) {
