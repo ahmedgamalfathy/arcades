@@ -21,7 +21,7 @@ class AllOrderCollection extends JsonResource
         return [
             'orders' => AllOrderResource::collection($this->resource->items()),
             // 'count'=>$this->resource->count(),
-            'count'=>$total??0,
+            'count' => $total->count(),
             // 'sum' =>round($this->resource->sum('price'),2),
             'sum' =>round($total->sum('price'),2),
             'perPage' => $this->resource->count(),
