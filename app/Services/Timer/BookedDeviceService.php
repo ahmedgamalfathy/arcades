@@ -98,6 +98,14 @@ class BookedDeviceService
         $bookedDevice->period_cost=$bookedDevice->calculatePrice();
         $bookedDevice->actual_paid_amount = $data['actualPaidAmount'] ?? $bookedDevice->total_cost;
         $bookedDevice->save();
+
+        $bookedDevice->orders->each(function ($order) {
+            $order->update([
+                'is_paid' => 1,
+            ]);
+        });
+
+
         return $bookedDevice->fresh();
     }
     public function deleteBookedDevice(int $id)
