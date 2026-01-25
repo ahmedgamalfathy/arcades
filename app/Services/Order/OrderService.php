@@ -19,7 +19,8 @@ class OrderService
         $this->orderItemService = $orderItemService;
     }
     public function allOrders(Request $request){
-        $perPage= $request->query('perPage',10);
+        // $perPage= $request->query('perPage',10);
+        $perPage= 5;
         $orders = QueryBuilder::for(Order::class)
         ->allowedFilters([
            AllowedFilter::custom('search', new FilterOrder),
