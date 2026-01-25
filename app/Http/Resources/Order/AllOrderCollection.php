@@ -20,7 +20,8 @@ class AllOrderCollection extends JsonResource
          $total = Order::count();
         return [
             'orders' => AllOrderResource::collection($this->resource->items()),
-            'count'=>$this->resource->count(),
+            // 'count'=>$this->resource->count(),
+            'count'=>$total??0,
             'sum' =>round($this->resource->sum('price'),2),
             'perPage' => $this->resource->count(),
             'nextPageUrl'  => $this->extractCursor($this->resource->nextPageUrl()),
