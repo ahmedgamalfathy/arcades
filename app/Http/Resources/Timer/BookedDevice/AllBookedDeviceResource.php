@@ -35,7 +35,6 @@ class AllBookedDeviceResource extends JsonResource
         return [//sessionDevice,deviceType,deviceTime,device
             'bookedDeviceId' => $this->id,
             'statusParam' => $statusParam,
-            'isGroup'=> 0,//اشرف طلب key ده يكون 0
             'device'=>[
                 'deviceTypeName' => $this->deviceType->name,
                 'deviceTimeName' => $this->deviceTime->name,

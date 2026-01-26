@@ -139,7 +139,11 @@ class BookedDeviceService
         {
             throw new Exception("the booked device Finished status");
         }
-        $bookedDevice->end_date_time = Carbon::parse($data['endDateTime'])??null;
+        if(empty($data['endDateTime'])){
+            $bookedDevice->end_date_time =null;
+        }else{
+            $bookedDevice->end_date_time = Carbon::parse($data['endDateTime']);
+        }
         $bookedDevice->total_used_seconds=$bookedDevice->calculateUsedSeconds()??0;
         $bookedDevice->period_cost=$bookedDevice->calculatePrice()??0;
         $bookedDevice->save();
