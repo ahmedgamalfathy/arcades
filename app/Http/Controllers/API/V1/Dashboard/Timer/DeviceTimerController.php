@@ -237,7 +237,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             DB::beginTransaction();
                 $request->validate([
                     'endDateTime' => [
-                        'required',
+                        'nullable',
                         'date_format:Y-m-d H:i:s',
                         function ($attribute, $value, $fail) use ($id) {
                             $bookedDevice = $this->bookedDeviceService->editBookedDevice($id);

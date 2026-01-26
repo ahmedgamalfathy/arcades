@@ -257,9 +257,9 @@ class DailyReportService
                     ?? '',
                 'productName' => $productName,
                 'totalOrders' => $items->count(),
-                'totalQuantity' => $items->sum('quantity'),
+                'totalQuantity' => $items->sum('qty'),
             ])
-            ->sortByDesc('totalOrders')
+            ->sortByDesc('totalQuantity')
             ->values();
     }
 

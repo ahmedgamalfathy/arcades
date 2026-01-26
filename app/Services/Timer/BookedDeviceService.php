@@ -21,6 +21,8 @@ use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Filters\Timer\FilterTypeBookedDeviceParam;
 use App\Models\Timer\BookedDevicePause\BookedDevicePause;
 
+use function PHPUnit\Framework\isEmpty;
+
 class BookedDeviceService
 {
     public function allBookedDevices(Request $request)
@@ -28,6 +30,9 @@ class BookedDeviceService
         $perPage = $request->query('perPage', 10);
         $bookedDevices= QueryBuilder::for(BookedDevice::class)
         ->with('sessionDevice','deviceType','deviceTime','device')
+        ->whereHas('sessionDevice', function($q) use ($request) {
+            $q->where('daily_id', $request->dailyId );
+        })
         ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
         ->allowedFilters([
              AllowedFilter::exact('status', 'status'),
@@ -134,9 +139,9 @@ class BookedDeviceService
         {
             throw new Exception("the booked device Finished status");
         }
-        $bookedDevice->end_date_time = Carbon::parse($data['endDateTime'])->utc();
-        $bookedDevice->total_used_seconds=$bookedDevice->calculateUsedSeconds();
-        $bookedDevice->period_cost=$bookedDevice->calculatePrice();
+        $bookedDevice->end_date_time = Carbon::parse($data['endDateTime'])??null;
+        $bookedDevice->total_used_seconds=$bookedDevice->calculateUsedSeconds()??0;
+        $bookedDevice->period_cost=$bookedDevice->calculatePrice()??0;
         $bookedDevice->save();
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $bookedDevice;
