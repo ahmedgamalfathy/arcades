@@ -24,12 +24,10 @@ class FilterTypeSessionDevice implements Filter
                   ->where('end_date_time', '<=', $now);
                   
             } elseif ($value === '2') {
+                $startTime = $now->copy();
+                $endTime = $now->copy()->addMinutes($defaultTimeNotification);
                 $q->where('status', '!=', BookedDeviceEnum::FINISHED->value)
-                  ->whereBetween('end_date_time', [
-                      $now->copy()->addMinutes($defaultTimeNotification),
-                      $now->copy()->addMinutes($defaultTimeNotification + 1)
-                  ]);
-                  
+                  ->whereBetween('end_date_time', [$startTime, $endTime]);                  
             } else {
                 $q->where('status', '!=', BookedDeviceEnum::FINISHED->value)
                 ->whereIn('status', [BookedDeviceEnum::PAUSED->value, BookedDeviceEnum::RESUME->value,BookedDeviceEnum::ACTIVE->value]);
