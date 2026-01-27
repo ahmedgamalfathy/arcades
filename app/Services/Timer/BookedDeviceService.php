@@ -144,8 +144,8 @@ class BookedDeviceService
         }else{
             $bookedDevice->end_date_time = Carbon::parse($data['endDateTime']);
         }
-        $bookedDevice->total_used_seconds=$bookedDevice->calculateUsedSeconds()??0;
-        $bookedDevice->period_cost=$bookedDevice->calculatePrice()??0;
+        $bookedDevice->total_used_seconds=0;
+        $bookedDevice->period_cost=0;
         $bookedDevice->save();
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $bookedDevice;

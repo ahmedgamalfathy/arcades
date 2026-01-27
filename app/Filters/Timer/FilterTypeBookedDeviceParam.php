@@ -29,10 +29,7 @@ class FilterTypeBookedDeviceParam implements Filter
 
             } elseif ($value === '2') {
                 // قرب ينتهي
-                $startTime = $now->copy();
-                $endTime = $now->copy()->addMinutes($defaultTimeNotification);
-                $q->where('status', '!=', BookedDeviceEnum::FINISHED->value)
-                  ->whereBetween('end_date_time', [$startTime, $endTime]);
+
 
             } else {
                 // شغال / موقوف / مستأنف
