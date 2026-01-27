@@ -20,17 +20,20 @@ class OrderService
     }
     public function allOrders(Request $request){
         $perPage= $request->query('perPage',10);
-        $orders = QueryBuilder::for(Order::class)
+        $query  = QueryBuilder::for(Order::class)
         ->allowedFilters([
            AllowedFilter::custom('search', new FilterOrder),
            AllowedFilter::exact('type', 'type'),
            AllowedFilter::exact('isPaid', 'is_paid'),
            AllowedFilter::exact('status', 'status'),
            AllowedFilter::exact('dailyId', 'daily_id'),
-        ])
+        ]);
+        $orders=(clone $query)
         ->with(['items'])
         ->orderByDesc('created_at')
         ->cursorPaginate($perPage);
+        $orders->total_count = $query->count();
+        $orders->total_sum = round($query->sum('price'), 2);
         return $orders;
     }
     public function editOrder(int $id){

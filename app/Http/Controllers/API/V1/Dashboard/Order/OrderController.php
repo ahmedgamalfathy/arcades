@@ -42,7 +42,10 @@ class OrderController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         $orders = $this->orderService->allOrders($request);
-        return ApiResponse::success(new AllOrderCollection($orders));
+        return ApiResponse::success((new AllOrderCollection($orders))->additional([
+                'total_count' => $orders['total_count'],
+                'total_sum' => $orders['total_sum']
+            ]));
     }
 
     public function show($id)

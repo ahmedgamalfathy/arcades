@@ -17,13 +17,12 @@ class AllOrderCollection extends JsonResource
 
     public function toArray(Request $request): array
     {
-         $total = Order::get();
         return [
             'orders' => AllOrderResource::collection($this->resource->items()),
             // 'count'=>$this->resource->count(),
-            'count' => $total->count(),
             // 'sum' =>round($this->resource->sum('price'),2),
-            'sum' =>round($total->sum('price'),2),
+            'count' => $this->resource->total_count ?? 0,
+            'sum' => $this->resource->total_sum ?? 0,
             'perPage' => $this->resource->count(),
             'nextPageUrl'  => $this->extractCursor($this->resource->nextPageUrl()),
             'prevPageUrl'  => $this->extractCursor($this->resource->previousPageUrl()),
