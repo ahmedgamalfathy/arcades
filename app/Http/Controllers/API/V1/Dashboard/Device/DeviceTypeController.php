@@ -36,7 +36,7 @@ class DeviceTypeController extends Controller  implements HasMiddleware
             new Middleware('permission:create_deviceTypes', only:['create']),
             new Middleware('permission:edit_deviceType', only:['edit']),
             new Middleware('permission:update_deviceType', only:['update']),
-            new Middleware('permission:destroy_deviceType', only:['destroy']),
+            new Middleware('permission:destroy_deviceType', only:['destroy', 'restore', 'forceDelete']),
             new Middleware('tenant'),
         ];
     }
@@ -129,14 +129,38 @@ class DeviceTypeController extends Controller  implements HasMiddleware
     {
         try {
             $this->deviceTypeService->deleteDeviceType($id);
-            return ApiResponse::success([],__('crud.deleted'));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch(QueryException  $e){
-            return ApiResponse::error(__('crud.dont_delete_device_type'),[],HttpStatusCode::UNPROCESSABLE_ENTITY);
-        }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (QueryException  $e) {
+            return ApiResponse::error(__('crud.dont_delete_device_type'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
+    }
+    public function restore(int $id)
+    {
+        try {
+            $this->deviceTypeService->restoreDeviceType($id);
+            return ApiResponse::success([], __('crud.updated'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    public function forceDelete(int $id)
+    {
+        try {
+            $this->deviceTypeService->forceDeleteDeviceType($id);
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (QueryException  $e) {
+            return ApiResponse::error(__('crud.dont_delete_device_type'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
     }
 }

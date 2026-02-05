@@ -45,7 +45,7 @@ class DeviceController extends Controller  implements HasMiddleware
             new Middleware('permission:create_devices', only:['create']),
             new Middleware('permission:edit_device', only:['edit']),
             new Middleware('permission:update_device', only:['update']),
-            new Middleware('permission:destroy_device', only:['destroy']),
+            new Middleware('permission:destroy_device', only:['destroy','restore','forceDelete']),
             new Middleware('tenant'),
         ];
     }
@@ -117,6 +117,30 @@ class DeviceController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
+    }
+    public function restore(int $id)
+    {
+        try {
+            $this->deviceService->restoreDevice($id);
+            return ApiResponse::success([],__('crud.updated'));
+        }catch(ModelNotFoundException $e){
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    public function forceDelete(int $id)
+    {
+        try {
+            $this->deviceService->forceDeleteDevice($id);
+            return ApiResponse::success([],__('crud.deleted'));
+        }catch(ModelNotFoundException $e){
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch(QueryException  $e){
+            return ApiResponse::error(__('crud.dont_delete_device_type'),[],HttpStatusCode::UNPROCESSABLE_ENTITY);
+        }catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
     }
         public function changeStatus($id , Request $request)
     {

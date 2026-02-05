@@ -25,9 +25,13 @@ class DeviceService
     public function allDevices(Request $request)
     {
       $query = $request->query('perPage',10);
-      $devices =Device::with('media','deviceTimes','deviceTimeSpecial','maintenances')
-      ->cursorPaginate($query);
-      return $devices;
+      $devices = Device::with('media','deviceTimes','deviceTimeSpecial','maintenances');
+
+      if ($request->has('trashed') && $request->trashed == 1) {
+          $devices->onlyTrashed();
+      }
+
+      return $devices->cursorPaginate($query);
     }
     public function editDevice(int $id)
     {
@@ -147,6 +151,24 @@ class DeviceService
         }
         $device->delete();
         return  $device;
+    }
+    public function restoreDevice(int $id)
+    {
+        $device = Device::onlyTrashed()->find($id);
+        if(!$device){
+            throw new ModelNotFoundException("Device with id {$id} not found in trashed");
+        }
+        $device->restore();
+        return $device;
+    }
+    public function forceDeleteDevice(int $id)
+    {
+        $device = Device::withTrashed()->find($id);
+        if(!$device){
+            throw new ModelNotFoundException("Device with id {$id} not found");
+        }
+        $device->forceDelete();
+        return $device;
     }
     public function changeDeviceStatus(int $id, array $data): void
     {

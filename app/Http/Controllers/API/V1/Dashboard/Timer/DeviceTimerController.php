@@ -46,7 +46,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             new Middleware('permission:create_products', only:['create']),
             new Middleware('permission:edit_product', only:['edit']),
             new Middleware('permission:update_product', only:['update']),
-            new Middleware('permission:destroy_product', only:['destroy']),
+            new Middleware('permission:destroy_product', only:['destroy', 'restore', 'forceDelete']),
             new Middleware('tenant'),
         ];
     }
@@ -229,6 +229,30 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function restore($id)
+    {
+        try {
+            $this->bookedDeviceService->restoreBookedDevice($id);
+            return ApiResponse::success([], __('crud.restored'));
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function forceDelete($id)
+    {
+        try {
+            $this->bookedDeviceService->forceDeleteBookedDevice($id);
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
     //update device end date time

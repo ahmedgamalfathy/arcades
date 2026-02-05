@@ -33,7 +33,6 @@ return new class extends Migration
             $table->decimal('actual_paid_amount', 10, 2)->nullable();
             $table->boolean('is_notification_sent')->default(false);
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

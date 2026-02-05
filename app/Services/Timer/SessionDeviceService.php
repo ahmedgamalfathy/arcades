@@ -19,15 +19,19 @@ class SessionDeviceService
             AllowedFilter::custom('search', new FilterSessionDevice),
             AllowedFilter::exact('type', 'type'),
             AllowedFilter::custom('bookedDevicesStatus', new FilterTypeSessionDevice),
-        ])
-        ->whereHas('bookedDevices', function ($query) {
+        ]);
+
+        if ($request->has('trashed') && $request->trashed == 1) {
+            $sessions->onlyTrashed();
+        }
+
+        return $sessions->whereHas('bookedDevices', function ($query) {
         $query->where('status', '!=', 0);
         })
         ->with(['bookedDevices' => function ($query) {
         $query->where('status', '!=', 0);
         }])
         ->cursorPaginate($perPage);
-        return $sessions;
     }
     public function createSessionDevice(array $data)
     {
@@ -55,6 +59,20 @@ class SessionDeviceService
     {
         $sessionDevice=SessionDevice::findOrFail($id);
         $sessionDevice->delete();
+    }
+
+    public function restoreSessionDevice(int $id)
+    {
+        $sessionDevice = SessionDevice::onlyTrashed()->findOrFail($id);
+        $sessionDevice->restore();
+        return $sessionDevice;
+    }
+
+    public function forceDeleteSessionDevice(int $id)
+    {
+        $sessionDevice = SessionDevice::withTrashed()->findOrFail($id);
+        $sessionDevice->forceDelete();
+        return $sessionDevice;
     }
 }
 

@@ -4,13 +4,14 @@ namespace App\Models\Timer\BookedDevicePause;
 
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 class BookedDevicePause extends Model
 {
-     use UsesTenantConnection , LogsActivity;
+     use UsesTenantConnection , LogsActivity, SoftDeletes;
      protected $guarded =[];
      public function getActivitylogOptions(): LogOptions
     {
@@ -28,7 +29,7 @@ class BookedDevicePause extends Model
     }
     public function tapActivity(Activity $activity, string $eventName)
     {
-        $activity->daily_id = $this->bookedDevice->sessionDevice->daily_id;
+        $activity->daily_id = $this->bookedDevice?->sessionDevice?->daily_id;
     }
     protected $casts = ['paused_at' => 'datetime', 'resumed_at' => 'datetime'];
 

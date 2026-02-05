@@ -64,6 +64,12 @@ use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesEdite
                     Route::apiSingleton('profile', UserProfileController::class);
                     Route::post('devices/create-order-device', [DeviceController::class, 'createOrderDevice']);
                     Route::put('devices/{id}/changeStatus',[DeviceController::class,'changeStatus']);
+                    Route::post('devices/{id}/restore', [DeviceController::class, 'restore']);
+                    Route::delete('devices/{id}/force', [DeviceController::class, 'forceDelete']);
+                    Route::post('device-types/{id}/restore', [DeviceTypeController::class, 'restore']);
+                    Route::delete('device-types/{id}/force', [DeviceTypeController::class, 'forceDelete']);
+                    Route::post('device-times/{id}/restore', [DeviceTimeController::class, 'restore']);
+                    Route::delete('device-times/{id}/force', [DeviceTimeController::class, 'forceDelete']);
                     Route::apiResource('device-types', DeviceTypeController::class);
                     Route::apiResource('device-times', DeviceTimeController::class);
                     Route::get('get-device-times',[DeviceController::class,'getTimesByDeviceId']);
@@ -71,6 +77,9 @@ use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesEdite
                     Route::apiResource('maintenances', MaintenanceController::class);
                     Route::post('/device-timer/end-group-times',EndGroupTimesEditedController::class);
                     Route::get('device-timer/booked-devices', [BookedDeviceController::class, 'allBookedDevices']);
+                    Route::post('device-timer/{id}/restore', [DeviceTimerController::class, 'restore']);
+                    Route::delete('device-timer/{id}/force', [DeviceTimerController::class, 'forceDelete']);
+
                     Route::prefix('device-timer')->controller(DeviceTimerController::class)->group(function () {
                         Route::post('individual-time', 'individualTime');
                         Route::post('group-time', 'groupTime');
@@ -81,10 +90,14 @@ use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesEdite
                         Route::post('{id}/change-time', 'changeTime');
                         Route::get('{id}/show','show');
                         Route::delete('{id}/delete','destroy');
+//                        Route::post('{id}/restore', 'restore');
+//                        Route::delete('{id}/force', 'forceDelete');
                         Route::put('{id}/update-end-date-time', 'updateEndDateTime');
                         Route::put('{id}/transfer_device_to_group','transferDeviceToGroup');
                         Route::put('{id}/transfer_booked_device_to_session_device','transferBookedDeviceToSessionDevice');
                     });
+                    Route::post('sessions/{id}/restore', [SessionDeviceController::class, 'restore']);
+                    Route::delete('sessions/{id}/force', [SessionDeviceController::class, 'forceDelete']);
                     Route::apiResource('sessions', SessionDeviceController::class)->only(['index','show','destroy','update']);
                     Route::prefix('parameter')->group(function () {
                         Route::apiResource('params', ParamController::class);

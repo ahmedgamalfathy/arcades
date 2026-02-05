@@ -5,14 +5,15 @@ namespace App\Models\Device\DeviceTime;
 use App\Models\Device\Device;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Device\DeviceType\DeviceType;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
 class DeviceTime extends Model
 {
-    
-    use UsesTenantConnection, LogsActivity;
+
+    use UsesTenantConnection, LogsActivity, SoftDeletes;
     protected $guarded = [];
     public function getActivitylogOptions(): LogOptions
     {

@@ -6,12 +6,13 @@ use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Daily\Daily;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 class SessionDevice extends Model
 {
-     use UsesTenantConnection , LogsActivity;
+     use UsesTenantConnection , LogsActivity, SoftDeletes;
      protected $guarded =[];
 
      public function getActivitylogOptions(): LogOptions

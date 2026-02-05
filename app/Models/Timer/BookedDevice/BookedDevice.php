@@ -10,13 +10,14 @@ use App\Models\Device\DeviceType\DeviceType;
 use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Models\Device\Device;
 use App\Models\Order\Order;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Carbon\Carbon;
 class BookedDevice extends Model
 {
-     use UsesTenantConnection , LogsActivity;
+     use UsesTenantConnection , LogsActivity, SoftDeletes;
 
       protected $guarded =[];
      public function getActivitylogOptions(): LogOptions
@@ -30,7 +31,7 @@ class BookedDevice extends Model
     }
     public function tapActivity(Activity $activity, string $eventName)
     {
-        $activity->daily_id = $this->sessionDevice->daily_id;
+        $activity->daily_id = $this->sessionDevice?->daily_id;
     }
       protected $casts = [
         'start_date_time' => 'datetime',

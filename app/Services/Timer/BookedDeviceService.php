@@ -30,6 +30,9 @@ class BookedDeviceService
         $perPage = $request->query('perPage', 10);
         $bookedDevices= QueryBuilder::for(BookedDevice::class)
         ->with('sessionDevice','deviceType','deviceTime','device')
+        ->when($request->trashed, function ($query) {
+            $query->onlyTrashed();
+        })
         ->whereHas('sessionDevice', function($q) use ($request) {
             $q->where('daily_id', $request->dailyId );
         })
@@ -115,22 +118,44 @@ class BookedDeviceService
     }
     public function deleteBookedDevice(int $id)
     {
-        $bookedDevice= BookedDevice::findOrFail($id);
-        if($bookedDevice && $bookedDevice->sessionDevice->type==SessionDeviceEnum::GROUP->value)
-        {
-            if($bookedDevice->sessionDevice->bookedDevices()->count() == 1){
-                $bookedDevice->sessionDevice->delete();
+        $bookedDevice = BookedDevice::findOrFail($id);
+        $sessionDevice = $bookedDevice->sessionDevice()->withTrashed()->first();
+
+        if ($sessionDevice && $sessionDevice->type == SessionDeviceEnum::GROUP->value) {
+            if ($sessionDevice->bookedDevices()->count() == 1) {
+                $sessionDevice->delete();
             }
-            if($bookedDevice->pauses()->count() > 0){
+            if ($bookedDevice->pauses()->count() > 0) {
                 $bookedDevice->pauses()->delete();
             }
             $bookedDevice->delete();
-            // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
-        }else {
+        } else {
             $bookedDevice->delete();
-            $bookedDevice->sessionDevice->delete();
-            // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
+            if ($sessionDevice) {
+                $sessionDevice->delete();
+            }
         }
+    }
+
+    public function restoreBookedDevice(int $id)
+    {
+        $bookedDevice = BookedDevice::onlyTrashed()->findOrFail($id);
+
+        if ($bookedDevice->sessionDevice()->withTrashed()->exists()) {
+            $bookedDevice->sessionDevice()->withTrashed()->first()->restore();
+        }
+        $bookedDevice->restore();
+
+        return $bookedDevice;
+    }
+
+    public function forceDeleteBookedDevice(int $id)
+    {
+        $bookedDevice = BookedDevice::withTrashed()->findOrFail($id);
+        if ($bookedDevice->pauses()->withTrashed()->count() > 0) {
+            $bookedDevice->pauses()->withTrashed()->forceDelete();
+        }
+        $bookedDevice->forceDelete();
     }
     public function updateEndDateTime(int $id, array $data)
     {
@@ -162,11 +187,11 @@ class BookedDeviceService
                 throw new Exception("The session device type must be group.");
             }
         } elseif ($data['name'] ?? null) {
-
+            $currentSession = $bookedDevice->sessionDevice()->withTrashed()->first();
             $sessionDevice = SessionDevice::create([
                 'name' => $data['name'],
                 'type' => SessionDeviceEnum::GROUP->value,
-                'daily_id' => $bookedDevice->sessionDevice->daily_id,
+                'daily_id' => $currentSession ? $currentSession->daily_id : ($data['dailyId'] ?? null),
             ]);
             $data['sessionDeviceId'] = $sessionDevice->id;
         }
@@ -186,7 +211,7 @@ class BookedDeviceService
         'session_device_id' => $data['sessionDeviceId'],
         ]);
        //delete any session device if no booked devices left
-       $oldSessionDevice = SessionDevice::find($bookedDevice->session_device_id);
+       $oldSessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
        if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
            $oldSessionDevice->delete();
        }
@@ -197,7 +222,8 @@ class BookedDeviceService
     {
         return DB::transaction(function () use ($bookedDeviceId, $dailyId) {
         $bookedDevice = BookedDevice::findOrFail($bookedDeviceId);
-        if ($bookedDevice->sessionDevice->type === SessionDeviceEnum::INDIVIDUAL->value) {
+        $currentSession = $bookedDevice->sessionDevice()->withTrashed()->first();
+        if ($currentSession && $currentSession->type === SessionDeviceEnum::INDIVIDUAL->value) {
             throw new Exception("The session device type must be group.");
         }
         if ($bookedDevice->status === BookedDeviceEnum::FINISHED->value) {
@@ -216,7 +242,7 @@ class BookedDeviceService
         'session_device_id' => $newSessionDevice->id,
         ]);
         //delete any session device if no booked devices left
-        $oldSessionDevice = SessionDevice::find($bookedDevice->session_device_id);
+        $oldSessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
         if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
             $oldSessionDevice->delete();
         }
@@ -228,7 +254,8 @@ class BookedDeviceService
     $bookedDevice=BookedDevice::findOrFail($id);
     $orderIds=$bookedDevice->orders->pluck('id')->toArray();
     $orderItemIds=$bookedDevice->orders->pluck('order_items.id')->toArray();
-    $sessionId = [$bookedDevice->sessionDevice->id];
+    $sessionDevice = $bookedDevice->sessionDevice()->withTrashed()->first();
+    $sessionId = $sessionDevice ? [$sessionDevice->id] : [];
     $pausesId=$bookedDevice->pauses->pluck('id')->toArray();
         $activities  = Activity::where(function ($query) use ($orderIds, $orderItemIds, $sessionId, $pausesId) {
             $query->where(function ($q) use ($orderIds) {

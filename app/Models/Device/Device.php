@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Device\DeviceTime\DeviceTime;
 use App\Models\Device\DeviceType\DeviceType;
 use App\Models\Timer\BookedDevice\BookedDevice;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 class Device extends Model
 {
-    use UsesTenantConnection , LogsActivity;
+    use UsesTenantConnection , LogsActivity, SoftDeletes;
     protected $guarded = [];
     public function getActivitylogOptions(): LogOptions
     {

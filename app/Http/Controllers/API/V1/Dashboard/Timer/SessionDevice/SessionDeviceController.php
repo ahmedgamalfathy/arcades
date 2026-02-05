@@ -26,7 +26,7 @@ class SessionDeviceController extends Controller  implements HasMiddleware
             new Middleware('auth:api'),
             new Middleware('permission:products', only:['index']),
             new Middleware('permission:edit_product', only:['edit']),
-            new Middleware('permission:destroy_product', only:['destroy']),
+            new Middleware('permission:destroy_product', only:['destroy','restore','forceDelete']),
             new Middleware('tenant'),
         ];
     }
@@ -72,6 +72,28 @@ class SessionDeviceController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.not_found'),$e->getMessage(), HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $e ) {
             return ApiResponse::error(__('crud.server_error'),$e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    public function restore(int $id)
+    {
+        try {
+            $this->sessionDeviceService->restoreSessionDevice($id);
+            return ApiResponse::success([],__('crud.updated'));
+        }catch(ModelNotFoundException $e){
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    public function forceDelete(int $id)
+    {
+        try {
+            $this->sessionDeviceService->forceDeleteSessionDevice($id);
+            return ApiResponse::success([],__('crud.deleted'));
+        }catch(ModelNotFoundException $e){
+            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        }catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
     public function update(Request $request, string $id)

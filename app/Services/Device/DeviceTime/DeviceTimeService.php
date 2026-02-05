@@ -9,11 +9,15 @@ class DeviceTimeService
 {
     public function allDeviceTimes(Request $request)
     {
-      $deviceTypeId=$request->query('deviceTypeId');
-      $deviceTimes =DeviceTime::select('id','name','rate')
-      ->where('device_type_id',$deviceTypeId)
-      ->get();
-      return $deviceTimes;
+        $deviceTypeId = $request->query('deviceTypeId');
+        $query = DeviceTime::select('id', 'name', 'rate')
+            ->where('device_type_id', $deviceTypeId);
+
+        if ($request->has('trashed') && $request->trashed == 1) {
+            $query->onlyTrashed();
+        }
+
+        return $query->get();
     }
     public function editDeviceTime(int $id)
     {
@@ -49,11 +53,31 @@ class DeviceTimeService
     public function deleteDeviceTime(int $id)
     {
         $deviceTime = DeviceTime::find($id);
-        if(!$deviceTime){
-        throw new ModelNotFoundException("Device Time with id {$id} not found");
+        if (!$deviceTime) {
+            throw new ModelNotFoundException("Device Time with id {$id} not found");
         }
         $deviceTime->delete();
         return  $deviceTime;
+    }
+
+    public function restoreDeviceTime(int $id)
+    {
+        $deviceTime = DeviceTime::onlyTrashed()->find($id);
+        if (!$deviceTime) {
+            throw new ModelNotFoundException("Device Time with id {$id} not found in trashed");
+        }
+        $deviceTime->restore();
+        return $deviceTime;
+    }
+
+    public function forceDeleteDeviceTime(int $id)
+    {
+        $deviceTime = DeviceTime::withTrashed()->find($id);
+        if (!$deviceTime) {
+            throw new ModelNotFoundException("Device Time with id {$id} not found");
+        }
+        $deviceTime->forceDelete();
+        return $deviceTime;
     }
 }
 
