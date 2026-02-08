@@ -128,6 +128,17 @@ class OrderService
             }
             $order->delete();
     }
+    public function restoreOrder(int $id)
+    {
+        $order = Order::onlyTrashed()->findOrFail($id);
+        $order->restore();
+        return $order;
+    }
+    public function forceDeleteOrder(int $id)
+    {
+        $order = Order::withTrashed()->findOrFail($id);
+        $order->forceDelete();
+    }
     public function changeOrderStatus(int $id, array $data)
     {
         $order = Order::findOrFail($id);

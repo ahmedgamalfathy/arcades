@@ -5,12 +5,13 @@ namespace App\Models\Product;
 use App\Models\Media\Media;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
 class Product extends Model
 {
-    use UsesTenantConnection , LogsActivity;
+    use UsesTenantConnection , LogsActivity, SoftDeletes;
     protected $guarded =[];
     public function getActivitylogOptions(): LogOptions
     {

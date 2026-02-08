@@ -20,12 +20,12 @@ class UserSeeder extends Seeder
             'name' => 'elmo',
             'email' => 'elmo@gmail.com',
             'password' => Hash::make('elmo123456'),
-            // 'database_name'=> 'arcades',
-            // 'database_username'=>'root',
-            // 'database_password'=>'',
-            'database_name'=> 'u824100506_user1',
-            'database_username'=>'u824100506_user1',
-            'database_password'=>'M@Ns123456',
+            'database_name'=> 'arcades',
+            'database_username'=>'root',
+            'database_password'=>'',
+            // 'database_name'=> 'u824100506_user1',
+            // 'database_username'=>'u824100506_user1',
+            // 'database_password'=>'M@Ns123456',
             'app_key'=>'_h123456'
         ]);
         $superAdminRole = Role::where('name', 'super admin')->first();
@@ -36,12 +36,12 @@ class UserSeeder extends Seeder
             'email' => 'ashraf.qopiah@gmail.com',
             'password' => Hash::make('elmo123456'),
             'app_key'=>'_h1234567',
-            // 'database_name'=> 'subarcades',
-            // 'database_username'=>'root',
-            // 'database_password'=>'',
-            'database_name'=> 'u824100506_user2',
-            'database_username'=>'u824100506_user2',
-            'database_password'=>'M@Ns123456',
+            'database_name'=> 'subarcades',
+            'database_username'=>'root',
+            'database_password'=>'',
+            // 'database_name'=> 'u824100506_user2',
+            // 'database_username'=>'u824100506_user2',
+            // 'database_password'=>'M@Ns123456',
         ]);
         $adminRole = Role::where('name', 'admin')->first();
         $adminUser->assignRole($superAdminRole);

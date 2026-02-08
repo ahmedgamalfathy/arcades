@@ -149,8 +149,15 @@ class DeviceService
         if(!$device){
         throw new ModelNotFoundException("Device  with id {$id} not found");
         }
+        
+        // التحقق من إمكانية الحذف (سيرمي Exception إذا كان شغال في تيم)
+        if (!$device->canBeDeleted()) {
+            throw new \Exception($device->getDeletionBlockReason());
+        }
+        
+        // إذا مش شغال، يتحذف Soft Delete
         $device->delete();
-        return  $device;
+        return $device;
     }
     public function restoreDevice(int $id)
     {

@@ -9,10 +9,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use Spatie\Activitylog\LogOptions;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Activity;
-class Order extends Model 
+class Order extends Model
 {
-    use UsesTenantConnection , LogsActivity ;
+    use UsesTenantConnection , LogsActivity, SoftDeletes;
     protected $guarded =[];
 
     protected bool $ignoreNextUpdate = false;

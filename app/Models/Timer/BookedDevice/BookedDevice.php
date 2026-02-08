@@ -49,15 +49,15 @@ class BookedDevice extends Model
     }
     public function deviceType()
     {
-        return $this->belongsTo(DeviceType::class);
+        return $this->belongsTo(DeviceType::class)->withTrashed();
     }
     public function device()
     {
-        return $this->belongsTo(Device::class);
+        return $this->belongsTo(Device::class)->withTrashed();
     }
     public function deviceTime()
     {
-        return $this->belongsTo(DeviceTime::class);
+        return $this->belongsTo(DeviceTime::class)->withTrashed();
     }
     public function orders()
     {

@@ -102,6 +102,30 @@ class OrderController extends Controller implements HasMiddleware
         }
 
     }
+
+    public function restore(int $id)
+    {
+        try {
+            $this->orderService->restoreOrder($id);
+            return ApiResponse::success([], __('crud.restored'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function forceDelete(int $id)
+    {
+        try {
+            $this->orderService->forceDeleteOrder($id);
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
     public function changeOrderStatus(Request $request, int $id)
     {
         try {

@@ -137,6 +137,30 @@ class UserController extends Controller implements HasMiddleware
 
     }
 
+    public function restore(int $id)
+    {
+        try {
+            $this->userService->restoreUser($id);
+            return ApiResponse::success([], __('crud.restored'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function forceDelete(int $id)
+    {
+        try {
+            $this->userService->forceDeleteUser($id);
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public function changeStatus(Request $request)
     {
 

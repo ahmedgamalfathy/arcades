@@ -90,9 +90,23 @@ class ProductService {
     if(!$product){
         throw new ModelNotFoundException();
     }
-    if($product->media_id){
-        $this->mediaService->deleteMedia($product->media_id);
-    }
+    // if($product->media_id){
+    //     $this->mediaService->deleteMedia($product->media_id);
+    // }
     $product->delete();
   }
+    public function restoreProduct(int $id)
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+        $product->restore();
+        return $product;
+    }
+    public function forceDeleteProduct(int $id)
+    {
+        $product = Product::withTrashed()->findOrFail($id);
+        if($product->media_id){
+            $this->mediaService->deleteMedia($product->media_id);
+        }
+        $product->forceDelete();
+    }
 }

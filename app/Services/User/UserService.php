@@ -169,14 +169,33 @@ class UserService{
         if(!$user){
           throw new ModelNotFoundException();
         }
+        // if ($user->media_id) {
+        //     $media = Media::on('tenant')->find($user->media_id);
+        //     if ($media) {
+        //         $this->mediaService->deleteMedia($media->id);
+        //     }
+        // }
+        $user->delete();
+
+    }
+
+    public function restoreUser(int $userId)
+    {
+        $user = User::onlyTrashed()->findOrFail($userId);
+        $user->restore();
+        return $user;
+    }
+
+    public function forceDeleteUser(int $userId)
+    {
+        $user = User::withTrashed()->findOrFail($userId);
         if ($user->media_id) {
             $media = Media::on('tenant')->find($user->media_id);
             if ($media) {
                 $this->mediaService->deleteMedia($media->id);
             }
         }
-        $user->delete();
-
+        $user->forceDelete();
     }
 
     public function changeUserStatus(int $userId, int $isActive): void

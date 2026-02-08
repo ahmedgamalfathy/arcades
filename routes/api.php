@@ -53,12 +53,18 @@ use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesEdite
                     Route::put('orders/{id}/changeStatus',[OrderController::class,'changeOrderStatus']);
                     Route::put('orders/{id}/changeTypePay',[OrderController::class,'changeOrderPaymentStatus']);
                     Route::put('users/changePassword',[UserController::class,'userChangePassword']);
+                    Route::post('users/{id}/restore', [UserController::class, 'restore']);
+                    Route::delete('users/{id}/force', [UserController::class, 'forceDelete']);
                     Route::post('expenses/{id}/restore', [ExpenseController::class, 'restore']);
                     Route::delete('expenses/{id}/force', [ExpenseController::class, 'forceDelete']);
                     Route::apiResource('users', UserController::class);
                     Route::apiResource('media', MediaController::class);
                     Route::apiResource('products', ProductController::class);
+                    Route::post('products/{id}/restore', [ProductController::class, 'restore']);
+                    Route::delete('products/{id}/force', [ProductController::class, 'forceDelete']);
                     Route::apiResource('orders', OrderController::class);
+                    Route::post('orders/{id}/restore', [OrderController::class, 'restore']);
+                    Route::delete('orders/{id}/force', [OrderController::class, 'forceDelete']);
                     Route::apiResource('expenses', ExpenseController::class);
                     Route::put('profile/change-password', ChangeCurrentPasswordController::class);
                     Route::apiSingleton('profile', UserProfileController::class);

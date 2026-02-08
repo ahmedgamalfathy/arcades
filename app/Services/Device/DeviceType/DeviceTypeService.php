@@ -56,8 +56,22 @@ class DeviceTypeService
         if (!$deviceType) {
             throw new ModelNotFoundException("Device Type with id {$id} not found");
         }
+        
+        // التحقق من إمكانية الحذف
+        if (!$deviceType->canBeDeleted()) {
+            throw new \Exception($deviceType->getDeletionBlockReason());
+        }
+        
+        // حذف الأجهزة غير النشطة أولاً (Soft Delete)
+        $deviceType->devices()->each(function($device) {
+            if (!$device->hasActiveBookings()) {
+                $device->delete(); // Soft Delete
+            }
+        });
+        
+        // حذف نوع الجهاز (Soft Delete)
         $deviceType->delete();
-        return  $deviceType;
+        return $deviceType;
     }
 
     public function restoreDeviceType(int $id)

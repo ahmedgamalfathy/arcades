@@ -18,8 +18,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->tinyInteger('status')->default(DeviceStatusEnum::AVAILABLE->value);
-            $table->foreignIdFor(DeviceType::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Media::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(DeviceType::class)->constrained();
+            $table->foreignIdFor(Media::class)->nullable()->constrained();
             $table->unique(['name', 'device_type_id']);
             $table->softDeletes();
             $table->timestamps();

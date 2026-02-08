@@ -128,9 +128,18 @@ class BookedDeviceService
             if ($bookedDevice->pauses()->count() > 0) {
                 $bookedDevice->pauses()->delete();
             }
-            $bookedDevice->delete();
+            BookedDevice::where('session_device_id', $sessionDevice->id)
+                ->where('device_id', $bookedDevice->device_id)
+                ->where('device_type_id', $bookedDevice->device_type_id)
+                ->delete();
         } else {
+            /*
             $bookedDevice->delete();
+            */
+            BookedDevice::where('session_device_id', $sessionDevice->id)
+                ->where('device_id', $bookedDevice->device_id)
+                ->where('device_type_id', $bookedDevice->device_type_id)
+                ->delete();
             if ($sessionDevice) {
                 $sessionDevice->delete();
             }

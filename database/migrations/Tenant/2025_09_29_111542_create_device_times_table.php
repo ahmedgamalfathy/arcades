@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->decimal('rate',8 , 2);
-            $table->foreignIdFor(DeviceType::class)->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Device::class)->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(DeviceType::class)->nullable()->constrained();
+            $table->foreignIdFor(Device::class)->nullable()->constrained();
             $table->unique(['name', 'device_type_id']);
             $table->unique(['name', 'device_id']);
             $table->timestamps();
