@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Services\Device\DeviceTime\DeviceTimeService;
 use App\Services\Device\DeviceType\DeviceTypeService;
@@ -130,7 +131,9 @@ class DeviceTypeController extends Controller  implements HasMiddleware
         try {
             $this->deviceTypeService->deleteDeviceType($id);
             return ApiResponse::success([], __('crud.deleted'));
-        } catch (ModelNotFoundException $e) {
+        } catch (ValidationException $e) {
+            return ApiResponse::error($e->getMessage(), $e->getMessage(), HttpStatusCode::UNPROCESSABLE_ENTITY);
+        }catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (QueryException  $e) {
             return ApiResponse::error(__('crud.dont_delete_device_type'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);

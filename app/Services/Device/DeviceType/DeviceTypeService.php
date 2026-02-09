@@ -6,6 +6,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use App\Filters\DeviceType\FilterDeviceType;
 use App\Models\Device\DeviceType\DeviceType;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DeviceTypeService
@@ -56,19 +57,21 @@ class DeviceTypeService
         if (!$deviceType) {
             throw new ModelNotFoundException("Device Type with id {$id} not found");
         }
-        
+
         // التحقق من إمكانية الحذف
         if (!$deviceType->canBeDeleted()) {
-            throw new \Exception($deviceType->getDeletionBlockReason());
+            throw ValidationException::withMessages([
+                'deviceType'=>$deviceType->getDeletionBlockReason()
+            ]);
         }
-        
+
         // حذف الأجهزة غير النشطة أولاً (Soft Delete)
         $deviceType->devices()->each(function($device) {
             if (!$device->hasActiveBookings()) {
                 $device->delete(); // Soft Delete
             }
         });
-        
+
         // حذف نوع الجهاز (Soft Delete)
         $deviceType->delete();
         return $deviceType;
