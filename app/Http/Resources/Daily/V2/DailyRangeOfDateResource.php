@@ -2,14 +2,16 @@
 
 namespace App\Http\Resources\Daily\V2;
 
-use App\Enums\BookedDevice\BookedDeviceEnum;
-use App\Enums\Order\OrderTypeEnum;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Enums\Order\OrderTypeEnum;
+use Illuminate\Support\Facades\DB;
+use Spatie\Activitylog\Models\Activity;
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\Order\Daily\AllOrderIncomeResource;
 use App\Http\Resources\Expense\Daily\AllExpenseDailyResource;
 use App\Http\Resources\Timer\SessionDevice\Daily\AllSessionIncomeResource;
-use App\Http\Resources\Order\Daily\AllOrderIncomeResource;
-use Carbon\Carbon;
 
 class DailyRangeOfDateResource extends JsonResource
 {
@@ -24,15 +26,24 @@ class DailyRangeOfDateResource extends JsonResource
         $totalIncome = $this->getTotalIncome();
         $totalExpense = $this->getTotalExpense();
         $totalProfit = $this->getTotalProfit($totalIncome, $totalExpense);
+        $createdBy = Activity::where('log_name', 'Daily')->where('event', 'created')
+        ->with('causer')
+        ->where('subject_id', $this->id)->first();
 
         return [
             'dailyId' => $this->id,
             'totalIncome' => $totalIncome,
             'totalExpense' => $totalExpense,
             'totalProfit' => $totalProfit,
-            'startDateTime' => $this->start_date_time? Carbon::parse($this->start_date_time)->format('d-m-Y H:i:s') : "",
-            'endDateTime' => $this->end_date_time? Carbon::parse($this->end_date_time)->format('d-m-Y H:i:s') : "",
+            'startDate' => $this->start_date_time? Carbon::parse($this->start_date_time)->format('d-m-Y') : "",
+            'endDate' => $this->end_date_time? Carbon::parse($this->end_date_time)->format('d-m-Y') : "",
+            'startTime' => $this->start_date_time ? Carbon::parse($this->start_date_time)->format('H:i:s') : "",
+            'endTime' => $this->end_date_time ? Carbon::parse($this->end_date_time)->format('H:i:s') : "",
+            'duration' => ($this->start_date_time && $this->end_date_time)
+                ? Carbon::parse($this->start_date_time)->diff(Carbon::parse($this->end_date_time))->format('%H:%I:%S')
+                : "",
             'isActive' => $this->end_date_time === null,
+            'createdBy' => $createdBy?->causer?->name ?? "",
         ];
     }
 

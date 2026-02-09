@@ -15,7 +15,7 @@ class AllDailyRangeOfDateResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-                $groupedByDate = collect($this->resource->items())->groupBy(function($daily) {
+            $groupedByDate = collect($this->resource->items())->groupBy(function($daily) {
             return Carbon::parse($daily->start_date_time)->format('Y-m-d');
         });
 
