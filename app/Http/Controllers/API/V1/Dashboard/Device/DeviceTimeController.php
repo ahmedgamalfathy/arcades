@@ -99,7 +99,9 @@ class DeviceTimeController extends Controller implements HasMiddleware
         try {
             $this->deviceTimeService->deleteDeviceTime($id);
             return ApiResponse::success([], __('crud.deleted'));
-        } catch (ModelNotFoundException $e) {
+        } catch (ValidationException $e) {
+            return ApiResponse::error($e->getMessage(), $e->getMessage(), HttpStatusCode::NOT_FOUND);
+        }catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (QueryException  $e) {
             return ApiResponse::error(__('crud.dont_delete_device_time'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);

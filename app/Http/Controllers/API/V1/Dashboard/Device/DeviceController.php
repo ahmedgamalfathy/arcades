@@ -15,6 +15,7 @@ use App\Services\Device\DeviceService;
 use Illuminate\Database\QueryException;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Validation\ValidationException;
 use App\Http\Requests\Device\CreateDeviceRequest;
 use App\Http\Requests\Device\UpdateDeviceRequest;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -23,7 +24,7 @@ use App\Http\Resources\Devices\Device\DeviceResource;
 use App\Services\Device\DeviceTime\DeviceTimeService;
 use App\Http\Resources\Devices\Device\AllDeviceResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use League\Config\Exception\ValidationException;
+
 
 class DeviceController extends Controller  implements HasMiddleware
 {
