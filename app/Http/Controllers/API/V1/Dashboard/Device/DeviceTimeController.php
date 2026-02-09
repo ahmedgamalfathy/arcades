@@ -16,6 +16,7 @@ use App\Http\Resources\Devices\DeviceTime\DeviceTimeResource;
 use App\Http\Requests\Device\DevcieTime\CreateDeviceTimeRequest;
 use App\Http\Requests\Device\DevcieTime\UpdateDeviceTimeRequest;
 use App\Http\Resources\Devices\DeviceTime\AllDeviceTimeResource;
+use Illuminate\Validation\ValidationException;
 
 class DeviceTimeController extends Controller implements HasMiddleware
 {
@@ -81,6 +82,12 @@ class DeviceTimeController extends Controller implements HasMiddleware
               $this->deviceTimeService->updateDeviceTime($id, $updateDeviceTimeRequest->validated());
             DB::commit();
             return ApiResponse::success([],__('crud.updated'));
+        } catch (ValidationException $e) {
+            return ApiResponse::error($e->getMessage(), $e->getMessage(), HttpStatusCode::NOT_FOUND);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (QueryException  $e) {
+            return ApiResponse::error(__('crud.dont_delete_device_time'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }

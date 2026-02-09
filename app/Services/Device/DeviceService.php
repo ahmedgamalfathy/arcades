@@ -9,10 +9,11 @@ use App\Enums\Media\MediaTypeEnum;
 use Illuminate\Support\Facades\DB;
 use App\Services\Media\MediaService;
 use App\Enums\Device\DeviceStatusEnum;
+use App\Models\Device\DeviceTime\DeviceTime;
+use Illuminate\Validation\ValidationException;
+use App\Services\Device\DeviceTime\DeviceTimeService;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Services\Device\DeviceTime\DeviceTimeService;
-use App\Models\Device\DeviceTime\DeviceTime;
 
 class DeviceService
 {
@@ -149,12 +150,14 @@ class DeviceService
         if(!$device){
         throw new ModelNotFoundException("Device  with id {$id} not found");
         }
-        
-        // التحقق من إمكانية الحذف (سيرمي Exception إذا كان شغال في تيم)
+
+        // التحقق من إمكانية الحذف (سيرمي ValidationException إذا كان شغال في تيم)
         if (!$device->canBeDeleted()) {
-            throw new \Exception($device->getDeletionBlockReason());
+            throw ValidationException::withMessages([
+                'device_id' => $device->getDeletionBlockReason(),
+            ]);
         }
-        
+
         // إذا مش شغال، يتحذف Soft Delete
         $device->delete();
         return $device;

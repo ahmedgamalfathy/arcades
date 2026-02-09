@@ -3,6 +3,7 @@ namespace App\Services\Device\DeviceTime;
 
 use Illuminate\Http\Request;
 use App\Models\Device\DeviceTime\DeviceTime;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DeviceTimeService
@@ -43,6 +44,11 @@ class DeviceTimeService
     if(!$deviceTime){
       throw new ModelNotFoundException("Device Time with id {$id} not found");
     }
+    if (!$deviceTime->canBeDeleted()) {
+        throw ValidationException::withMessages([
+            'device_id' => $deviceTime->getDeletionBlockReason(),
+        ]);
+    }
     $deviceTime->name = $data['name'];
     $deviceTime->rate = $data['rate'];
     $deviceTime->device_type_id = $data['deviceTypeId']??null;
@@ -56,12 +62,12 @@ class DeviceTimeService
         if (!$deviceTime) {
             throw new ModelNotFoundException("Device Time with id {$id} not found");
         }
-        
+
         // التحقق من إمكانية الحذف (سيرمي Exception إذا كان مستخدم في حجوزات نشطة)
         if (!$deviceTime->canBeDeleted()) {
             throw new \Exception($deviceTime->getDeletionBlockReason());
         }
-        
+
         // إذا مش مستخدم في حجوزات نشطة، يتحذف Soft Delete
         $deviceTime->delete();
         return $deviceTime;

@@ -23,7 +23,7 @@ use App\Http\Resources\Devices\Device\DeviceResource;
 use App\Services\Device\DeviceTime\DeviceTimeService;
 use App\Http\Resources\Devices\Device\AllDeviceResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use League\Config\Exception\ValidationException;
 
 class DeviceController extends Controller  implements HasMiddleware
 {
@@ -109,6 +109,8 @@ class DeviceController extends Controller  implements HasMiddleware
         try {
             $this->deviceService->deleteDevice($id);
             return ApiResponse::success([],__('crud.deleted'));
+        }catch(ValidationException $e){
+           return ApiResponse::error($e->getMessage(),$e->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch(QueryException  $e){
