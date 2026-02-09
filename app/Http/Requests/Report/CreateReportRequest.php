@@ -32,6 +32,7 @@ class CreateReportRequest extends FormRequest
             'endDateTime'   => ['nullable', 'date', 'required_with:startDateTime', 'after_or_equal:startDateTime'],
             'include' => ['nullable', 'string'],
             'search' => ['nullable', 'string'],
+            'dailyId' => ['nullable', 'integer', 'exists:dailies,id'],
         ];
     }
 

@@ -11,6 +11,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\Activitylog\Models\Activity;
 use App\Filters\Daily\DailySearchFilter;
+use App\Filters\Daily\RangeOfDateFilter;
 use App\Services\Timer\DeviceTimerService;
 use App\Enums\BookedDevice\BookedDeviceEnum;
 use Illuminate\Validation\ValidationException;
@@ -106,12 +107,28 @@ class DailyService
                 AllowedFilter::scope('has_orders'),
                 AllowedFilter::scope('has_expenses'),
                 AllowedFilter::scope('has_sessions'),
+                AllowedFilter::custom('range_of_date', new RangeOfDateFilter()),
             ])
             ->cursorPaginate($perPage);
 
         return $dailies;
     }
 
+     public function allDailiesWithOutDailyId(Request $request){
+        $perPage = $request->query('perPage', 10);
+
+        $dailies = QueryBuilder::for(Daily::class)
+        ->allowedFilters([
+            AllowedFilter::scope('has_orders'),
+            AllowedFilter::scope('has_expenses'),
+            AllowedFilter::scope('has_sessions'),
+          AllowedFilter::custom('rangeOfDate', new RangeOfDateFilter()),
+        ])
+        ->with(['sessions.bookedDevices','orders','expenses'])
+        ->orderByRaw('DATE(start_date_time) DESC, start_date_time DESC')
+        ->cursorPaginate($perPage);
+        return $dailies;
+     }
      public function editDaily($id)
      {//sessions , orders , expenses
         return Daily::with('sessions','orders','expenses')->findOrFail($id);

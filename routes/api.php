@@ -34,6 +34,7 @@ use App\Http\Controllers\API\V1\Dashboard\ForgotPassword\ChangePasswordControlle
 use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesController;
 use App\Http\Controllers\API\V1\Dashboard\Timer\SessionDevice\SessionDeviceController;
 use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesEditedController;
+use App\Http\Controllers\API\V2\Dashboard\Report\AllDailyRangeOfDateController;
 
 
     Route::prefix('v1/admin')->group(function () {
@@ -138,6 +139,9 @@ use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesEdite
                     });
                     Route::get('reports/dailyStatusData',[ DailyReportStatusController::class,'getStatusReport']);
                     Route::get('dailyActivity',DailyActivityController::class);
+                    Route::get('reports/all-daily-range-of-date', AllDailyRangeOfDateController::class);
+                    });
 
-
-    });
+//                    Route::prefix('v2/admin')->group(function () {
+//                        Route::get('reports/all-daily-range-of-date', AllDailyRangeOfDateController::class);
+//                    });

@@ -21,12 +21,12 @@ class DailyReportService
         if ($hasDates) {
             $startDate = Carbon::parse($data['startDateTime'])->startOfDay();
             $endDate   = Carbon::parse($data['endDateTime'])->endOfDay();
-            $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes);
+            $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes, $data['dailyId'] ?? null);
         } else {
             $daily = Daily::whereNull('end_date_time')->first();
             $startDate = Carbon::parse($daily->start_date_time??now())->startOfDay();
             $endDate   = Carbon::parse($daily->start_date_time??now())->endOfDay();
-            $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes);
+            $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes, $data['dailyId'] ?? null);
         }
 
         $stats = $this->calculateStats($dailies, $startDate, $endDate);
@@ -53,7 +53,7 @@ class DailyReportService
         $includes = !empty($data['include'])
             ? array_filter(array_map('trim', explode(',', $data['include'])))
             : [];
-        return $this->fetchDailies($startDate, $endDate, $search, $includes);
+        return $this->fetchDailies($startDate, $endDate, $search, $includes, $data['dailyId'] ?? null);
     }
 
     /**
@@ -71,9 +71,12 @@ class DailyReportService
     /**
      * Fetch dailies with date filters and includes
      */
-  private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes): Collection
+  private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes , $dailyId =null): Collection
     {
         return Daily::query()
+        ->when($dailyId, function ($q) use ($dailyId) {
+            $q->where('id', $dailyId);
+        })
         ->where(function ($q) use ($startDate, $endDate) {
             $q->whereBetween('start_date_time', [$startDate, $endDate]);
             //   ->orWhereBetween('end_date_time', [$startDate, $endDate]);

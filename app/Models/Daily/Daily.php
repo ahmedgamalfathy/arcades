@@ -71,6 +71,7 @@ class Daily extends Model
     {
         return $query->whereHas('orders');
     }
+
     public function getTotalOrdersAttribute()
     {
         return $this->orders()->sum('price');
