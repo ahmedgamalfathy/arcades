@@ -33,7 +33,6 @@ class DailyRangeOfDateResource extends JsonResource
         return [
             'dailyId' => $this->id,
             'totalIncome' => $totalIncome,
-            'test'=>"sdfsfd",
             'totalExpense' => $totalExpense,
             'totalProfit' => $totalProfit,
             'startDate' => $this->start_date_time? Carbon::parse($this->start_date_time)->format('d-m-Y') : "",
@@ -66,7 +65,7 @@ class DailyRangeOfDateResource extends JsonResource
 
     protected function getTotalProfit(float $income, float $expense): float
     {
-        if ($this->end_date_time !== null ) {
+        if ($this->end_date_time !== null) {
             return round($this->total_profit, 2);
         }
         return round($income - $expense, 2);

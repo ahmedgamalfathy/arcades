@@ -86,9 +86,9 @@ class Daily extends Model
     {
         return $this->expenses()->sum('price');
     }
-     public function getTotalProfitAttribute()
-    {
-        return ($this->total_orders + $this->total_session_devices) - $this->total_expenses;
-    }
+    //  public function getTotalProfitAttribute()
+    // {
+    //     return ($this->total_orders + $this->total_session_devices) - $this->total_expenses;
+    // }
 
 }
