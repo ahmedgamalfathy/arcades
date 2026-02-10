@@ -38,7 +38,7 @@ class UpdateDeviceRequest extends FormRequest
             ->ignore($this->device)
             ->where(fn ($q) =>
             $q->where('device_type_id', $this->deviceTypeId)
-            ->whereNull('deleted_at')
+            // ->whereNull('deleted_at')
             )
         ],
           'deviceTypeId'=>['required','integer','exists:device_types,id'],

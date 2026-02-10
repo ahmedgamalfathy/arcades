@@ -35,7 +35,6 @@ class CreateDeviceTypeRequest extends FormRequest
             'string',
             function ($attribute, $value, $fail) {
                 $names = array_column($this->input('times'), 'name');
-
                 if (count(array_keys($names, $value)) > 1) {
                     $fail("The name '$value' is duplicated within the request.");
                 }

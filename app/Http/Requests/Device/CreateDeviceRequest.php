@@ -31,15 +31,15 @@ class CreateDeviceRequest extends FormRequest
         return [
           'mediaId' => ['nullable', 'integer', 'exists:media,id'],
           'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+          'deviceTypeId'=>['required','integer','exists:device_types,id'],
           'name' => [
             'required',
-             Rule::unique('devices')
+             Rule::unique('devices','name')
                 ->where(fn ($q) =>
-                    $q->where('device_type_id',$this->deviceTypeId)
-                      ->whereNull('deleted_at')
+                    $q->where('device_type_id', $this->get('deviceTypeId'))
+                    //   ->whereNull('deleted_at')
                 )
             ],
-          'deviceTypeId'=>['required','integer','exists:device_types,id'],
           'deviceTimeIds'=>['nullable','array','min:1','required_without:deviceTimeSpecial'],
           'deviceTimeIds.*'=>['integer', 'exists:device_times,id'],
           'deviceTimeSpecial'=>['nullable','min:1',
@@ -75,6 +75,7 @@ class CreateDeviceRequest extends FormRequest
             //name , price , date , note ,type
         return [
             'name.required' => __('validation.custom.required'),
+            'name.unique' => 'اسم الجهاز موجود بالفعل داخل هذا النوع.',
             'media.required' => __('validation.custom.required'),
             'deviceTypeId.required' => __('validation.custom.required'),
             'deviceTimeIds.required' => __('validation.custom.required'),
