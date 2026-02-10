@@ -49,7 +49,7 @@ class DailyRangeOfDateResource extends JsonResource
 
     protected function getTotalIncome(): float
     {
-        if ($this->end_date_time !== null && $this->total_income !== null) {
+        if ($this->end_date_time !== null) {
             return round($this->total_income, 2);
         }
         return $this->calculateTotalIncome();
@@ -57,7 +57,7 @@ class DailyRangeOfDateResource extends JsonResource
 
     protected function getTotalExpense(): float
     {
-        if ($this->end_date_time !== null && $this->total_expense !== null) {
+        if ($this->end_date_time !== null) {
             return round($this->total_expense, 2);
         }
         return $this->calculateTotalExpense();
@@ -65,7 +65,7 @@ class DailyRangeOfDateResource extends JsonResource
 
     protected function getTotalProfit(float $income, float $expense): float
     {
-        if ($this->end_date_time !== null && $this->total_profit !== null) {
+        if ($this->end_date_time !== null ) {
             return round($this->total_profit, 2);
         }
         return round($income - $expense, 2);
