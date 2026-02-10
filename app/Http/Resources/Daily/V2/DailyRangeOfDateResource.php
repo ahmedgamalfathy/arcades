@@ -33,6 +33,7 @@ class DailyRangeOfDateResource extends JsonResource
         return [
             'dailyId' => $this->id,
             'totalIncome' => $totalIncome,
+            'test'=>"sdfsfd",
             'totalExpense' => $totalExpense,
             'totalProfit' => $totalProfit,
             'startDate' => $this->start_date_time? Carbon::parse($this->start_date_time)->format('d-m-Y') : "",
