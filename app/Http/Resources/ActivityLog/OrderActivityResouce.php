@@ -18,68 +18,77 @@ class OrderActivityResouce extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $props = $this->getProperties();
+        // تحويل properties من JSON إلى array إذا لزم الأمر
+        $properties = is_string($this->properties)
+            ? json_decode($this->properties, true)
+            : $this->properties;
+
+        $props = $this->getProperties($properties);
 
         return [
-            'modelName' => $this->log_name,
-            'event' => $this->event,
-            'properties' => $props,
-            'message' => $this->description,
-            'createdAt' => $this->created_at?->format('Y-m-d H:i:s'),
-            'userName' => $this->causer?->name ?? '', // ✅ استخدم relation بدل find
+            'activityLogId' => $this->id,
+            'date' => $this->created_at?->format('d-M'),
+            'time' => $this->created_at?->format('h:i A'),
+            'eventType' => $this->event,
+            'userName' => $this->causer?->name ?? '',
+            'model' => [
+                'modelName' => $this->log_name,
+                'modelId' => $this->subject_id,
+            ],
+            'details' => $props,
+            'children' => $properties['children'] ?? [],
         ];
     }
 
-    private function getProperties(): array
+    private function getProperties($properties): array
     {
         return match($this->event) {
-            'created' => $this->getCreatedProperties(),
-            'updated' => $this->getUpdatedProperties(),
-            'deleted' => $this->getDeletedProperties(),
+            'created' => $this->getCreatedProperties($properties),
+            'updated' => $this->getUpdatedProperties($properties),
+            'deleted' => $this->getDeletedProperties($properties),
             default => []
         };
     }
 
-    private function getCreatedProperties(): array
+    private function getCreatedProperties($properties): array
     {
-        $attributes = $this->properties['attributes'] ?? [];
-        
+        $attributes = $properties['attributes'] ?? [];
+
         return [
             'name' => $attributes['name'] ?? '',
             'number' => $attributes['number'] ?? '',
             'price' => $attributes['price'] ?? '',
-            'bookedDevice' => $attributes['booked_device_id'] ?BookedDevice::find($attributes['booked_device_id'])->name: '',
+            'bookedDevice' => $attributes['booked_device_id'] ? BookedDevice::find($attributes['booked_device_id'])->name : '',
         ];
     }
 
-    private function getUpdatedProperties(): array
+    private function getUpdatedProperties($properties): array
     {
-        $attributes = $this->properties['attributes'] ?? [];
-        $old = $this->properties['old'] ?? [];
-        
+        $attributes = $properties['attributes'] ?? [];
+        $old = $properties['old'] ?? [];
+
         $props = [];
         $importantFields = ['price', 'number', 'quantity', 'status'];
-        
+
         foreach ($importantFields as $field) {
-            // ✅ استخدم array_key_exists بدل isset
-            if (array_key_exists($field, $attributes) && 
-                array_key_exists($field, $old) && 
+            if (array_key_exists($field, $attributes) &&
+                array_key_exists($field, $old) &&
                 $old[$field] != $attributes[$field]) {
-                
+
                 $props[$field] = [
                     'old' => $old[$field],
                     'new' => $attributes[$field]
                 ];
             }
         }
-        
+
         return $props;
     }
 
-    private function getDeletedProperties(): array
+    private function getDeletedProperties($properties): array
     {
-        $attributes = $this->properties['old'] ?? [];
-        
+        $attributes = $properties['old'] ?? [];
+
         return [
             'number' => $attributes['number'] ?? '',
             'price' => $attributes['price'] ?? '',

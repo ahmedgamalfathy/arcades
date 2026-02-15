@@ -21,11 +21,9 @@ class Order extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->useLogName('Order')
-            ->logAll()
-            ->logOnlyDirty()
-            ->dontLogIfAttributesChangedOnly(['updated_at'])
-            ->setDescriptionForEvent(fn(string $eventName) => "Order {$eventName}");
+            ->dontSubmitEmptyLogs()
+            ->logOnly([]) // لا تسجل أي حقول تلقائياً
+            ->dontLogIfAttributesChangedOnly(['updated_at']);
     }
     public function tapActivity(Activity $activity, string $eventName)
     {

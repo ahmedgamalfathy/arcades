@@ -10,6 +10,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Enums\Order\OrderStatus;
+use Spatie\Activitylog\Facades\LogBatch;
 
 class OrderService
 {
@@ -45,6 +46,8 @@ class OrderService
     }
 
     public function createOrder(array $data){
+        LogBatch::startBatch();
+
         $totalPrice = 0;
        //name , type , price
         if($data['type'] == OrderTypeEnum::INTERNAL->value){
@@ -65,6 +68,7 @@ class OrderService
                 'status'=>$data['status']??OrderStatus::PENDING->value,
             ]);
         }
+
         foreach ($data['orderItems'] as $itemData) {
             $item= $this->orderItemService->createOrderItem([
                     'orderId' => $order->id,
@@ -73,18 +77,78 @@ class OrderService
 
             $totalPrice += $item->price * $item->qty;
         }
+
         $order->update([
             'price' => $totalPrice,
         ]);
-     return $order;
+
+        // تسجيل يدوي واحد فقط لكل الـ batch
+        $order->load('items.product'); // تحميل العلاقات
+        activity()
+            ->useLog('Order')
+            ->event('created')
+            ->performedOn($order)
+            ->withProperties([
+                'attributes' => [
+                    'id' => $order->id,
+                    'name' => $order->name,
+                    'number' => $order->number,
+                    'type' => $order->type,
+                    'price' => $order->price,
+                    'is_paid' => $order->is_paid,
+                    'status' => $order->status,
+                    'daily_id' => $order->daily_id,
+                ],
+                'children' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product?->name,
+                        'qty' => $item->qty,
+                        'price' => $item->price,
+                        'total' => $item->qty * $item->price,
+                    ];
+                })->toArray(),
+                'summary' => [
+                    'total_items' => $order->items->count(),
+                    'total_price' => $order->price,
+                ],
+            ])
+            ->tap(function ($activity) use ($order) {
+                $activity->daily_id = $order->daily_id;
+            })
+            ->log('Order created');
+
+        LogBatch::endBatch();
+
+        return $order;
 
     }
     public function updateOrder(int $id, array $data)
     {
+        LogBatch::startBatch();
+
         $order = Order::find($id);
         if(!$order){
             throw new ModelNotFoundException();
         }
+
+        $oldData = [
+            'name' => $order->name,
+            'is_paid' => $order->is_paid,
+            'status' => $order->status,
+            'price' => $order->price,
+            'items' => $order->items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product?->name,
+                    'qty' => $item->qty,
+                    'price' => $item->price,
+                ];
+            })->toArray(),
+        ];
+
         $order->name = $data['name']??null;
         $order->is_paid = $data['isPaid'];
         $order->status = $data['status'];
@@ -118,26 +182,166 @@ class OrderService
         $order->price = $totalPrice;
         $order->save();
 
+        // تسجيل يدوي واحد بعد اكتمال كل شيء
+        $order->load('items.product'); // تحميل العلاقات
+        activity()
+            ->useLog('Order')
+            ->event('updated')
+            ->performedOn($order)
+            ->withProperties([
+                'old' => $oldData,
+                'attributes' => [
+                    'id' => $order->id,
+                    'name' => $order->name,
+                    'number' => $order->number,
+                    'type' => $order->type,
+                    'price' => $order->price,
+                    'is_paid' => $order->is_paid,
+                    'status' => $order->status,
+                    'daily_id' => $order->daily_id,
+                ],
+                'children' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product?->name,
+                        'qty' => $item->qty,
+                        'price' => $item->price,
+                        'total' => $item->qty * $item->price,
+                    ];
+                })->toArray(),
+                'summary' => [
+                    'total_items' => $order->items->count(),
+                    'total_price' => $order->price,
+                ],
+            ])
+            ->tap(function ($activity) use ($order) {
+                $activity->daily_id = $order->daily_id;
+            })
+            ->log('Order updated');
+
+        LogBatch::endBatch();
+
         return $order;
     }
 
     public function deleteOrder(int $id){
+            LogBatch::startBatch();
+
             $order = Order::find($id);
             if(!$order){
                 throw new ModelNotFoundException();
             }
+
+            // حفظ البيانات قبل الحذف
+            $order->load('items.product');
+
+            $orderData = [
+                'id' => $order->id,
+                'name' => $order->name,
+                'number' => $order->number,
+                'price' => $order->price,
+            ];
+
+            $itemsData = $order->items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product?->name,
+                    'qty' => $item->qty,
+                    'price' => $item->price,
+                    'total' => $item->qty * $item->price,
+                ];
+            })->toArray();
+
+            $dailyId = $order->daily_id;
+
             $order->delete();
+
+            // تسجيل يدوي واحد بعد الحذف
+            activity()
+                ->useLog('Order')
+                ->event('deleted')
+                ->withProperties([
+                    'old' => $orderData,
+                    'children' => $itemsData,
+                ])
+                ->tap(function ($activity) use ($dailyId) {
+                    $activity->daily_id = $dailyId;
+                })
+                ->log('Order deleted');
+
+            LogBatch::endBatch();
     }
     public function restoreOrder(int $id)
     {
+        LogBatch::startBatch();
+
         $order = Order::onlyTrashed()->findOrFail($id);
         $order->restore();
+
+        // تسجيل يدوي واحد
+        $order->load('items.product'); // تحميل العلاقات
+        activity()
+            ->useLog('Order')
+            ->event('restored')
+            ->performedOn($order)
+            ->withProperties([
+                'attributes' => [
+                    'id' => $order->id,
+                    'name' => $order->name,
+                    'number' => $order->number,
+                    'price' => $order->price,
+                    'daily_id' => $order->daily_id,
+                ],
+                'children' => $order->items->map(function ($item) {
+                    return [
+                        'product_name' => $item->product?->name,
+                        'qty' => $item->qty,
+                        'price' => $item->price,
+                    ];
+                })->toArray(),
+            ])
+            ->tap(function ($activity) use ($order) {
+                $activity->daily_id = $order->daily_id;
+            })
+            ->log('Order restored');
+
+        LogBatch::endBatch();
+
         return $order;
     }
     public function forceDeleteOrder(int $id)
     {
+        LogBatch::startBatch();
+
         $order = Order::withTrashed()->findOrFail($id);
+
+        // حفظ البيانات قبل الحذف النهائي
+        $orderData = [
+            'id' => $order->id,
+            'name' => $order->name,
+            'number' => $order->number,
+            'price' => $order->price,
+        ];
+
+        $dailyId = $order->daily_id;
+
         $order->forceDelete();
+
+        // تسجيل يدوي واحد
+        activity()
+            ->useLog('Order')
+            ->event('deleted')
+            ->withProperties([
+                'old' => $orderData,
+            ])
+            ->tap(function ($activity) use ($dailyId) {
+                $activity->daily_id = $dailyId;
+            })
+            ->log('Order permanently deleted');
+
+        LogBatch::endBatch();
     }
     public function changeOrderStatus(int $id, array $data)
     {

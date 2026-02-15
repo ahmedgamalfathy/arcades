@@ -207,18 +207,177 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     }
     public function getActitvityLogToDevice($id){
         try {
-            $activityLog = $this->bookedDeviceService->getActivityLogToDevice($id);
-            return ApiResponse::success([
-                'orders'      => AllDeviceActivityResource::collection($activityLog['orders']),
-                'order_items' => AllDeviceActivityResource::collection($activityLog['order_items']),
-                'sessions'    => AllDeviceActivityResource::collection($activityLog['sessions']),
-                'pauses'      => AllDeviceActivityResource::collection($activityLog['pauses']),
-            ]);
+            $activities = $this->bookedDeviceService->getActivityLogToDevice($id);
+
+            // Get user names
+            $userIds = $activities->pluck('causer_id')->unique()->filter();
+            $users = DB::connection('mysql')->table('users')
+                ->whereIn('id', $userIds)
+                ->pluck('name', 'id');
+
+            $allActivities = $activities->map(function ($activity) use ($users) {
+                $activity->properties = json_decode($activity->properties, true);
+                $activity->causerName = $users[$activity->causer_id] ?? null;
+                return $activity;
+            });
+
+            // Group activities by parent-child relationship (same logic as DailyActivityController)
+            $groupedActivities = $this->groupParentChildActivities($allActivities);
+
+            return ApiResponse::success(
+                \App\Http\Resources\ActivityLog\Test\AllDailyActivityResource::collection($groupedActivities)
+            );
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private function groupParentChildActivities($activities)
+    {
+        $grouped = collect();
+        $childrenMap = ['order' => []];
+
+        // First pass: identify children for each parent
+        foreach ($activities as $activity) {
+            $modelName = strtolower($activity->log_name);
+
+            if ($modelName === 'orderitem') {
+                $orderId = $activity->properties['attributes']['order_id'] ??
+                           $activity->properties['old']['order_id'] ?? null;
+                if ($orderId) {
+                    if (!isset($childrenMap['order'][$orderId])) {
+                        $childrenMap['order'][$orderId] = [];
+                    }
+                    $childrenMap['order'][$orderId][] = $activity;
+                }
+            }
+        }
+
+        // Second pass: group parents with children
+        $processedChildren = [];
+
+        foreach ($activities as $activity) {
+            $modelName = strtolower($activity->log_name);
+            $activityId = $activity->id;
+
+            // Skip if already processed as a child
+            if (in_array($activityId, $processedChildren)) {
+                continue;
+            }
+
+            if ($modelName === 'order') {
+                $orderId = $activity->subject_id;
+
+                // Check if this Order uses LogBatch (has children in properties)
+                $propertiesChildren = $activity->properties['children'] ?? [];
+
+                if (!empty($propertiesChildren)) {
+                    // LogBatch system: children are already in properties
+                    if ($activity->event === 'updated') {
+                        $oldItems = $activity->properties['old']['items'] ?? [];
+                        $oldItemsMap = collect($oldItems)->keyBy('id');
+                        $newItemsMap = collect($propertiesChildren)->keyBy('id');
+
+                        $children = collect($propertiesChildren)->map(function($childData) use ($oldItemsMap) {
+                            $itemId = $childData['id'] ?? null;
+                            $oldItem = $oldItemsMap->get($itemId);
+
+                            if (!$oldItem) {
+                                return (object)[
+                                    'log_name' => 'OrderItem',
+                                    'event' => 'created',
+                                    'properties' => ['attributes' => $childData]
+                                ];
+                            }
+
+                            $hasChanges = false;
+                            $importantFields = ['product_id', 'qty', 'price'];
+
+                            foreach ($importantFields as $field) {
+                                if (isset($oldItem[$field]) && isset($childData[$field])) {
+                                    if ($oldItem[$field] != $childData[$field]) {
+                                        $hasChanges = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if ($hasChanges) {
+                                return (object)[
+                                    'log_name' => 'OrderItem',
+                                    'event' => 'updated',
+                                    'properties' => [
+                                        'attributes' => $childData,
+                                        'old' => $oldItem
+                                    ]
+                                ];
+                            }
+
+                            return null;
+                        })->filter();
+
+                        $oldIds = $oldItemsMap->keys();
+                        $newIds = $newItemsMap->keys();
+                        $deletedIds = $oldIds->diff($newIds);
+
+                        foreach ($deletedIds as $deletedId) {
+                            $deletedItem = $oldItemsMap->get($deletedId);
+                            $children->push((object)[
+                                'log_name' => 'OrderItem',
+                                'event' => 'deleted',
+                                'properties' => ['old' => $deletedItem]
+                            ]);
+                        }
+
+                        $activity->children = $children->all();
+                    } else {
+                        $activity->children = collect($propertiesChildren)->map(function($childData) use ($activity) {
+                            $properties = [];
+
+                            if ($activity->event === 'deleted') {
+                                $properties = ['old' => $childData];
+                            } else {
+                                $properties = ['attributes' => $childData];
+                            }
+
+                            return (object)[
+                                'log_name' => 'OrderItem',
+                                'event' => $activity->event,
+                                'properties' => $properties
+                            ];
+                        })->all();
+                    }
+                } else {
+                    // Legacy system: look for separate OrderItem activities
+                    $allChildren = $childrenMap['order'][$orderId] ?? [];
+                    $activity->children = collect($allChildren)->filter(function($child) use ($activity) {
+                        $sameEvent = strtolower($child->event) === strtolower($activity->event);
+                        if (!$sameEvent) {
+                            return false;
+                        }
+
+                        $parentTime = \Carbon\Carbon::parse($activity->created_at);
+                        $childTime = \Carbon\Carbon::parse($child->created_at);
+                        $timeDiff = abs($parentTime->diffInSeconds($childTime));
+
+                        return $timeDiff <= 10;
+                    })->values()->all();
+
+                    foreach ($activity->children as $child) {
+                        $processedChildren[] = $child->id;
+                    }
+                }
+
+                $grouped->push($activity);
+            } else {
+                $activity->children = [];
+                $grouped->push($activity);
+            }
+        }
+
+        return $grouped;
     }
     //delete device timer
     public function destroy(int $id){

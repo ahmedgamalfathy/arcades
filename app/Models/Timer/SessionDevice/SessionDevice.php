@@ -15,6 +15,19 @@ class SessionDevice extends Model
      use UsesTenantConnection , LogsActivity, SoftDeletes;
      protected $guarded =[];
 
+     protected static function boot()
+    {
+        parent::boot();
+
+        // When deleting SessionDevice, delete all its BookedDevices first
+        static::deleting(function ($sessionDevice) {
+            // Delete all booked devices (this will trigger their activity logs)
+            $sessionDevice->bookedDevices()->each(function ($bookedDevice) {
+                $bookedDevice->delete();
+            });
+        });
+    }
+
      public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

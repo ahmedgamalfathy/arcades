@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Notification;
 
 use Illuminate\Notifications\DatabaseNotification;
 
 class Notification extends DatabaseNotification
 {
-    protected $connection = 'tenant'; 
+    protected $connection = 'tenant';
 }

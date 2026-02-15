@@ -16,12 +16,12 @@ class AllDailyActivityResource extends JsonResource
     public function toArray(Request $request): array
     {
         $details = $this->resolveResource();
-        
+
         // Add parent info to details if exists (for standalone children)
         if (!empty($this->parentInfo)) {
             $details['parentInfo'] = $this->parentInfo;
         }
-        
+
         // Process all children - filtering is done in controller
         $children = [];
         if (!empty($this->children)) {
@@ -29,7 +29,7 @@ class AllDailyActivityResource extends JsonResource
                 $children[] = $this->resolveChildDetails($child);
             }
         }
-        
+
         return [
             'activityLogId' => $this->id,
             'date' => Carbon::parse($this->created_at)->format('d-M'),
@@ -49,13 +49,13 @@ class AllDailyActivityResource extends JsonResource
     {
         $modelName = strtolower($child->log_name);
         $event = $child->event;
-        
+
         $details = match ($modelName) {
             'orderitem' => $this->getOrderItemPropertiesForChild($child, $event),
             'bookeddevice' => $this->getBookedDevicePropertiesForChild($child, $event),
             default => [],
         };
-        
+
         return array_merge([
             'modelName' => $child->log_name,
             'eventType' => $child->event,
@@ -76,7 +76,7 @@ class AllDailyActivityResource extends JsonResource
     {
         return match($event) {
             'created' => $this->extractBookedDeviceCreated($child->properties),
-            'updated' => $this->extractBookedDeviceUpdated($child->properties),
+            'updated' => $this->extractBookedDeviceUpdated($child->properties, $child->subject_id ?? null),
             'deleted' => $this->extractBookedDeviceDeleted($child->properties),
             default => []
         };
@@ -85,12 +85,22 @@ class AllDailyActivityResource extends JsonResource
     private function extractOrderItemCreated($properties): array
     {
         $attributes = $properties['attributes'] ?? [];
-        
+
         return [
             'productId' => $attributes['product_id'] ?? '',
-            'quantity' => $attributes['qty'] ?? '',
-            'price' => $attributes['price'] ?? '',
-            'total' => ($attributes['qty'] ?? 0) * ($attributes['price'] ?? 0),
+            'productName' => $attributes['product_name'] ?? '',
+            'quantity' => [
+                'old' => '',
+                'new' => $attributes['qty'] ?? ''
+            ],
+            'price' => [
+                'old' => '',
+                'new' => $attributes['price'] ?? ''
+            ],
+            'total' => [
+                'old' => '',
+                'new' => $attributes['total'] ?? (($attributes['qty'] ?? 0) * ($attributes['price'] ?? 0))
+            ],
         ];
     }
 
@@ -98,87 +108,177 @@ class AllDailyActivityResource extends JsonResource
     {
         $attributes = $properties['attributes'] ?? [];
         $old = $properties['old'] ?? [];
-        
-        $props = [];
-        
-        foreach ($old as $field => $oldValue) {
-            if (array_key_exists($field, $attributes) && $oldValue != $attributes[$field]) {
-                $props[$field] = [
-                    'old' => $oldValue,
-                    'new' => $attributes[$field]
-                ];
-            }
-        }
-        
-        return $props;
+
+        return [
+            'productId' => $attributes['product_id'] ?? '',
+            'productName' => $attributes['product_name'] ?? '',
+            'quantity' => [
+                'old' => $old['qty'] ?? '',
+                'new' => $attributes['qty'] ?? ''
+            ],
+            'price' => [
+                'old' => $old['price'] ?? '',
+                'new' => $attributes['price'] ?? ''
+            ],
+            'total' => [
+                'old' => isset($old['qty']) && isset($old['price']) ? ($old['qty'] * $old['price']) : ($old['total'] ?? ''),
+                'new' => $attributes['total'] ?? (isset($attributes['qty']) && isset($attributes['price']) ? ($attributes['qty'] * $attributes['price']) : '')
+            ],
+        ];
     }
 
     private function extractOrderItemDeleted($properties): array
     {
         $attributes = $properties['old'] ?? [];
-        
+
         return [
             'productId' => $attributes['product_id'] ?? '',
-            'quantity' => $attributes['qty'] ?? '',
-            'price' => $attributes['price'] ?? '',
-            'total' => ($attributes['qty'] ?? 0) * ($attributes['price'] ?? 0),
+            'productName' => $attributes['product_name'] ?? '',
+            'quantity' => [
+                'old' => '',
+                'new' => $attributes['qty'] ?? ''
+            ],
+            'price' => [
+                'old' => '',
+                'new' => $attributes['price'] ?? ''
+            ],
+            'total' => [
+                'old' => '',
+                'new' => $attributes['total'] ?? (($attributes['qty'] ?? 0) * ($attributes['price'] ?? 0))
+            ],
         ];
     }
 
     private function extractBookedDeviceCreated($properties): array
     {
         $attributes = $properties['attributes'] ?? [];
-        
+
         return [
-            'bookedDeviceId' => $attributes['id'] ?? '',
-            'deviceId' => !empty($attributes['device_id']) 
-                ? (Device::find($attributes['device_id'])?->name ?? '') 
-                : '',
-            'deviceTypeId' => !empty($attributes['device_type_id']) 
-                ? (DeviceType::find($attributes['device_type_id'])?->name ?? '') 
-                : '',
-            'deviceTimeId' => !empty($attributes['device_time_id']) 
-                ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '') 
-                : '',
-            'status' => $attributes['status'] ?? '',
+            'deviceName' => [
+                'old' => '',
+                'new' => !empty($attributes['device_id'])
+                    ? (Device::find($attributes['device_id'])?->name ?? '')
+                    : ''
+            ],
+            'deviceType' => [
+                'old' => '',
+                'new' => !empty($attributes['device_type_id'])
+                    ? (DeviceType::find($attributes['device_type_id'])?->name ?? '')
+                    : ''
+            ],
+            'deviceTime' => [
+                'old' => '',
+                'new' => !empty($attributes['device_time_id'])
+                    ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '')
+                    : ''
+            ],
+            'status' => [
+                'old' => '',
+                'new' => $attributes['status'] ?? ''
+            ],
         ];
     }
 
-    private function extractBookedDeviceUpdated($properties): array
+    private function extractBookedDeviceUpdated($properties, $bookedDeviceId = null): array
     {
         $attributes = $properties['attributes'] ?? [];
         $old = $properties['old'] ?? [];
-        
+
         $props = [];
-        
-        foreach ($old as $field => $oldValue) {
-            if (array_key_exists($field, $attributes) && $oldValue != $attributes[$field]) {
-                $props[$field] = [
+
+        // Get the current BookedDevice to access all fields
+        $bookedDevice = null;
+        if ($bookedDeviceId) {
+            $bookedDevice = BookedDevice::find($bookedDeviceId);
+        }
+
+        $allFields = ['device_id', 'device_type_id', 'device_time_id', 'status'];
+
+        foreach ($allFields as $field) {
+            $displayField = match($field) {
+                'device_id' => 'deviceName',
+                'device_type_id' => 'deviceType',
+                'device_time_id' => 'deviceTime',
+                'status' => 'status',
+                default => $field
+            };
+
+            // Check if field changed
+            $hasChanged = array_key_exists($field, $old) &&
+                         array_key_exists($field, $attributes) &&
+                         $old[$field] != $attributes[$field];
+
+            if ($hasChanged) {
+                // Field changed - show old and new
+                $oldValue = $old[$field] ?? '';
+                $newValue = $attributes[$field] ?? '';
+
+                // Convert IDs to names
+                if ($field === 'device_id') {
+                    $oldValue = !empty($oldValue) ? (Device::find($oldValue)?->name ?? '') : '';
+                    $newValue = !empty($newValue) ? (Device::find($newValue)?->name ?? '') : '';
+                } elseif ($field === 'device_type_id') {
+                    $oldValue = !empty($oldValue) ? (DeviceType::find($oldValue)?->name ?? '') : '';
+                    $newValue = !empty($newValue) ? (DeviceType::find($newValue)?->name ?? '') : '';
+                } elseif ($field === 'device_time_id') {
+                    $oldValue = !empty($oldValue) ? (DeviceTime::find($oldValue)?->name ?? '') : '';
+                    $newValue = !empty($newValue) ? (DeviceTime::find($newValue)?->name ?? '') : '';
+                }
+
+                $props[$displayField] = [
                     'old' => $oldValue,
-                    'new' => $attributes[$field]
+                    'new' => $newValue
+                ];
+            } elseif ($bookedDevice) {
+                // Field didn't change - get current value from BookedDevice
+                $value = $bookedDevice->{$field} ?? '';
+
+                // Convert IDs to names
+                if ($field === 'device_id') {
+                    $value = !empty($value) ? (Device::find($value)?->name ?? '') : '';
+                } elseif ($field === 'device_type_id') {
+                    $value = !empty($value) ? (DeviceType::find($value)?->name ?? '') : '';
+                } elseif ($field === 'device_time_id') {
+                    $value = !empty($value) ? (DeviceTime::find($value)?->name ?? '') : '';
+                }
+
+                $props[$displayField] = [
+                    'old' => $value,
+                    'new' => $value
                 ];
             }
         }
-        
+
         return $props;
     }
 
     private function extractBookedDeviceDeleted($properties): array
     {
         $attributes = $properties['old'] ?? [];
-        
+
         return [
-            'bookedDeviceId' => $attributes['id'] ?? '',
-            'deviceId' => !empty($attributes['device_id']) 
-                ? (Device::find($attributes['device_id'])?->name ?? '') 
-                : '',
-            'deviceTypeId' => !empty($attributes['device_type_id']) 
-                ? (DeviceType::find($attributes['device_type_id'])?->name ?? '') 
-                : '',
-            'deviceTimeId' => !empty($attributes['device_time_id']) 
-                ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '') 
-                : '',
-            'status' => $attributes['status'] ?? '',
+            'deviceName' => [
+                'old' => '',
+                'new' => !empty($attributes['device_id'])
+                    ? (Device::find($attributes['device_id'])?->name ?? '')
+                    : ''
+            ],
+            'deviceType' => [
+                'old' => '',
+                'new' => !empty($attributes['device_type_id'])
+                    ? (DeviceType::find($attributes['device_type_id'])?->name ?? '')
+                    : ''
+            ],
+            'deviceTime' => [
+                'old' => '',
+                'new' => !empty($attributes['device_time_id'])
+                    ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '')
+                    : ''
+            ],
+            'status' => [
+                'old' => '',
+                'new' => $attributes['status'] ?? ''
+            ],
         ];
     }
 
@@ -188,6 +288,7 @@ class AllDailyActivityResource extends JsonResource
         $event = $this->event;
 
         return match ($modelName) {
+            'daily' => $this->getDailyProperties($event),
             'order' => $this->getOrderProperties($event),
             'orderitem' => $this->getOrderItemProperties($event),
             'expense' => $this->getExpenseProperties($event),
@@ -196,6 +297,78 @@ class AllDailyActivityResource extends JsonResource
             'bookeddevicepause' => $this->getBookedDevicePauseProperties($event),
             default => [],
         };
+    }
+
+    // ==================== Daily ====================
+    private function getDailyProperties(string $event): array
+    {
+        return match($event) {
+            'created' => $this->getDailyCreatedProperties(),
+            'updated' => $this->getDailyUpdatedProperties(),
+            'deleted' => $this->getDailyDeletedProperties(),
+            default => []
+        };
+    }
+
+    private function getDailyCreatedProperties(): array
+    {
+        $attributes = $this->properties['attributes'] ?? [];
+
+        return [
+            'startDateTime' => [
+                'old' => '',
+                'new' => $attributes['start_date_time'] ?? ''
+            ],
+            'endDateTime' => [
+                'old' => '',
+                'new' => $attributes['end_date_time'] ?? ''
+            ],
+        ];
+    }
+
+    private function getDailyUpdatedProperties(): array
+    {
+        $attributes = $this->properties['attributes'] ?? [];
+        $old = $this->properties['old'] ?? [];
+
+        $props = [];
+        $importantFields = [
+            'start_date_time' => 'startDateTime',
+            'end_date_time' => 'endDateTime',
+            'total_income' => 'totalIncome',
+            'total_expense' => 'totalExpense',
+            'total_profit' => 'totalProfit'
+        ];
+
+        foreach ($importantFields as $dbField => $responseField) {
+            if (array_key_exists($dbField, $attributes) &&
+                array_key_exists($dbField, $old) &&
+                $old[$dbField] != $attributes[$dbField]) {
+
+                $props[$responseField] = [
+                    'old' => $old[$dbField] ?? '',
+                    'new' => $attributes[$dbField] ?? ''
+                ];
+            }
+        }
+
+        return $props;
+    }
+
+    private function getDailyDeletedProperties(): array
+    {
+        $attributes = $this->properties['old'] ?? [];
+
+        return [
+            'startDateTime' => [
+                'old' => '',
+                'new' => $attributes['start_date_time'] ?? ''
+            ],
+            'endDateTime' => [
+                'old' => '',
+                'new' => $attributes['end_date_time'] ?? ''
+            ],
+        ];
     }
 
     // ==================== Order ====================
@@ -212,13 +385,13 @@ class AllDailyActivityResource extends JsonResource
     private function getOrderCreatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
-        
+
         $bookedDeviceName = '';
         if (!empty($attributes['booked_device_id'])) {
             $device = BookedDevice::find($attributes['booked_device_id']);
             $bookedDeviceName = $device?->name ?? '';
         }
-        
+
         return [
             'name' => $attributes['name'] ?? '',
             'number' => $attributes['number'] ?? '',
@@ -231,29 +404,35 @@ class AllDailyActivityResource extends JsonResource
     {
         $attributes = $this->properties['attributes'] ?? [];
         $old = $this->properties['old'] ?? [];
-        
+
         $props = [];
-        $importantFields = ['price', 'number', 'name', 'status'];
-        
-        foreach ($importantFields as $field) {
-            if (array_key_exists($field, $attributes) && 
-                array_key_exists($field, $old) && 
-                $old[$field] != $attributes[$field]) {
-                
-                $props[$field] = [
-                    'old' => $old[$field],
-                    'new' => $attributes[$field]
+        $importantFields = [
+            'price' => 'price',
+            'number' => 'number',
+            'name' => 'name',
+            'status' => 'status',
+            'is_paid' => 'isPaid' // Map is_paid to isPaid
+        ];
+
+        foreach ($importantFields as $dbField => $responseField) {
+            if (array_key_exists($dbField, $attributes) &&
+                array_key_exists($dbField, $old) &&
+                $old[$dbField] != $attributes[$dbField]) {
+
+                $props[$responseField] = [
+                    'old' => $old[$dbField],
+                    'new' => $attributes[$dbField]
                 ];
             }
         }
-        
+
         return $props;
     }
 
     private function getOrderDeletedProperties(): array
     {
         $attributes = $this->properties['old'] ?? [];
-        
+
         return [
             'number' => $attributes['number'] ?? '',
             'price' => $attributes['price'] ?? '',
@@ -274,7 +453,7 @@ class AllDailyActivityResource extends JsonResource
     private function getOrderItemCreatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
-        
+
         return [
             'productId' => $attributes['product_id'] ?? '',
             'quantity' => $attributes['qty'] ?? '',
@@ -288,12 +467,12 @@ class AllDailyActivityResource extends JsonResource
     {
         $attributes = $this->properties['attributes'] ?? [];
         $old = $this->properties['old'] ?? [];
-        // Start with static fields from old data        
+        // Start with static fields from old data
         // Add changed fields with old/new values
         $fieldsToCheck = ['qty', 'price'];
         foreach ($fieldsToCheck as $field) {
-            if (array_key_exists($field, $old) && 
-                array_key_exists($field, $attributes) && 
+            if (array_key_exists($field, $old) &&
+                array_key_exists($field, $attributes) &&
                 $old[$field] != $attributes[$field]) {
                 $props[$field] = [
                     'old' => $old[$field],
@@ -301,14 +480,14 @@ class AllDailyActivityResource extends JsonResource
                 ];
             }
         }
-        
+
         return $props;
     }
 
     private function getOrderItemDeletedProperties(): array
     {
         $attributes = $this->properties['old'] ?? [];
-        
+
         return [
             'productId' => $attributes['product_id'] ?? '',
             'quantity' => $attributes['qty'] ?? '',
@@ -332,10 +511,16 @@ class AllDailyActivityResource extends JsonResource
     private function getExpenseCreatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
-        
+
         return [
-            'name' => $attributes['name'] ?? '',
-            'price' => $attributes['price'] ?? '',
+            'name' => [
+                'old' => '',
+                'new' => $attributes['name'] ?? ''
+            ],
+            'price' => [
+                'old' => '',
+                'new' => $attributes['price'] ?? ''
+            ],
         ];
     }
 
@@ -343,32 +528,38 @@ class AllDailyActivityResource extends JsonResource
     {
         $attributes = $this->properties['attributes'] ?? [];
         $old = $this->properties['old'] ?? [];
-        
+
         $props = [];
         $importantFields = ['name', 'price'];
-        
+
         foreach ($importantFields as $field) {
-            if (array_key_exists($field, $attributes) && 
-                array_key_exists($field, $old) && 
+            if (array_key_exists($field, $attributes) &&
+                array_key_exists($field, $old) &&
                 $old[$field] != $attributes[$field]) {
-                
+
                 $props[$field] = [
                     'old' => $old[$field],
                     'new' => $attributes[$field]
                 ];
             }
         }
-        
+
         return $props;
     }
 
     private function getExpenseDeletedProperties(): array
     {
         $attributes = $this->properties['old'] ?? [];
-        
+
         return [
-            'name' => $attributes['name'] ?? '',
-            'price' => $attributes['price'] ?? '',
+            'name' => [
+                'old' => '',
+                'new' => $attributes['name'] ?? ''
+            ],
+            'price' => [
+                'old' => '',
+                'new' => $attributes['price'] ?? ''
+            ],
         ];
     }
 
@@ -386,10 +577,12 @@ class AllDailyActivityResource extends JsonResource
     private function getSessionDeviceCreatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
-        
+
         return [
-            'id' => $attributes['id'] ?? '',
-            'name' => $attributes['name'] ?? '',
+            'name' => [
+                'old' => '',
+                'new' => $attributes['name'] ?? ''
+            ]
         ];
     }
 
@@ -397,28 +590,34 @@ class AllDailyActivityResource extends JsonResource
     {
         $attributes = $this->properties['attributes'] ?? [];
         $old = $this->properties['old'] ?? [];
-        
+
         $props = [];
-        
-        foreach ($old as $field => $oldValue) {
-            if (array_key_exists($field, $attributes) && $oldValue != $attributes[$field]) {
+        $importantFields = ['name'];
+
+        foreach ($importantFields as $field) {
+            if (array_key_exists($field, $old) &&
+                array_key_exists($field, $attributes) &&
+                $old[$field] != $attributes[$field]) {
+
                 $props[$field] = [
-                    'old' => $oldValue,
-                    'new' => $attributes[$field]
+                    'old' => $old[$field] ?? '',
+                    'new' => $attributes[$field] ?? ''
                 ];
             }
         }
-        
+
         return $props;
     }
 
     private function getSessionDeviceDeletedProperties(): array
     {
         $attributes = $this->properties['old'] ?? [];
-        
+
         return [
-            'id' => $attributes['id'] ?? '',
-            'name' => $attributes['name'] ?? '',
+            'name' => [
+                'old' => '',
+                'new' => $attributes['name'] ?? ''
+            ]
         ];
     }
 
@@ -436,22 +635,30 @@ class AllDailyActivityResource extends JsonResource
     private function getBookedDeviceCreatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
-        
+
         return [
-            'bookedDeviceId' => $attributes['id'] ?? '',
-            'deviceId' => !empty($attributes['device_id']) 
-                ? (Device::find($attributes['device_id'])?->name ?? '') 
-                : '',
-            'deviceTypeId' => !empty($attributes['device_type_id']) 
-                ? (DeviceType::find($attributes['device_type_id'])?->name ?? '') 
-                : '',
-            'deviceTimeId' => !empty($attributes['device_time_id']) 
-                ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '') 
-                : '',
-            'sessionDeviceId' => !empty($attributes['session_device_id']) 
-                ? (SessionDevice::find($attributes['session_device_id'])?->name ?? '') 
-                : '',
-            'status' => $attributes['status'] ?? '',
+            'deviceName' => [
+                'old' => '',
+                'new' => !empty($attributes['device_id'])
+                    ? (Device::find($attributes['device_id'])?->name ?? '')
+                    : ''
+            ],
+            'deviceType' => [
+                'old' => '',
+                'new' => !empty($attributes['device_type_id'])
+                    ? (DeviceType::find($attributes['device_type_id'])?->name ?? '')
+                    : ''
+            ],
+            'deviceTime' => [
+                'old' => '',
+                'new' => !empty($attributes['device_time_id'])
+                    ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '')
+                    : ''
+            ],
+            'status' => [
+                'old' => '',
+                'new' => $attributes['status'] ?? ''
+            ],
         ];
     }
 
@@ -459,38 +666,99 @@ class AllDailyActivityResource extends JsonResource
     {
         $attributes = $this->properties['attributes'] ?? [];
         $old = $this->properties['old'] ?? [];
-        
+
         $props = [];
-        foreach ($old as $field => $oldValue) {
-            if (array_key_exists($field, $attributes) && $oldValue != $attributes[$field]) {
-            if ($field !== 'updated_at') {
-                $props[$field] = [ 
-                    'old' => $oldValue, 
-                    'new' => $attributes[$field] 
-                ]; 
-            }
+
+        // Get the current BookedDevice to access all fields
+        $bookedDevice = BookedDevice::find($this->subject_id);
+
+        $allFields = ['device_id', 'device_type_id', 'device_time_id', 'status'];
+
+        foreach ($allFields as $field) {
+            $displayField = match($field) {
+                'device_id' => 'deviceName',
+                'device_type_id' => 'deviceType',
+                'device_time_id' => 'deviceTime',
+                'status' => 'status',
+                default => $field
+            };
+
+            // Check if field changed
+            $hasChanged = array_key_exists($field, $old) &&
+                         array_key_exists($field, $attributes) &&
+                         $old[$field] != $attributes[$field];
+
+            if ($hasChanged) {
+                // Field changed - show old and new
+                $oldValue = $old[$field] ?? '';
+                $newValue = $attributes[$field] ?? '';
+
+                // Convert IDs to names
+                if ($field === 'device_id') {
+                    $oldValue = !empty($oldValue) ? (Device::find($oldValue)?->name ?? '') : '';
+                    $newValue = !empty($newValue) ? (Device::find($newValue)?->name ?? '') : '';
+                } elseif ($field === 'device_type_id') {
+                    $oldValue = !empty($oldValue) ? (DeviceType::find($oldValue)?->name ?? '') : '';
+                    $newValue = !empty($newValue) ? (DeviceType::find($newValue)?->name ?? '') : '';
+                } elseif ($field === 'device_time_id') {
+                    $oldValue = !empty($oldValue) ? (DeviceTime::find($oldValue)?->name ?? '') : '';
+                    $newValue = !empty($newValue) ? (DeviceTime::find($newValue)?->name ?? '') : '';
+                }
+
+                $props[$displayField] = [
+                    'old' => $oldValue,
+                    'new' => $newValue
+                ];
+            } elseif ($bookedDevice) {
+                // Field didn't change - get current value from BookedDevice
+                $value = $bookedDevice->{$field} ?? '';
+
+                // Convert IDs to names
+                if ($field === 'device_id') {
+                    $value = !empty($value) ? (Device::find($value)?->name ?? '') : '';
+                } elseif ($field === 'device_type_id') {
+                    $value = !empty($value) ? (DeviceType::find($value)?->name ?? '') : '';
+                } elseif ($field === 'device_time_id') {
+                    $value = !empty($value) ? (DeviceTime::find($value)?->name ?? '') : '';
+                }
+
+                $props[$displayField] = [
+                    'old' => $value,
+                    'new' => $value
+                ];
             }
         }
-        
+
         return $props;
     }
 
     private function getBookedDeviceDeletedProperties(): array
     {
         $attributes = $this->properties['old'] ?? [];
-        
+
         return [
-            'bookedDeviceId' => $attributes['id'] ?? '',
-            'deviceId' => !empty($attributes['device_id']) 
-                ? (Device::find($attributes['device_id'])?->name ?? '') 
-                : '',
-            'deviceTypeId' => !empty($attributes['device_type_id']) 
-                ? (DeviceType::find($attributes['device_type_id'])?->name ?? '') 
-                : '',
-            'deviceTimeId' => !empty($attributes['device_time_id']) 
-                ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '') 
-                : '',
-            'status' => $attributes['status'] ?? '',
+            'deviceName' => [
+                'old' => '',
+                'new' => !empty($attributes['device_id'])
+                    ? (Device::find($attributes['device_id'])?->name ?? '')
+                    : ''
+            ],
+            'deviceType' => [
+                'old' => '',
+                'new' => !empty($attributes['device_type_id'])
+                    ? (DeviceType::find($attributes['device_type_id'])?->name ?? '')
+                    : ''
+            ],
+            'deviceTime' => [
+                'old' => '',
+                'new' => !empty($attributes['device_time_id'])
+                    ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '')
+                    : ''
+            ],
+            'status' => [
+                'old' => '',
+                'new' => $attributes['status'] ?? ''
+            ],
         ];
     }
 
@@ -498,7 +766,7 @@ class AllDailyActivityResource extends JsonResource
     private function getBookedDevicePauseProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
-        
+
         return [
             'bookedDeviceId' => $attributes['booked_device_id'] ?? '',
         ];
