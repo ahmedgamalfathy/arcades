@@ -582,6 +582,10 @@ class AllDailyActivityResource extends JsonResource
             'name' => [
                 'old' => '',
                 'new' => $attributes['name'] ?? ''
+            ],
+            'type' => [
+                'old' => '',
+                'new' => $attributes['type'] ?? ''
             ]
         ];
     }
@@ -592,7 +596,7 @@ class AllDailyActivityResource extends JsonResource
         $old = $this->properties['old'] ?? [];
 
         $props = [];
-        $importantFields = ['name'];
+        $importantFields = ['name', 'type'];
 
         foreach ($importantFields as $field) {
             if (array_key_exists($field, $old) &&
@@ -617,6 +621,10 @@ class AllDailyActivityResource extends JsonResource
             'name' => [
                 'old' => '',
                 'new' => $attributes['name'] ?? ''
+            ],
+            'type' => [
+                'old' => '',
+                'new' => $attributes['type'] ?? ''
             ]
         ];
     }
