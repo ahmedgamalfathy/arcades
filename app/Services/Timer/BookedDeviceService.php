@@ -261,37 +261,34 @@ class BookedDeviceService
    public function getActivityLogToDevice($id)
    {
     $bookedDevice=BookedDevice::findOrFail($id);
-    $orderIds=$bookedDevice->orders->pluck('id')->toArray();
-    $orderItemIds=$bookedDevice->orders->pluck('order_items.id')->toArray();
-    $sessionDevice = $bookedDevice->sessionDevice()->withTrashed()->first();
-    $sessionId = $sessionDevice ? [$sessionDevice->id] : [];
-    $pausesId=$bookedDevice->pauses->pluck('id')->toArray();
-        $activities  = Activity::where(function ($query) use ($orderIds, $orderItemIds, $sessionId, $pausesId) {
-            $query->where(function ($q) use ($orderIds) {
-                $q->where('subject_type', Order::class)
-                ->whereIn('subject_id', $orderIds);
-            })
-            ->orWhere(function ($q) use ($orderItemIds) {
-                $q->where('subject_type', OrderItem::class)
-                ->whereIn('subject_id', $orderItemIds);
-            })
-            ->orWhere(function ($q) use ($sessionId) {
-                $q->where('subject_type', SessionDevice::class)
-                ->where('subject_id', $sessionId);
-            })
-            ->orWhere(function ($q) use ($pausesId) {
-                $q->where('subject_type', BookedDevicePause::class)
-                ->whereIn('subject_id', $pausesId);
-            });
-        })
-        ->orderBy('created_at', 'desc')
-        ->get();
-    return [
-        'orders'      => $activities->where('subject_type', Order::class)->values(),
-        'order_items' => $activities->where('subject_type', OrderItem::class)->values(),
-        'sessions'    => $activities->where('subject_type', SessionDevice::class)->values(),
-        'pauses'      => $activities->where('subject_type', BookedDevicePause::class)->values(),
-    ];
 
+    // Get all related activities
+    $orderIds=$bookedDevice->orders->pluck('id')->toArray();
+    $sessionDevice = $bookedDevice->sessionDevice()->withTrashed()->first();
+    $sessionId = $sessionDevice ? $sessionDevice->id : null;
+    $pausesId=$bookedDevice->pauses->pluck('id')->toArray();
+
+    $activities = Activity::where(function ($query) use ($id, $orderIds, $sessionId, $pausesId) {
+        $query->where(function ($q) use ($id) {
+            $q->where('subject_type', BookedDevice::class)
+            ->where('subject_id', $id);
+        })
+        ->orWhere(function ($q) use ($orderIds) {
+            $q->where('subject_type', Order::class)
+            ->whereIn('subject_id', $orderIds);
+        })
+        ->orWhere(function ($q) use ($sessionId) {
+            $q->where('subject_type', SessionDevice::class)
+            ->where('subject_id', $sessionId);
+        })
+        ->orWhere(function ($q) use ($pausesId) {
+            $q->where('subject_type', BookedDevicePause::class)
+            ->whereIn('subject_id', $pausesId);
+        });
+    })
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+    return $activities;
    }
 }

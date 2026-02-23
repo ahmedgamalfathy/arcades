@@ -32,18 +32,31 @@ class DailyActivityController extends Controller  implements HasMiddleware
             new Middleware('auth:api'),
             new Middleware('tenant'),
         ];
-    }  
+    }
 public function __invoke(Request $request)
 {
     $dailyId = $request->query('dailyId');
     Daily::findOrFail($dailyId);
 
-    $activities = DB::connection('tenant')
+    // Get activities related to this daily
+    // 1. Activities with daily_id = $dailyId (Orders, Expenses, Sessions, etc.)
+    $dailyRelatedActivities = DB::connection('tenant')
         ->table('activity_log')
         ->where('daily_id', $dailyId)
-        ->orderBy('created_at', 'desc')
         ->get();
-        
+
+    // 2. Activities for the Daily itself (subject_type = Daily, subject_id = $dailyId)
+    $dailyOwnActivities = DB::connection('tenant')
+        ->table('activity_log')
+        ->where('subject_type', 'App\\Models\\Daily\\Daily')
+        ->where('subject_id', $dailyId)
+        ->get();
+
+    // Merge both collections
+    $activities = $dailyRelatedActivities->merge($dailyOwnActivities)
+        ->sortByDesc('created_at')
+        ->values();
+
     $userIds = $activities->pluck('causer_id')->unique()->filter();
     $users = DB::connection('mysql')->table('users')
         ->whereIn('id', $userIds)
@@ -68,13 +81,13 @@ private function groupParentChildActivities($activities)
         'order' => [],
         'sessiondevice' => []
     ];
-    
+
     // First pass: identify ALL children for each parent
     foreach ($activities as $activity) {
         $modelName = strtolower($activity->log_name);
-        
+
         if ($modelName === 'orderitem') {
-            $orderId = $activity->properties['attributes']['order_id'] ?? 
+            $orderId = $activity->properties['attributes']['order_id'] ??
                        $activity->properties['old']['order_id'] ?? null;
             if ($orderId) {
                 if (!isset($childrenMap['order'][$orderId])) {
@@ -83,8 +96,17 @@ private function groupParentChildActivities($activities)
                 $childrenMap['order'][$orderId][] = $activity;
             }
         } elseif ($modelName === 'bookeddevice') {
-            $sessionId = $activity->properties['attributes']['session_device_id'] ?? 
+            // Try to get session_device_id from properties first
+            $sessionId = $activity->properties['attributes']['session_device_id'] ??
                          $activity->properties['old']['session_device_id'] ?? null;
+
+            // If not in properties (e.g., update that doesn't change session_device_id),
+            // get it from the actual BookedDevice record
+            if (!$sessionId && $activity->subject_id) {
+                $bookedDevice = BookedDevice::find($activity->subject_id);
+                $sessionId = $bookedDevice?->session_device_id;
+            }
+
             if ($sessionId) {
                 if (!isset($childrenMap['sessiondevice'][$sessionId])) {
                     $childrenMap['sessiondevice'][$sessionId] = [];
@@ -93,87 +115,174 @@ private function groupParentChildActivities($activities)
             }
         }
     }
-    
+
     // Second pass: group parents with children
     $processedChildren = [];
-    
+
     foreach ($activities as $activity) {
         $modelName = strtolower($activity->log_name);
         $activityId = $activity->id;
-        
+
         // Skip if already processed as a child
         if (in_array($activityId, $processedChildren)) {
             continue;
         }
-        
+
         if ($modelName === 'order') {
             $orderId = $activity->subject_id;
-            
-            // Get all potential children and filter by event and time
-            $allChildren = $childrenMap['order'][$orderId] ?? [];
-            $activity->children = collect($allChildren)->filter(function($child) use ($activity) {
-                // Must have same event type
-                $sameEvent = strtolower($child->event) === strtolower($activity->event);
-                if (!$sameEvent) {
-                    return false;
+
+            // Check if this Order uses LogBatch (has children in properties)
+            $propertiesChildren = $activity->properties['children'] ?? [];
+
+            if (!empty($propertiesChildren)) {
+                // LogBatch system: children are already in properties
+                // Convert properties children to objects for resource processing
+
+                if ($activity->event === 'updated') {
+                    // For updates, we need to compare old and new values
+                    $oldItems = $activity->properties['old']['items'] ?? [];
+
+                    // Create a map of old items by ID for quick lookup
+                    $oldItemsMap = collect($oldItems)->keyBy('id');
+                    $newItemsMap = collect($propertiesChildren)->keyBy('id');
+
+                    // Process existing and new items
+                    $children = collect($propertiesChildren)->map(function($childData) use ($activity, $oldItemsMap) {
+                        $itemId = $childData['id'] ?? null;
+                        $oldItem = $oldItemsMap->get($itemId);
+
+                        // If this is a new item
+                        if (!$oldItem) {
+                            return (object)[
+                                'log_name' => 'OrderItem',
+                                'event' => 'created',
+                                'properties' => [
+                                    'attributes' => $childData
+                                ]
+                            ];
+                        }
+
+                        // Check if item actually changed
+                        $hasChanges = false;
+                        $importantFields = ['product_id', 'qty', 'price'];
+
+                        foreach ($importantFields as $field) {
+                            if (isset($oldItem[$field]) && isset($childData[$field])) {
+                                if ($oldItem[$field] != $childData[$field]) {
+                                    $hasChanges = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Only include if there are actual changes
+                        if ($hasChanges) {
+                            return (object)[
+                                'log_name' => 'OrderItem',
+                                'event' => 'updated',
+                                'properties' => [
+                                    'attributes' => $childData,
+                                    'old' => $oldItem
+                                ]
+                            ];
+                        }
+
+                        // Return null for unchanged items (will be filtered out)
+                        return null;
+                    })->filter(); // Remove null values
+
+                    // Find deleted items (in old but not in new)
+                    $oldIds = $oldItemsMap->keys();
+                    $newIds = $newItemsMap->keys();
+                    $deletedIds = $oldIds->diff($newIds);
+
+                    // Add deleted items to children
+                    foreach ($deletedIds as $deletedId) {
+                        $deletedItem = $oldItemsMap->get($deletedId);
+                        $children->push((object)[
+                            'log_name' => 'OrderItem',
+                            'event' => 'deleted',
+                            'properties' => [
+                                'old' => $deletedItem
+                            ]
+                        ]);
+                    }
+
+                    $activity->children = $children->all();
+                } else {
+                    // For create/delete, just use the children as-is
+                    $activity->children = collect($propertiesChildren)->map(function($childData) use ($activity) {
+                        $properties = [];
+
+                        if ($activity->event === 'deleted') {
+                            // For delete, children data is the old values
+                            $properties = ['old' => $childData];
+                        } else {
+                            // For create, children data is the new values
+                            $properties = ['attributes' => $childData];
+                        }
+
+                        return (object)[
+                            'log_name' => 'OrderItem',
+                            'event' => $activity->event,
+                            'properties' => $properties
+                        ];
+                    })->all();
                 }
-                
-                // Children must be within 10 seconds of parent
-                $parentTime = Carbon::parse($activity->created_at);
-                $childTime = Carbon::parse($child->created_at);
-                $timeDiff = abs($parentTime->diffInSeconds($childTime));
-                
-                return $timeDiff <= 10;
-            })->values()->all();
-            
-            foreach ($activity->children as $child) {
-                $processedChildren[] = $child->id;
+            } else {
+                // Legacy system: look for separate OrderItem activities
+                $allChildren = $childrenMap['order'][$orderId] ?? [];
+                $activity->children = collect($allChildren)->filter(function($child) use ($activity) {
+                    // Must have same event type
+                    $sameEvent = strtolower($child->event) === strtolower($activity->event);
+                    if (!$sameEvent) {
+                        return false;
+                    }
+
+                    // Children must be within 10 seconds of parent
+                    $parentTime = Carbon::parse($activity->created_at);
+                    $childTime = Carbon::parse($child->created_at);
+                    $timeDiff = abs($parentTime->diffInSeconds($childTime));
+
+                    return $timeDiff <= 10;
+                })->values()->all();
+
+                foreach ($activity->children as $child) {
+                    $processedChildren[] = $child->id;
+                }
             }
-            
+
             $grouped->push($activity);
-            
+
         } elseif ($modelName === 'sessiondevice') {
             $sessionId = $activity->subject_id;
-            
-            // Get all potential children and filter by event and time
+
+            // Get ALL children for this session (created, updated, deleted) - NO event or time restriction
             $allChildren = $childrenMap['sessiondevice'][$sessionId] ?? [];
-            $activity->children = collect($allChildren)->filter(function($child) use ($activity) {
-                // Must have same event type
-                $sameEvent = strtolower($child->event) === strtolower($activity->event);
-                if (!$sameEvent) {
-                    return false;
-                }
-                
-                // Children must be within 10 seconds of parent
-                $parentTime = Carbon::parse($activity->created_at);
-                $childTime = Carbon::parse($child->created_at);
-                $timeDiff = abs($parentTime->diffInSeconds($childTime));
-                
-                return $timeDiff <= 10;
-            })->values()->all();
-            
+            $activity->children = collect($allChildren)->values()->all();
+
             foreach ($activity->children as $child) {
                 $processedChildren[] = $child->id;
             }
-            
+
             $grouped->push($activity);
-            
+
         } elseif ($modelName === 'orderitem') {
-            $orderId = $activity->properties['attributes']['order_id'] ?? 
+            $orderId = $activity->properties['attributes']['order_id'] ??
                        $activity->properties['old']['order_id'] ?? null;
-            
+
             // Check if parent order exists in this daily's activities
             $parentOrder = $activities->first(function($a) use ($orderId) {
                 return strtolower($a->log_name) === 'order' && $a->subject_id == $orderId;
             });
-            
+
             if ($parentOrder) {
                 // Parent exists in activities - check if this item should appear with parent
                 $parentTime = Carbon::parse($parentOrder->created_at);
                 $childTime = Carbon::parse($activity->created_at);
                 $timeDiff = abs($parentTime->diffInSeconds($childTime));
                 $sameEvent = strtolower($activity->event) === strtolower($parentOrder->event);
-                
+
                 // If NOT same event or NOT within time window, show separately
                 if (!$sameEvent || $timeDiff > 10) {
                     $activity->children = [];
@@ -195,33 +304,27 @@ private function groupParentChildActivities($activities)
                 }
                 $grouped->push($activity);
             }
-            
+
         } elseif ($modelName === 'bookeddevice') {
-            $sessionId = $activity->properties['attributes']['session_device_id'] ?? 
+            // Try to get session_device_id from properties first
+            $sessionId = $activity->properties['attributes']['session_device_id'] ??
                          $activity->properties['old']['session_device_id'] ?? null;
-            
+
+            // If not in properties (e.g., update that doesn't change session_device_id),
+            // get it from the actual BookedDevice record
+            if (!$sessionId && $activity->subject_id) {
+                $bookedDevice = BookedDevice::find($activity->subject_id);
+                $sessionId = $bookedDevice?->session_device_id;
+            }
+
             // Check if parent session exists in this daily's activities
             $parentSession = $activities->first(function($a) use ($sessionId) {
                 return strtolower($a->log_name) === 'sessiondevice' && $a->subject_id == $sessionId;
             });
-            
+
             if ($parentSession) {
-                // Parent exists in activities - check if this device should appear with parent
-                $parentTime = Carbon::parse($parentSession->created_at);
-                $childTime = Carbon::parse($activity->created_at);
-                $timeDiff = abs($parentTime->diffInSeconds($childTime));
-                $sameEvent = strtolower($activity->event) === strtolower($parentSession->event);
-                
-                // If NOT same event or NOT within time window, show separately
-                if (!$sameEvent || $timeDiff > 10) {
-                    $activity->children = [];
-                    $activity->parentInfo = [
-                        'modelName' => 'SessionDevice',
-                        'modelId' => $sessionId,
-                    ];
-                    $grouped->push($activity);
-                }
-                // Otherwise it will be shown as child of parent
+                // Parent exists - BookedDevice will ALWAYS be shown as child (no separate display)
+                // Do nothing - it will be shown as child of parent
             } else {
                 // Parent not in activities - show standalone with parent ID
                 $activity->children = [];
@@ -233,13 +336,13 @@ private function groupParentChildActivities($activities)
                 }
                 $grouped->push($activity);
             }
-            
+
         } else {
             $activity->children = [];
             $grouped->push($activity);
         }
     }
-    
+
     return $grouped;
 }
 }
