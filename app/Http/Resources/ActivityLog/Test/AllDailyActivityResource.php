@@ -429,9 +429,17 @@ class AllDailyActivityResource extends JsonResource
         $old = $this->properties['old'] ?? [];
 
         $props = [];
+
+        // Always show number if available
+        if (!empty($attributes['number'])) {
+            $props['number'] = [
+                'old' => $old['number'] ?? $attributes['number'],
+                'new' => $attributes['number']
+            ];
+        }
+
         $importantFields = [
             'price' => 'price',
-            'number' => 'number',
             'name' => 'name',
             'status' => 'deliveredStatus',
             'is_paid' => 'payStatus'
