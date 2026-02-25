@@ -349,15 +349,61 @@ class OrderService
     public function changeOrderStatus(int $id, array $data)
     {
         $order = Order::findOrFail($id);
+        $oldStatus = $order->status;
         $order->status = $data['status'];
         $order->save();
+
+        // Log the status change
+        activity()
+            ->useLog('Order')
+            ->event('updated')
+            ->performedOn($order)
+            ->withProperties([
+                'old' => [
+                    'status' => $oldStatus,
+                    'booked_device_id' => $order->booked_device_id,
+                ],
+                'attributes' => [
+                    'id' => $order->id,
+                    'status' => $order->status,
+                    'booked_device_id' => $order->booked_device_id,
+                ],
+            ])
+            ->tap(function ($activity) use ($order) {
+                $activity->daily_id = $order->daily_id;
+            })
+            ->log('Order status changed');
+
         return $order;
     }
     public function changeOrderPaymentStatus(int $id, array $data)
     {
         $order = Order::findOrFail($id);
+        $oldIsPaid = $order->is_paid;
         $order->is_paid = $data['isPaid'];
         $order->save();
+
+        // Log the payment status change
+        activity()
+            ->useLog('Order')
+            ->event('updated')
+            ->performedOn($order)
+            ->withProperties([
+                'old' => [
+                    'is_paid' => $oldIsPaid,
+                    'booked_device_id' => $order->booked_device_id,
+                ],
+                'attributes' => [
+                    'id' => $order->id,
+                    'is_paid' => $order->is_paid,
+                    'booked_device_id' => $order->booked_device_id,
+                ],
+            ])
+            ->tap(function ($activity) use ($order) {
+                $activity->daily_id = $order->daily_id;
+            })
+            ->log('Order payment status changed');
+
         return $order;
     }
 
