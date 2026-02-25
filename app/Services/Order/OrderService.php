@@ -361,11 +361,13 @@ class OrderService
             ->withProperties([
                 'old' => [
                     'status' => $oldStatus,
+                    'number' => $order->number,
                     'booked_device_id' => $order->booked_device_id,
                 ],
                 'attributes' => [
                     'id' => $order->id,
                     'status' => $order->status,
+                    'number' => $order->number,
                     'booked_device_id' => $order->booked_device_id,
                 ],
             ])
@@ -391,11 +393,13 @@ class OrderService
             ->withProperties([
                 'old' => [
                     'is_paid' => $oldIsPaid,
+                    'number' => $order->number,
                     'booked_device_id' => $order->booked_device_id,
                 ],
                 'attributes' => [
                     'id' => $order->id,
                     'is_paid' => $order->is_paid,
+                    'number' => $order->number,
                     'booked_device_id' => $order->booked_device_id,
                 ],
             ])
