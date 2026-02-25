@@ -734,7 +734,7 @@ class AllDailyActivityResource extends JsonResource
         // Get the current BookedDevice to access all fields
         $bookedDevice = BookedDevice::find($this->subject_id);
 
-        $allFields = ['device_id', 'device_type_id', 'device_time_id', 'status'];
+        $allFields = ['device_id', 'device_type_id', 'device_time_id', 'status', 'end_date_time'];
 
         foreach ($allFields as $field) {
             $displayField = match($field) {
@@ -742,6 +742,7 @@ class AllDailyActivityResource extends JsonResource
                 'device_type_id' => 'deviceType',
                 'device_time_id' => 'deviceTime',
                 'status' => 'status',
+                'end_date_time' => 'endTime',
                 default => $field
             };
 
