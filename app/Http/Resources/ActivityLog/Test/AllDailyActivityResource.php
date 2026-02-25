@@ -399,6 +399,14 @@ class AllDailyActivityResource extends JsonResource
                 'old' => '',
                 'new' => $attributes['price'] ?? ''
             ],
+            'deliveredStatus' => [
+                'old' => '',
+                'new' => $attributes['status'] ?? ''
+            ],
+            'payStatus' => [
+                'old' => '',
+                'new' => $attributes['is_paid'] ?? ''
+            ],
         ];
 
         // Add bookedDevice info if exists
