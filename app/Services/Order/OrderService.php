@@ -49,7 +49,7 @@ class OrderService
         LogBatch::startBatch();
 
         $totalPrice = 0;
-       //name , type , price
+
         if($data['type'] == OrderTypeEnum::INTERNAL->value){
             $order = Order::create([
                 'name'=>$data['name']??null,
@@ -97,6 +97,7 @@ class OrderService
                     'price' => $order->price,
                     'is_paid' => $order->is_paid,
                     'status' => $order->status,
+                    'booked_device_id' => $order->booked_device_id,
                     'daily_id' => $order->daily_id,
                 ],
                 'children' => $order->items->map(function ($item) {
@@ -198,6 +199,7 @@ class OrderService
                     'price' => $order->price,
                     'is_paid' => $order->is_paid,
                     'status' => $order->status,
+                    'booked_device_id' => $order->booked_device_id,
                     'daily_id' => $order->daily_id,
                 ],
                 'children' => $order->items->map(function ($item) {
@@ -241,6 +243,7 @@ class OrderService
                 'name' => $order->name,
                 'number' => $order->number,
                 'price' => $order->price,
+                'booked_device_id' => $order->booked_device_id,
             ];
 
             $itemsData = $order->items->map(function ($item) {

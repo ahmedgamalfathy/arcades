@@ -386,18 +386,33 @@ class AllDailyActivityResource extends JsonResource
     {
         $attributes = $this->properties['attributes'] ?? [];
 
-        $bookedDeviceName = '';
+        $props = [
+            'name' => [
+                'old' => '',
+                'new' => $attributes['name'] ?? ''
+            ],
+            'number' => [
+                'old' => '',
+                'new' => $attributes['number'] ?? ''
+            ],
+            'price' => [
+                'old' => '',
+                'new' => $attributes['price'] ?? ''
+            ],
+        ];
+
+        // Add bookedDevice info if exists
         if (!empty($attributes['booked_device_id'])) {
-            $device = BookedDevice::find($attributes['booked_device_id']);
-            $bookedDeviceName = $device?->name ?? '';
+            $device = BookedDevice::withTrashed()->find($attributes['booked_device_id']);
+            if ($device) {
+                $props['bookedDevice'] = [
+                    'id' => $device->id,
+                    'name' => $device->device?->name ?? ''
+                ];
+            }
         }
 
-        return [
-            'name' => $attributes['name'] ?? '',
-            'number' => $attributes['number'] ?? '',
-            'price' => $attributes['price'] ?? '',
-            'bookedDevice' => $bookedDeviceName,
-        ];
+        return $props;
     }
 
     private function getOrderUpdatedProperties(): array
@@ -410,8 +425,8 @@ class AllDailyActivityResource extends JsonResource
             'price' => 'price',
             'number' => 'number',
             'name' => 'name',
-            'status' => 'status',
-            'is_paid' => 'isPaid' // Map is_paid to isPaid
+            'status' => 'deliveredStatus',
+            'is_paid' => 'payStatus'
         ];
 
         foreach ($importantFields as $dbField => $responseField) {
@@ -426,6 +441,18 @@ class AllDailyActivityResource extends JsonResource
             }
         }
 
+        // Add bookedDevice info if exists (from attributes or old)
+        $bookedDeviceId = $attributes['booked_device_id'] ?? $old['booked_device_id'] ?? null;
+        if ($bookedDeviceId) {
+            $device = BookedDevice::withTrashed()->find($bookedDeviceId);
+            if ($device) {
+                $props['bookedDevice'] = [
+                    'id' => $device->id,
+                    'name' => $device->device?->name ?? ''
+                ];
+            }
+        }
+
         return $props;
     }
 
@@ -433,10 +460,29 @@ class AllDailyActivityResource extends JsonResource
     {
         $attributes = $this->properties['old'] ?? [];
 
-        return [
-            'number' => $attributes['number'] ?? '',
-            'price' => $attributes['price'] ?? '',
+        $props = [
+            'number' => [
+                'old' => '',
+                'new' => $attributes['number'] ?? ''
+            ],
+            'price' => [
+                'old' => '',
+                'new' => $attributes['price'] ?? ''
+            ],
         ];
+
+        // Add bookedDevice info if exists
+        if (!empty($attributes['booked_device_id'])) {
+            $device = BookedDevice::withTrashed()->find($attributes['booked_device_id']);
+            if ($device) {
+                $props['bookedDevice'] = [
+                    'id' => $device->id,
+                    'name' => $device->device?->name ?? ''
+                ];
+            }
+        }
+
+        return $props;
     }
 
     // ==================== OrderItem ====================
