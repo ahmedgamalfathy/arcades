@@ -57,8 +57,47 @@ class SessionDeviceService
 
     public function deleteSessionDevice(int $id): void
     {
-        $sessionDevice=SessionDevice::findOrFail($id);
-        $sessionDevice->delete();
+        $sessionDevice = SessionDevice::findOrFail($id);
+
+        // Get all booked devices before deletion
+        $bookedDevices = $sessionDevice->bookedDevices()->get();
+
+        // Prepare children data
+        $children = $bookedDevices->map(function ($device) {
+            return [
+                'id' => $device->id,
+                'event' => 'deleted',
+                'log_name' => 'BookedDevice',
+                'device_id' => $device->device_id,
+                'device_type_id' => $device->device_type_id,
+                'device_time_id' => $device->device_time_id,
+                'status' => $device->status,
+            ];
+        })->toArray();
+
+        // Delete without triggering automatic events
+        $sessionDevice->withoutEvents(function () use ($sessionDevice) {
+            $sessionDevice->delete();
+        });
+
+        // Log the deletion manually with children
+        activity()
+            ->useLog('SessionDevice')
+            ->event('deleted')
+            ->performedOn($sessionDevice)
+            ->causedBy(auth('api')->user())
+            ->withProperties([
+                'old' => [
+                    'id' => $sessionDevice->id,
+                    'name' => $sessionDevice->name,
+                    'type' => $sessionDevice->type,
+                ],
+                'children' => $children
+            ])
+            ->tap(function ($activity) use ($sessionDevice) {
+                $activity->daily_id = $sessionDevice->daily_id;
+            })
+            ->log('SessionDevice deleted');
     }
 
     public function restoreSessionDevice(int $id)

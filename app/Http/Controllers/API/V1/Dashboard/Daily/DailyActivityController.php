@@ -282,6 +282,23 @@ private function groupParentChildActivities($activities)
                         ];
                     }
 
+                    // For 'deleted' event, use old values
+                    if ($event === 'deleted') {
+                        return (object)[
+                            'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                            'event' => $event,
+                            'subject_id' => $childData['id'] ?? null,
+                            'properties' => [
+                                'old' => [
+                                    'device_id' => $childData['device_id'] ?? null,
+                                    'device_type_id' => $childData['device_type_id'] ?? null,
+                                    'device_time_id' => $childData['device_time_id'] ?? null,
+                                    'status' => $childData['status'] ?? null,
+                                ]
+                            ]
+                        ];
+                    }
+
                     // For 'updated' event, include both old and new values
                     return (object)[
                         'log_name' => $childData['log_name'] ?? 'BookedDevice',
