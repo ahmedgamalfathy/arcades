@@ -257,12 +257,40 @@ private function groupParentChildActivities($activities)
         } elseif ($modelName === 'sessiondevice') {
             $sessionId = $activity->subject_id;
 
-            // Get ALL children for this session (created, updated, deleted) - NO event or time restriction
-            $allChildren = $childrenMap['sessiondevice'][$sessionId] ?? [];
-            $activity->children = collect($allChildren)->values()->all();
+            // Check if this SessionDevice uses children in properties (pause/resume/finish actions)
+            $propertiesChildren = $activity->properties['children'] ?? [];
 
-            foreach ($activity->children as $child) {
-                $processedChildren[] = $child->id;
+            if (!empty($propertiesChildren)) {
+                // Children are in properties - convert to objects for resource processing
+                $activity->children = collect($propertiesChildren)->map(function($childData) {
+                    return (object)[
+                        'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                        'event' => $childData['event'] ?? 'updated',
+                        'subject_id' => $childData['id'] ?? null,
+                        'properties' => [
+                            'attributes' => [
+                                'device_id' => $childData['device_id'] ?? null,
+                                'device_type_id' => $childData['device_type_id'] ?? null,
+                                'device_time_id' => $childData['device_time_id'] ?? null,
+                                'status' => $childData['status'] ?? null,
+                            ],
+                            'old' => [
+                                'device_id' => $childData['device_id'] ?? null,
+                                'device_type_id' => $childData['device_type_id'] ?? null,
+                                'device_time_id' => $childData['device_time_id'] ?? null,
+                                'status' => $childData['old_status'] ?? null,
+                            ]
+                        ]
+                    ];
+                })->all();
+            } else {
+                // Legacy system: look for separate BookedDevice activities
+                $allChildren = $childrenMap['sessiondevice'][$sessionId] ?? [];
+                $activity->children = collect($allChildren)->values()->all();
+
+                foreach ($activity->children as $child) {
+                    $processedChildren[] = $child->id;
+                }
             }
 
             $grouped->push($activity);

@@ -484,6 +484,10 @@ class AllDailyActivityResource extends JsonResource
         $attributes = $this->properties['old'] ?? [];
 
         $props = [
+            'name' => [
+                'old' => '',
+                'new' => $attributes['name'] ?? ''
+            ],
             'number' => [
                 'old' => '',
                 'new' => $attributes['number'] ?? ''
