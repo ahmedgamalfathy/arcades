@@ -343,3 +343,36 @@ class BookedDeviceService
     return $activities;
    }
 }
+
+    public function createBookedDeviceWithoutLog(array $data)
+    {
+        $alreadyBooked = BookedDevice::where('device_id', $data['deviceId'])
+        ->where('device_type_id', $data['deviceTypeId'])
+        ->whereIn('status', [
+            BookedDeviceEnum::ACTIVE->value,
+            BookedDeviceEnum::PAUSED->value
+        ])
+        ->exists();
+
+        if ($alreadyBooked) {
+            throw ValidationException::withMessages([
+              "alreadyBooked" => __('validation.validation_create_booked_device')
+              ]);
+        }
+
+        // Create without triggering events/logging
+        $bookedDevice = new BookedDevice([
+            'session_device_id'=>$data['sessionDeviceId'],
+            'device_type_id'=>$data['deviceTypeId'],
+            'device_id'=>$data['deviceId'],
+            'device_time_id'=>$data['deviceTimeId'],
+            'start_date_time'=>$data['startDateTime'],
+            'total_used_seconds'=>$data['totalUsedSeconds']??0,
+            'end_date_time'=>$data['endDateTime']??null,
+            'status'=>$data['status'],
+        ]);
+
+        $bookedDevice->saveQuietly();
+
+        return $bookedDevice;
+    }

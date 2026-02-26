@@ -98,9 +98,11 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                 'daily_id'=>$data['dailyId']
             ]);
             $data['sessionDeviceId']=$sessionDevice->id;
+            $isNewSession = true;
         }elseIf($data['sessionDeviceId']){
             $sessionDevice= $this->sessionDeviceService->editSessionDevice($data['sessionDeviceId']);
             $data['sessionDeviceId']=$sessionDevice->id;
+            $isNewSession = false;
         }
         $start = Carbon::parse($data['startDateTime']);
         $end = $data['endDateTime']
@@ -112,7 +114,46 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         }
         $data['startDateTime'] = $start;
         $data['endDateTime'] = $end;
-        $device = $this->timerService->startOrSetTime($data);
+
+        // If adding to existing session, create device without automatic logging
+        if (!$isNewSession) {
+            $device = $this->bookedDeviceService->createBookedDeviceWithoutLog($data);
+
+            // Manual activity log for SessionDevice with new BookedDevice as child
+            activity()
+                ->useLog('SessionDevice')
+                ->event('updated')
+                ->performedOn($sessionDevice)
+                ->withProperties([
+                    'attributes' => [
+                        'id' => $sessionDevice->id,
+                        'name' => $sessionDevice->name,
+                        'type' => $sessionDevice->type,
+                    ],
+                    'old' => [
+                        'id' => $sessionDevice->id,
+                        'name' => $sessionDevice->name,
+                        'type' => $sessionDevice->type,
+                    ],
+                    'children' => [[
+                        'id' => $device->id,
+                        'event' => 'created',
+                        'log_name' => 'BookedDevice',
+                        'device_id' => $device->device_id,
+                        'device_type_id' => $device->device_type_id,
+                        'device_time_id' => $device->device_time_id,
+                        'status' => $device->status,
+                    ]],
+                ])
+                ->tap(function ($activity) use ($sessionDevice) {
+                    $activity->daily_id = $sessionDevice->daily_id;
+                })
+                ->log('SessionDevice - New device added to group');
+        } else {
+            // New session - use automatic logging
+            $device = $this->timerService->startOrSetTime($data);
+        }
+
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
         } catch (\Illuminate\Validation\ValidationException $th) {
