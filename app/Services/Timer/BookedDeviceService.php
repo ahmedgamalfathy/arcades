@@ -123,7 +123,8 @@ class BookedDeviceService
 
         if ($sessionDevice && $sessionDevice->type == SessionDeviceEnum::GROUP->value) {
             if ($sessionDevice->bookedDevices()->count() == 1) {
-                $sessionDevice->delete();
+                // Last device in group session - delete session with logging
+                $this->deleteSessionWithLogging($sessionDevice, [$bookedDevice]);
             }
             if ($bookedDevice->pauses()->count() > 0) {
                 $bookedDevice->pauses()->delete();
@@ -133,17 +134,61 @@ class BookedDeviceService
                 ->where('device_type_id', $bookedDevice->device_type_id)
                 ->delete();
         } else {
-            /*
-            $bookedDevice->delete();
-            */
+            // Individual session - delete device and session with logging
+            if ($bookedDevice->pauses()->count() > 0) {
+                $bookedDevice->pauses()->delete();
+            }
+
             BookedDevice::where('session_device_id', $sessionDevice->id)
                 ->where('device_id', $bookedDevice->device_id)
                 ->where('device_type_id', $bookedDevice->device_type_id)
                 ->delete();
+
             if ($sessionDevice) {
-                $sessionDevice->delete();
+                // Delete session with logging including device details
+                $this->deleteSessionWithLogging($sessionDevice, [$bookedDevice]);
             }
         }
+    }
+
+    private function deleteSessionWithLogging($sessionDevice, $bookedDevices)
+    {
+        // Prepare children data
+        $children = collect($bookedDevices)->map(function ($device) {
+            return [
+                'id' => $device->id,
+                'event' => 'deleted',
+                'log_name' => 'BookedDevice',
+                'device_id' => $device->device_id,
+                'device_type_id' => $device->device_type_id,
+                'device_time_id' => $device->device_time_id,
+                'status' => $device->status,
+            ];
+        })->toArray();
+
+        // Delete without triggering automatic events
+        $sessionDevice->withoutEvents(function () use ($sessionDevice) {
+            $sessionDevice->delete();
+        });
+
+        // Log the deletion manually with children
+        activity()
+            ->useLog('SessionDevice')
+            ->event('deleted')
+            ->performedOn($sessionDevice)
+            ->causedBy(auth('api')->user())
+            ->withProperties([
+                'old' => [
+                    'id' => $sessionDevice->id,
+                    'name' => $sessionDevice->name,
+                    'type' => $sessionDevice->type,
+                ],
+                'children' => $children
+            ])
+            ->tap(function ($activity) use ($sessionDevice) {
+                $activity->daily_id = $sessionDevice->daily_id;
+            })
+            ->log('SessionDevice deleted');
     }
 
     public function restoreBookedDevice(int $id)
