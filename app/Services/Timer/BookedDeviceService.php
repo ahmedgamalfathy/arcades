@@ -177,6 +177,14 @@ class BookedDeviceService
         // Save old values for logging (convert null to empty string)
         $oldEndDateTime = $bookedDevice->end_date_time ? $bookedDevice->end_date_time->toISOString() : '';
 
+        // Debug: Log what we're capturing
+        \Log::info('UpdateEndDateTime - Before Update', [
+            'booked_device_id' => $id,
+            'old_end_date_time_object' => $bookedDevice->end_date_time,
+            'old_end_date_time_string' => $oldEndDateTime,
+            'new_end_date_time_input' => $data['endDateTime'] ?? 'empty'
+        ]);
+
         // Update fields without triggering events
         $bookedDevice->withoutEvents(function () use ($bookedDevice, $data) {
             if (empty($data['endDateTime'])) {
@@ -195,6 +203,14 @@ class BookedDeviceService
 
         // Get new value (convert null to empty string)
         $newEndDateTime = $bookedDevice->end_date_time ? $bookedDevice->end_date_time->toISOString() : '';
+
+        // Debug: Log what we're saving
+        \Log::info('UpdateEndDateTime - After Update', [
+            'booked_device_id' => $id,
+            'new_end_date_time_object' => $bookedDevice->end_date_time,
+            'new_end_date_time_string' => $newEndDateTime,
+            'old_end_date_time_string' => $oldEndDateTime
+        ]);
 
         // Get session device
         $sessionDevice = $bookedDevice->sessionDevice;
