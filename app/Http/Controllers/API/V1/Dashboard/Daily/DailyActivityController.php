@@ -263,9 +263,29 @@ private function groupParentChildActivities($activities)
             if (!empty($propertiesChildren)) {
                 // Children are in properties - convert to objects for resource processing
                 $activity->children = collect($propertiesChildren)->map(function($childData) {
+                    $event = $childData['event'] ?? 'updated';
+
+                    // For 'created' event, only use attributes (no old values)
+                    if ($event === 'created') {
+                        return (object)[
+                            'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                            'event' => $event,
+                            'subject_id' => $childData['id'] ?? null,
+                            'properties' => [
+                                'attributes' => [
+                                    'device_id' => $childData['device_id'] ?? null,
+                                    'device_type_id' => $childData['device_type_id'] ?? null,
+                                    'device_time_id' => $childData['device_time_id'] ?? null,
+                                    'status' => $childData['status'] ?? null,
+                                ]
+                            ]
+                        ];
+                    }
+
+                    // For 'updated' event, include both old and new values
                     return (object)[
                         'log_name' => $childData['log_name'] ?? 'BookedDevice',
-                        'event' => $childData['event'] ?? 'updated',
+                        'event' => $event,
                         'subject_id' => $childData['id'] ?? null,
                         'properties' => [
                             'attributes' => [

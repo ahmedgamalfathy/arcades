@@ -301,6 +301,35 @@ class BookedDeviceService
         ->update([
         'session_device_id' => $newSessionDevice->id,
         ]);
+
+        // Log the transfer with BookedDevice as child
+        activity()
+            ->performedOn($newSessionDevice)
+            ->causedBy(auth('api')->user())
+            ->withProperties([
+                'attributes' => [
+                    'id' => $newSessionDevice->id,
+                    'name' => $newSessionDevice->name,
+                    'type' => $newSessionDevice->type,
+                ],
+                'old' => [
+                    'name' => $newSessionDevice->name,
+                    'type' => $newSessionDevice->type,
+                ],
+                'children' => [
+                    [
+                        'id' => $bookedDevice->id,
+                        'event' => 'created',
+                        'log_name' => 'BookedDevice',
+                        'device_id' => $bookedDevice->device_id,
+                        'device_type_id' => $bookedDevice->device_type_id,
+                        'device_time_id' => $bookedDevice->device_time_id,
+                        'status' => $bookedDevice->status,
+                    ]
+                ]
+            ])
+            ->log('SessionDevice');
+
         //delete any session device if no booked devices left
         $oldSessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
         if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
