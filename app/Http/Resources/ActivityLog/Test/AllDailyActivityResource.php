@@ -687,18 +687,21 @@ class AllDailyActivityResource extends JsonResource
         $old = $this->properties['old'] ?? [];
 
         $props = [];
-        $importantFields = ['name', 'price'];
 
-        foreach ($importantFields as $field) {
-            if (array_key_exists($field, $attributes) &&
-                array_key_exists($field, $old) &&
-                $old[$field] != $attributes[$field]) {
+        // Always show name if available
+        if (!empty($attributes['name'])) {
+            $props['name'] = [
+                'old' => $old['name'] ?? '',
+                'new' => $attributes['name']
+            ];
+        }
 
-                $props[$field] = [
-                    'old' => $old[$field],
-                    'new' => $attributes[$field]
-                ];
-            }
+        // Always show price if available
+        if (array_key_exists('price', $attributes)) {
+            $props['price'] = [
+                'old' => $old['price'] ?? '',
+                'new' => $attributes['price']
+            ];
         }
 
         return $props;
