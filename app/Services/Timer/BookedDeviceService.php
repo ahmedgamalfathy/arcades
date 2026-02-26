@@ -167,92 +167,73 @@ class BookedDeviceService
         $bookedDevice->forceDelete();
     }
     public function updateEndDateTime(int $id, array $data)
-    {
-        $bookedDevice = BookedDevice::findOrFail($id);
+        {
+            $bookedDevice = BookedDevice::findOrFail($id);
 
-        if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
-            throw new Exception("the booked device Finished status");
-        }
-
-        // Save old values for logging (convert null to empty string)
-        $oldEndDateTime = $bookedDevice->end_date_time ? $bookedDevice->end_date_time->toISOString() : '';
-
-        // Debug: Log what we're capturing
-        \Log::info('UpdateEndDateTime - Before Update', [
-            'booked_device_id' => $id,
-            'old_end_date_time_object' => $bookedDevice->end_date_time,
-            'old_end_date_time_string' => $oldEndDateTime,
-            'new_end_date_time_input' => $data['endDateTime'] ?? 'empty'
-        ]);
-
-        // Update fields without triggering events
-        $bookedDevice->withoutEvents(function () use ($bookedDevice, $data) {
-            if (empty($data['endDateTime'])) {
-                $bookedDevice->end_date_time = null;
-            } else {
-                $bookedDevice->end_date_time = Carbon::parse($data['endDateTime']);
+            if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
+                throw new Exception("the booked device Finished status");
             }
 
-            $bookedDevice->total_used_seconds = 0;
-            $bookedDevice->period_cost = 0;
-            $bookedDevice->save();
-        });
+            // Save old values for logging (keep as Carbon object or null)
+            $oldEndDateTime = $bookedDevice->end_date_time;
 
-        // Refresh to get updated values
-        $bookedDevice->refresh();
+            // Update fields without triggering events
+            $bookedDevice->withoutEvents(function () use ($bookedDevice, $data) {
+                if (empty($data['endDateTime'])) {
+                    $bookedDevice->end_date_time = null;
+                } else {
+                    $bookedDevice->end_date_time = Carbon::parse($data['endDateTime']);
+                }
 
-        // Get new value (convert null to empty string)
-        $newEndDateTime = $bookedDevice->end_date_time ? $bookedDevice->end_date_time->toISOString() : '';
+                $bookedDevice->total_used_seconds = 0;
+                $bookedDevice->period_cost = 0;
+                $bookedDevice->save();
+            });
 
-        // Debug: Log what we're saving
-        \Log::info('UpdateEndDateTime - After Update', [
-            'booked_device_id' => $id,
-            'new_end_date_time_object' => $bookedDevice->end_date_time,
-            'new_end_date_time_string' => $newEndDateTime,
-            'old_end_date_time_string' => $oldEndDateTime
-        ]);
+            // Refresh to get updated values
+            $bookedDevice->refresh();
 
-        // Get session device
-        $sessionDevice = $bookedDevice->sessionDevice;
+            // Get session device
+            $sessionDevice = $bookedDevice->sessionDevice;
 
-        if ($sessionDevice) {
-            // Manual activity log for SessionDevice with BookedDevice as child
-            activity()
-                ->useLog('SessionDevice')
-                ->event('updated')
-                ->performedOn($sessionDevice)
-                ->withProperties([
-                    'attributes' => [
-                        'id' => $sessionDevice->id,
-                        'name' => $sessionDevice->name,
-                        'type' => $sessionDevice->type,
-                    ],
-                    'old' => [
-                        'name' => $sessionDevice->name,
-                        'type' => $sessionDevice->type,
-                    ],
-                    'children' => [[
-                        'id' => $bookedDevice->id,
-                        'event' => 'updated',
-                        'log_name' => 'BookedDevice',
-                        'device_id' => $bookedDevice->device_id,
-                        'device_type_id' => $bookedDevice->device_type_id,
-                        'device_time_id' => $bookedDevice->device_time_id,
-                        'status' => $bookedDevice->status,
-                        'end_date_time' => $newEndDateTime,
-                        'old_end_date_time' => $oldEndDateTime,
-                    ]],
-                ])
-                ->tap(function ($activity) use ($sessionDevice) {
-                    $activity->daily_id = $sessionDevice->daily_id;
-                })
-                ->log('SessionDevice - BookedDevice end time updated');
+            if ($sessionDevice) {
+                // Manual activity log for SessionDevice with BookedDevice as child
+                activity()
+                    ->useLog('SessionDevice')
+                    ->event('updated')
+                    ->performedOn($sessionDevice)
+                    ->withProperties([
+                        'attributes' => [
+                            'id' => $sessionDevice->id,
+                            'name' => $sessionDevice->name,
+                            'type' => $sessionDevice->type,
+                        ],
+                        'old' => [
+                            'name' => $sessionDevice->name,
+                            'type' => $sessionDevice->type,
+                        ],
+                        'children' => [[
+                            'id' => $bookedDevice->id,
+                            'event' => 'updated',
+                            'log_name' => 'BookedDevice',
+                            'device_id' => $bookedDevice->device_id,
+                            'device_type_id' => $bookedDevice->device_type_id,
+                            'device_time_id' => $bookedDevice->device_time_id,
+                            'status' => $bookedDevice->status,
+                            'end_date_time' => $bookedDevice->end_date_time ? $bookedDevice->end_date_time->format('Y-m-d H:i:s') : null,
+                            'old_end_date_time' => $oldEndDateTime ? $oldEndDateTime->format('Y-m-d H:i:s') : null,
+                        ]],
+                    ])
+                    ->tap(function ($activity) use ($sessionDevice) {
+                        $activity->daily_id = $sessionDevice->daily_id;
+                    })
+                    ->log('SessionDevice - BookedDevice end time updated');
+            }
+
+            // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
+
+            return $bookedDevice;
         }
-
-        // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
-
-        return $bookedDevice;
-    }
 
     public function transferDeviceToGroup(int $id, array $data)
     {
