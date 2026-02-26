@@ -114,10 +114,9 @@ class AllDailyActivityResource extends JsonResource
                          array_key_exists($field, $attributes);
 
             if ($hasChanged) {
-                $oldValue = $old[$oldFieldName] ?? $old[$field] ?? '';
-                $newValue = $attributes[$field] ?? '';
+                $oldValue = $old[$oldFieldName] ?? $old[$field] ?? null;
+                $newValue = $attributes[$field] ?? null;
 
-                // Check if values are actually different
                 // For end_date_time, always show if it exists in properties (even if both are empty)
                 if ($oldValue != $newValue || $field === 'end_date_time') {
                     // Convert IDs to names
@@ -131,6 +130,10 @@ class AllDailyActivityResource extends JsonResource
                         $oldValue = !empty($oldValue) ? (DeviceTime::find($oldValue)?->name ?? '') : '';
                         $newValue = !empty($newValue) ? (DeviceTime::find($newValue)?->name ?? '') : '';
                     }
+
+                    // Convert null to empty string for display
+                    $oldValue = $oldValue ?? '';
+                    $newValue = $newValue ?? '';
 
                     $props[$displayField] = [
                         'old' => $oldValue,
