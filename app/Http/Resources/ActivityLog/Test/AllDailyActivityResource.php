@@ -776,34 +776,6 @@ class AllDailyActivityResource extends JsonResource
 
         return $props;
     }
-            if (array_key_exists('date', $attributes)) {
-                $props['date'] = [
-                    'old' => $old['date'] ?? '',
-                    'new' => $attributes['date']
-                ];
-            } elseif ($expense) {
-                $props['date'] = [
-                    'old' => '',
-                    'new' => $expense->date
-                ];
-            }
-
-            // Always show note
-            if (array_key_exists('note', $attributes)) {
-                $props['note'] = [
-                    'old' => $old['note'] ?? '',
-                    'new' => $attributes['note'] ?? ''
-                ];
-            } elseif ($expense) {
-                $props['note'] = [
-                    'old' => '',
-                    'new' => $expense->note ?? ''
-                ];
-            }
-        }
-
-        return $props;
-    }
 
     private function getExpenseDeletedProperties(): array
     {
