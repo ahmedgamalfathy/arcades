@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Timer;
 
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use Exception;
 use Carbon\Carbon;
 use App\Models\User;
@@ -114,6 +115,14 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         }
         $data['startDateTime'] = $start;
         $data['endDateTime'] = $end;
+
+        // Set status based on start/end time
+        if (!empty($data['startDateTime']) && !empty($data['endDateTime'])) {
+            $data['status'] = BookedDeviceEnum::ACTIVE->value;
+            $data['totalUsedSeconds'] = $start->diffInSeconds($end);
+        } else {
+            $data['status'] = BookedDeviceEnum::ACTIVE->value;
+        }
 
         // If adding to existing session, create device without automatic logging
         if (!$isNewSession) {
