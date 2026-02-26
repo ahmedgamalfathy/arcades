@@ -76,10 +76,90 @@ class AllDailyActivityResource extends JsonResource
     {
         return match($event) {
             'created' => $this->extractBookedDeviceCreated($child->properties),
-            'updated' => $this->extractBookedDeviceUpdated($child->properties, $child->subject_id ?? null),
+            'updated' => $this->extractBookedDeviceUpdatedForChild($child->properties, $child->subject_id ?? null),
             'deleted' => $this->extractBookedDeviceDeleted($child->properties),
             default => []
         };
+    }
+
+    private function extractBookedDeviceUpdatedForChild($properties, $bookedDeviceId = null): array
+    {
+        $attributes = $properties['attributes'] ?? [];
+        $old = $properties['old'] ?? [];
+
+        $props = [];
+
+        // Get the current BookedDevice to access all fields
+        $bookedDevice = null;
+        if ($bookedDeviceId) {
+            $bookedDevice = BookedDevice::find($bookedDeviceId);
+        }
+
+        $allFields = ['device_id', 'device_type_id', 'device_time_id', 'status', 'end_date_time'];
+
+        foreach ($allFields as $field) {
+            $displayField = match($field) {
+                'device_id' => 'deviceName',
+                'device_type_id' => 'deviceType',
+                'device_time_id' => 'deviceTime',
+                'status' => 'status',
+                'end_date_time' => 'endTime',
+                default => $field
+            };
+
+            // Check if field changed (special handling for end_date_time with old_end_date_time)
+            $oldFieldName = $field === 'end_date_time' ? 'old_end_date_time' : $field;
+
+            $hasChanged = (array_key_exists($oldFieldName, $old) || array_key_exists($field, $old)) &&
+                         array_key_exists($field, $attributes);
+
+            if ($hasChanged) {
+                $oldValue = $old[$oldFieldName] ?? $old[$field] ?? '';
+                $newValue = $attributes[$field] ?? '';
+
+                // Check if values are actually different
+                if ($oldValue != $newValue) {
+                    // Convert IDs to names
+                    if ($field === 'device_id') {
+                        $oldValue = !empty($oldValue) ? (Device::find($oldValue)?->name ?? '') : '';
+                        $newValue = !empty($newValue) ? (Device::find($newValue)?->name ?? '') : '';
+                    } elseif ($field === 'device_type_id') {
+                        $oldValue = !empty($oldValue) ? (DeviceType::find($oldValue)?->name ?? '') : '';
+                        $newValue = !empty($newValue) ? (DeviceType::find($newValue)?->name ?? '') : '';
+                    } elseif ($field === 'device_time_id') {
+                        $oldValue = !empty($oldValue) ? (DeviceTime::find($oldValue)?->name ?? '') : '';
+                        $newValue = !empty($newValue) ? (DeviceTime::find($newValue)?->name ?? '') : '';
+                    }
+
+                    $props[$displayField] = [
+                        'old' => $oldValue,
+                        'new' => $newValue
+                    ];
+                    continue;
+                }
+            }
+
+            // Field didn't change or not in properties - show with old=""
+            if ($bookedDevice) {
+                $value = $bookedDevice->{$field} ?? '';
+
+                // Convert IDs to names
+                if ($field === 'device_id') {
+                    $value = !empty($value) ? (Device::find($value)?->name ?? '') : '';
+                } elseif ($field === 'device_type_id') {
+                    $value = !empty($value) ? (DeviceType::find($value)?->name ?? '') : '';
+                } elseif ($field === 'device_time_id') {
+                    $value = !empty($value) ? (DeviceTime::find($value)?->name ?? '') : '';
+                }
+
+                $props[$displayField] = [
+                    'old' => '',
+                    'new' => $value
+                ];
+            }
+        }
+
+        return $props;
     }
 
     private function extractOrderItemCreated($properties): array
