@@ -273,12 +273,14 @@ private function groupParentChildActivities($activities)
                                 'device_type_id' => $childData['device_type_id'] ?? null,
                                 'device_time_id' => $childData['device_time_id'] ?? null,
                                 'status' => $childData['status'] ?? null,
+                                'end_date_time' => $childData['end_date_time'] ?? null,
                             ],
                             'old' => [
                                 'device_id' => $childData['device_id'] ?? null,
                                 'device_type_id' => $childData['device_type_id'] ?? null,
                                 'device_time_id' => $childData['device_time_id'] ?? null,
                                 'status' => $childData['old_status'] ?? null,
+                                'old_end_date_time' => $childData['old_end_date_time'] ?? null,
                             ]
                         ]
                     ];
