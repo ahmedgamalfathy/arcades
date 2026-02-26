@@ -289,11 +289,16 @@ class BookedDeviceService
         if ($bookedDevice->status === BookedDeviceEnum::FINISHED->value) {
             throw new Exception("The booked device has a finished status.");
         }
-        $newSessionDevice = SessionDevice::create([
-            'name' =>'individual',
-            'type' => SessionDeviceEnum::INDIVIDUAL->value,
-            'daily_id' => $dailyId,
-        ]);
+
+        // Create new session without triggering automatic activity log
+        $newSessionDevice = SessionDevice::withoutEvents(function () use ($dailyId) {
+            return SessionDevice::create([
+                'name' =>'individual',
+                'type' => SessionDeviceEnum::INDIVIDUAL->value,
+                'daily_id' => $dailyId,
+            ]);
+        });
+
         //
         $updated = BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
         ->where('device_id', $bookedDevice->device_id)
@@ -304,6 +309,8 @@ class BookedDeviceService
 
         // Log the transfer with BookedDevice as child
         activity()
+            ->useLog('SessionDevice')
+            ->event('created')
             ->performedOn($newSessionDevice)
             ->causedBy(auth('api')->user())
             ->withProperties([
@@ -328,7 +335,10 @@ class BookedDeviceService
                     ]
                 ]
             ])
-            ->log('SessionDevice');
+            ->tap(function ($activity) use ($dailyId) {
+                $activity->daily_id = $dailyId;
+            })
+            ->log('SessionDevice transfer');
 
         //delete any session device if no booked devices left
         $oldSessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
