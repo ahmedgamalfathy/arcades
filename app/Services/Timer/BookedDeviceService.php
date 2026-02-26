@@ -342,7 +342,6 @@ class BookedDeviceService
 
     return $activities;
    }
-}
 
     public function createBookedDeviceWithoutLog(array $data)
     {
@@ -376,3 +375,4 @@ class BookedDeviceService
 
         return $bookedDevice;
     }
+}
