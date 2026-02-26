@@ -238,6 +238,7 @@ class BookedDeviceService
     public function transferDeviceToGroup(int $id, array $data)
     {
         $bookedDevice = BookedDevice::findOrFail($id);
+        $oldSessionDevice = $bookedDevice->sessionDevice()->withTrashed()->first();
 
         if ($data['sessionDeviceId'] ?? null) {
 
@@ -248,11 +249,13 @@ class BookedDeviceService
             }
         } elseif ($data['name'] ?? null) {
             $currentSession = $bookedDevice->sessionDevice()->withTrashed()->first();
-            $sessionDevice = SessionDevice::create([
-                'name' => $data['name'],
-                'type' => SessionDeviceEnum::GROUP->value,
-                'daily_id' => $currentSession ? $currentSession->daily_id : ($data['dailyId'] ?? null),
-            ]);
+            $sessionDevice = SessionDevice::withoutEvents(function () use ($data, $currentSession) {
+                return SessionDevice::create([
+                    'name' => $data['name'],
+                    'type' => SessionDeviceEnum::GROUP->value,
+                    'daily_id' => $currentSession ? $currentSession->daily_id : ($data['dailyId'] ?? null),
+                ]);
+            });
             $data['sessionDeviceId'] = $sessionDevice->id;
         }
 
@@ -263,18 +266,58 @@ class BookedDeviceService
         if ($bookedDevice->session_device_id === $data['sessionDeviceId']) {
             throw new Exception("The booked device is already in this session device.");
         }
-         $updated = BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
+
+        $updated = BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
         ->where('device_id', $bookedDevice->device_id)
         ->where('device_type_id', $bookedDevice->device_type_id)
         // ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
         ->update([
         'session_device_id' => $data['sessionDeviceId'],
         ]);
-       //delete any session device if no booked devices left
-       $oldSessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
-       if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
-           $oldSessionDevice->delete();
-       }
+
+        // Log the transfer as an update to the target session with BookedDevice as child
+        $targetSession = SessionDevice::find($data['sessionDeviceId']);
+        if ($targetSession) {
+            activity()
+                ->useLog('SessionDevice')
+                ->event('updated')
+                ->performedOn($targetSession)
+                ->causedBy(auth('api')->user())
+                ->withProperties([
+                    'attributes' => [
+                        'id' => $targetSession->id,
+                        'name' => $targetSession->name,
+                        'type' => $targetSession->type,
+                    ],
+                    'old' => [
+                        'name' => $targetSession->name,
+                        'type' => $targetSession->type,
+                    ],
+                    'children' => [
+                        [
+                            'id' => $bookedDevice->id,
+                            'event' => 'updated',
+                            'log_name' => 'BookedDevice',
+                            'device_id' => $bookedDevice->device_id,
+                            'device_type_id' => $bookedDevice->device_type_id,
+                            'device_time_id' => $bookedDevice->device_time_id,
+                            'status' => $bookedDevice->status,
+                        ]
+                    ]
+                ])
+                ->tap(function ($activity) use ($targetSession) {
+                    $activity->daily_id = $targetSession->daily_id;
+                })
+                ->log('Device transferred to group');
+        }
+
+        //delete any session device if no booked devices left (without triggering events)
+        if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
+            $oldSessionDevice->withoutEvents(function () use ($oldSessionDevice) {
+                $oldSessionDevice->delete();
+            });
+        }
+
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $updated;
     }
