@@ -711,10 +711,10 @@ class AllDailyActivityResource extends JsonResource
 
         $props = [];
 
-        // Get the Expense to access current values if not in attributes
+        // Get the Expense to access current values if not in attributes (including soft deleted)
         $expense = null;
         if ($this->subject_id) {
-            $expense = \App\Models\Expense\Expense::find($this->subject_id);
+            $expense = \App\Models\Expense\Expense::withTrashed()->find($this->subject_id);
         }
 
         $type = $attributes['type'] ?? $old['type'] ?? ($expense ? $expense->type : 0);
@@ -748,6 +748,34 @@ class AllDailyActivityResource extends JsonResource
         // Show date and note only for external expenses (type = 1)
         if ($type == 1) {
             // Always show date
+            if (array_key_exists('date', $attributes)) {
+                $props['date'] = [
+                    'old' => $old['date'] ?? '',
+                    'new' => $attributes['date']
+                ];
+            } elseif ($expense) {
+                $props['date'] = [
+                    'old' => '',
+                    'new' => $expense->date
+                ];
+            }
+
+            // Always show note
+            if (array_key_exists('note', $attributes)) {
+                $props['note'] = [
+                    'old' => $old['note'] ?? '',
+                    'new' => $attributes['note'] ?? ''
+                ];
+            } elseif ($expense) {
+                $props['note'] = [
+                    'old' => '',
+                    'new' => $expense->note ?? ''
+                ];
+            }
+        }
+
+        return $props;
+    }
             if (array_key_exists('date', $attributes)) {
                 $props['date'] = [
                     'old' => $old['date'] ?? '',
