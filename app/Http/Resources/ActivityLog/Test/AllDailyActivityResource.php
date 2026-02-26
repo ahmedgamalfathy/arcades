@@ -530,13 +530,21 @@ class AllDailyActivityResource extends JsonResource
             ];
         }
 
-        $importantFields = [
-            'price' => 'price',
+        // Always show price if available
+        if (array_key_exists('price', $attributes)) {
+            $props['price'] = [
+                'old' => $old['price'] ?? '',
+                'new' => $attributes['price']
+            ];
+        }
+
+        // Show status and is_paid only if changed
+        $conditionalFields = [
             'status' => 'deliveredStatus',
             'is_paid' => 'payStatus'
         ];
 
-        foreach ($importantFields as $dbField => $responseField) {
+        foreach ($conditionalFields as $dbField => $responseField) {
             if (array_key_exists($dbField, $attributes) &&
                 array_key_exists($dbField, $old) &&
                 $old[$dbField] != $attributes[$dbField]) {
@@ -668,8 +676,9 @@ class AllDailyActivityResource extends JsonResource
     private function getExpenseCreatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
+        $type = $attributes['type'] ?? 0;
 
-        return [
+        $props = [
             'name' => [
                 'old' => '',
                 'new' => $attributes['name'] ?? ''
@@ -678,15 +687,21 @@ class AllDailyActivityResource extends JsonResource
                 'old' => '',
                 'new' => $attributes['price'] ?? ''
             ],
-            'date' => [
+        ];
+
+        // Add date and note only for external expenses (type = 1)
+        if ($type == 1) {
+            $props['date'] = [
                 'old' => '',
                 'new' => $attributes['date'] ?? ''
-            ],
-            'note' => [
+            ];
+            $props['note'] = [
                 'old' => '',
                 'new' => $attributes['note'] ?? ''
-            ],
-        ];
+            ];
+        }
+
+        return $props;
     }
 
     private function getExpenseUpdatedProperties(): array
@@ -701,6 +716,8 @@ class AllDailyActivityResource extends JsonResource
         if ($this->subject_id) {
             $expense = \App\Models\Expense\Expense::find($this->subject_id);
         }
+
+        $type = $attributes['type'] ?? $old['type'] ?? ($expense ? $expense->type : 0);
 
         // Always show name
         if (!empty($attributes['name'])) {
@@ -728,30 +745,33 @@ class AllDailyActivityResource extends JsonResource
             ];
         }
 
-        // Always show date
-        if (array_key_exists('date', $attributes)) {
-            $props['date'] = [
-                'old' => $old['date'] ?? '',
-                'new' => $attributes['date']
-            ];
-        } elseif ($expense) {
-            $props['date'] = [
-                'old' => '',
-                'new' => $expense->date
-            ];
-        }
+        // Show date and note only for external expenses (type = 1)
+        if ($type == 1) {
+            // Always show date
+            if (array_key_exists('date', $attributes)) {
+                $props['date'] = [
+                    'old' => $old['date'] ?? '',
+                    'new' => $attributes['date']
+                ];
+            } elseif ($expense) {
+                $props['date'] = [
+                    'old' => '',
+                    'new' => $expense->date
+                ];
+            }
 
-        // Always show note
-        if (array_key_exists('note', $attributes)) {
-            $props['note'] = [
-                'old' => $old['note'] ?? '',
-                'new' => $attributes['note'] ?? ''
-            ];
-        } elseif ($expense) {
-            $props['note'] = [
-                'old' => '',
-                'new' => $expense->note ?? ''
-            ];
+            // Always show note
+            if (array_key_exists('note', $attributes)) {
+                $props['note'] = [
+                    'old' => $old['note'] ?? '',
+                    'new' => $attributes['note'] ?? ''
+                ];
+            } elseif ($expense) {
+                $props['note'] = [
+                    'old' => '',
+                    'new' => $expense->note ?? ''
+                ];
+            }
         }
 
         return $props;
@@ -760,8 +780,9 @@ class AllDailyActivityResource extends JsonResource
     private function getExpenseDeletedProperties(): array
     {
         $attributes = $this->properties['old'] ?? [];
+        $type = $attributes['type'] ?? 0;
 
-        return [
+        $props = [
             'name' => [
                 'old' => '',
                 'new' => $attributes['name'] ?? ''
@@ -770,15 +791,21 @@ class AllDailyActivityResource extends JsonResource
                 'old' => '',
                 'new' => $attributes['price'] ?? ''
             ],
-            'date' => [
+        ];
+
+        // Add date and note only for external expenses (type = 1)
+        if ($type == 1) {
+            $props['date'] = [
                 'old' => '',
                 'new' => $attributes['date'] ?? ''
-            ],
-            'note' => [
+            ];
+            $props['note'] = [
                 'old' => '',
                 'new' => $attributes['note'] ?? ''
-            ],
-        ];
+            ];
+        }
+
+        return $props;
     }
 
     // ==================== SessionDevice ====================
