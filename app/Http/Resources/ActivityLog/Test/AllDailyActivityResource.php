@@ -678,6 +678,14 @@ class AllDailyActivityResource extends JsonResource
                 'old' => '',
                 'new' => $attributes['price'] ?? ''
             ],
+            'date' => [
+                'old' => '',
+                'new' => $attributes['date'] ?? ''
+            ],
+            'note' => [
+                'old' => '',
+                'new' => $attributes['note'] ?? ''
+            ],
         ];
     }
 
@@ -688,19 +696,61 @@ class AllDailyActivityResource extends JsonResource
 
         $props = [];
 
-        // Always show name if available
+        // Get the Expense to access current values if not in attributes
+        $expense = null;
+        if ($this->subject_id) {
+            $expense = \App\Models\Expense\Expense::find($this->subject_id);
+        }
+
+        // Always show name
         if (!empty($attributes['name'])) {
             $props['name'] = [
                 'old' => $old['name'] ?? '',
                 'new' => $attributes['name']
             ];
+        } elseif ($expense) {
+            $props['name'] = [
+                'old' => '',
+                'new' => $expense->name
+            ];
         }
 
-        // Always show price if available
+        // Always show price
         if (array_key_exists('price', $attributes)) {
             $props['price'] = [
                 'old' => $old['price'] ?? '',
                 'new' => $attributes['price']
+            ];
+        } elseif ($expense) {
+            $props['price'] = [
+                'old' => '',
+                'new' => $expense->price
+            ];
+        }
+
+        // Always show date
+        if (array_key_exists('date', $attributes)) {
+            $props['date'] = [
+                'old' => $old['date'] ?? '',
+                'new' => $attributes['date']
+            ];
+        } elseif ($expense) {
+            $props['date'] = [
+                'old' => '',
+                'new' => $expense->date
+            ];
+        }
+
+        // Always show note
+        if (array_key_exists('note', $attributes)) {
+            $props['note'] = [
+                'old' => $old['note'] ?? '',
+                'new' => $attributes['note'] ?? ''
+            ];
+        } elseif ($expense) {
+            $props['note'] = [
+                'old' => '',
+                'new' => $expense->note ?? ''
             ];
         }
 
@@ -719,6 +769,14 @@ class AllDailyActivityResource extends JsonResource
             'price' => [
                 'old' => '',
                 'new' => $attributes['price'] ?? ''
+            ],
+            'date' => [
+                'old' => '',
+                'new' => $attributes['date'] ?? ''
+            ],
+            'note' => [
+                'old' => '',
+                'new' => $attributes['note'] ?? ''
             ],
         ];
     }
