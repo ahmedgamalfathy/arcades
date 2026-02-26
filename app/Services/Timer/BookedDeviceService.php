@@ -335,7 +335,7 @@ class BookedDeviceService
                         'type' => $targetSession->type,
                     ],
                     'old' => [
-                        'name' => $targetSession->name,
+                        'name' => $oldSessionDevice ? $oldSessionDevice->name : '',
                         'type' => $targetSession->type,
                     ],
                     'children' => [
