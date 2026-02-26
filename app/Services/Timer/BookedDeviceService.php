@@ -383,10 +383,12 @@ class BookedDeviceService
             })
             ->log('SessionDevice transfer');
 
-        //delete any session device if no booked devices left
+        //delete any session device if no booked devices left (without triggering events)
         $oldSessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
         if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
-            $oldSessionDevice->delete();
+            $oldSessionDevice->withoutEvents(function () use ($oldSessionDevice) {
+                $oldSessionDevice->delete();
+            });
         }
         return $updated;
         });
