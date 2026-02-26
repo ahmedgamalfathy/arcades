@@ -756,14 +756,21 @@ class AllDailyActivityResource extends JsonResource
         $importantFields = ['name', 'type'];
 
         foreach ($importantFields as $field) {
-            if (array_key_exists($field, $old) &&
-                array_key_exists($field, $attributes) &&
-                $old[$field] != $attributes[$field]) {
-
-                $props[$field] = [
-                    'old' => $old[$field] ?? '',
-                    'new' => $attributes[$field] ?? ''
-                ];
+            if (array_key_exists($field, $attributes)) {
+                // Check if field changed
+                if (array_key_exists($field, $old) && $old[$field] != $attributes[$field]) {
+                    // Field changed - show old and new
+                    $props[$field] = [
+                        'old' => $old[$field] ?? '',
+                        'new' => $attributes[$field] ?? ''
+                    ];
+                } else {
+                    // Field didn't change - show with old=""
+                    $props[$field] = [
+                        'old' => '',
+                        'new' => $attributes[$field] ?? ''
+                    ];
+                }
             }
         }
 
