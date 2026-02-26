@@ -118,7 +118,8 @@ class AllDailyActivityResource extends JsonResource
                 $newValue = $attributes[$field] ?? '';
 
                 // Check if values are actually different
-                if ($oldValue != $newValue) {
+                // For end_date_time, always show if it exists in properties (even if both are empty)
+                if ($oldValue != $newValue || $field === 'end_date_time') {
                     // Convert IDs to names
                     if ($field === 'device_id') {
                         $oldValue = !empty($oldValue) ? (Device::find($oldValue)?->name ?? '') : '';
