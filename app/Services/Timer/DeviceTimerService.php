@@ -172,8 +172,9 @@ class DeviceTimerService
 
     public function changeDeviceTime($id, int $newTimeId)
     {
-      $oldBookedDevice = BookedDevice::findOrFail($id);
-         $newEndDateTime = null;
+        $oldBookedDevice = BookedDevice::findOrFail($id);
+        $newEndDateTime = null;
+
         if ($oldBookedDevice->end_date_time) {
             $endDateTime = Carbon::parse($oldBookedDevice->end_date_time);
             $now = Carbon::now();
@@ -184,8 +185,17 @@ class DeviceTimerService
 
             $newEndDateTime = $endDateTime;
         }
-      $bookedDevice= $this->bookedDeviceService->finishBookedDevice($id);
-      $BookedDeviceChange=$this->bookedDeviceService->createBookedDevice([
+
+        // Save old values for logging
+        $oldDeviceTimeId = $oldBookedDevice->device_time_id;
+        $oldEndDateTime = $oldBookedDevice->end_date_time;
+        $sessionDevice = $oldBookedDevice->sessionDevice;
+
+        // Finish old BookedDevice
+        $bookedDevice = $this->bookedDeviceService->finishBookedDevice($id);
+
+        // Create new BookedDevice
+        $BookedDeviceChange = $this->bookedDeviceService->createBookedDevice([
             'sessionDeviceId' => $bookedDevice->session_device_id,
             'deviceId' => $bookedDevice->device_id,
             'deviceTypeId' => $bookedDevice->device_type_id,
@@ -194,6 +204,42 @@ class DeviceTimerService
             'endDateTime' => $newEndDateTime,
             'status' => $oldBookedDevice->status == BookedDeviceEnum::PAUSED->value ? BookedDeviceEnum::PAUSED->value : BookedDeviceEnum::ACTIVE->value,
         ]);
+
+        // Manual activity log for SessionDevice with BookedDevice change
+        if ($sessionDevice) {
+            activity()
+                ->useLog('SessionDevice')
+                ->event('updated')
+                ->performedOn($sessionDevice)
+                ->withProperties([
+                    'attributes' => [
+                        'id' => $sessionDevice->id,
+                        'name' => $sessionDevice->name,
+                        'type' => $sessionDevice->type,
+                    ],
+                    'old' => [
+                        'name' => $sessionDevice->name,
+                        'type' => $sessionDevice->type,
+                    ],
+                    'children' => [[
+                        'id' => $BookedDeviceChange->id,
+                        'event' => 'updated',
+                        'log_name' => 'BookedDevice',
+                        'device_id' => $BookedDeviceChange->device_id,
+                        'device_type_id' => $BookedDeviceChange->device_type_id,
+                        'device_time_id' => $BookedDeviceChange->device_time_id,
+                        'old_device_time_id' => $oldDeviceTimeId,
+                        'status' => $BookedDeviceChange->status,
+                        'end_date_time' => $BookedDeviceChange->end_date_time ? $BookedDeviceChange->end_date_time->format('Y-m-d H:i:s') : null,
+                        'old_end_date_time' => $oldEndDateTime ? $oldEndDateTime->format('Y-m-d H:i:s') : null,
+                    ]],
+                ])
+                ->tap(function ($activity) use ($sessionDevice) {
+                    $activity->daily_id = $sessionDevice->daily_id;
+                })
+                ->log('SessionDevice - BookedDevice time changed');
+        }
+
         // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
         return $BookedDeviceChange;
     }

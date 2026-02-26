@@ -33,7 +33,7 @@ class AllDailyActivityResource extends JsonResource
         return [
             'activityLogId' => $this->id,
             'date' => Carbon::parse($this->created_at)->format('d-M'),
-            'time' => Carbon::parse($this->created_at)->format('h:i A'),
+            'time' => Carbon::parse($this->created_at)->format('H:i'),
             'eventType' => $this->event,
             'userName' => $this->causerName,
             'model' => [
