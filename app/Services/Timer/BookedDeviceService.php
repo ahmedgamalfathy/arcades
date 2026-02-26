@@ -174,8 +174,8 @@ class BookedDeviceService
             throw new Exception("the booked device Finished status");
         }
 
-        // Save old values for logging
-        $oldEndDateTime = $bookedDevice->end_date_time;
+        // Save old values for logging (convert null to empty string)
+        $oldEndDateTime = $bookedDevice->end_date_time ? $bookedDevice->end_date_time->toISOString() : '';
 
         // Update fields without triggering events
         $bookedDevice->withoutEvents(function () use ($bookedDevice, $data) {
@@ -189,6 +189,9 @@ class BookedDeviceService
             $bookedDevice->period_cost = 0;
             $bookedDevice->save();
         });
+
+        // Get new value (convert null to empty string)
+        $newEndDateTime = $bookedDevice->end_date_time ? $bookedDevice->end_date_time->toISOString() : '';
 
         // Get session device
         $sessionDevice = $bookedDevice->sessionDevice;
@@ -217,7 +220,7 @@ class BookedDeviceService
                         'device_type_id' => $bookedDevice->device_type_id,
                         'device_time_id' => $bookedDevice->device_time_id,
                         'status' => $bookedDevice->status,
-                        'end_date_time' => $bookedDevice->end_date_time,
+                        'end_date_time' => $newEndDateTime,
                         'old_end_date_time' => $oldEndDateTime,
                     ]],
                 ])
