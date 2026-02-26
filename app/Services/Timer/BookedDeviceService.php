@@ -190,6 +190,9 @@ class BookedDeviceService
             $bookedDevice->save();
         });
 
+        // Refresh to get updated values
+        $bookedDevice->refresh();
+
         // Get new value (convert null to empty string)
         $newEndDateTime = $bookedDevice->end_date_time ? $bookedDevice->end_date_time->toISOString() : '';
 
