@@ -168,22 +168,59 @@ class BookedDeviceService
     }
     public function updateEndDateTime(int $id, array $data)
     {
-        $bookedDevice=BookedDevice::findOrFail($id);
-        if($bookedDevice->status == BookedDeviceEnum::FINISHED->value)
-        {
+        $bookedDevice = BookedDevice::findOrFail($id);
+
+        if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
             throw new Exception("the booked device Finished status");
         }
-        if(empty($data['endDateTime'])){
-            $bookedDevice->end_date_time =null;
-        }else{
-            $bookedDevice->end_date_time = Carbon::parse($data['endDateTime']);
-        }
-        $bookedDevice->total_used_seconds=0;
-        $bookedDevice->period_cost=0;
-        $bookedDevice->save();
+
+        // Save old values for logging
+        $oldEndDateTime = $bookedDevice->end_date_time;
+
+        // Update fields without triggering events
+        $bookedDevice->withoutEvents(function () use ($bookedDevice, $data) {
+            if (empty($data['endDateTime'])) {
+                $bookedDevice->end_date_time = null;
+            } else {
+                $bookedDevice->end_date_time = Carbon::parse($data['endDateTime']);
+            }
+
+            $bookedDevice->total_used_seconds = 0;
+            $bookedDevice->period_cost = 0;
+            $bookedDevice->save();
+        });
+
+        // Manual activity log for end_date_time change only
+        activity()
+            ->useLog('BookedDevice')
+            ->event('updated')
+            ->performedOn($bookedDevice)
+            ->withProperties([
+                'old' => [
+                    'end_date_time' => $oldEndDateTime,
+                    'device_id' => $bookedDevice->device_id,
+                    'device_type_id' => $bookedDevice->device_type_id,
+                    'device_time_id' => $bookedDevice->device_time_id,
+                    'status' => $bookedDevice->status,
+                ],
+                'attributes' => [
+                    'end_date_time' => $bookedDevice->end_date_time,
+                    'device_id' => $bookedDevice->device_id,
+                    'device_type_id' => $bookedDevice->device_type_id,
+                    'device_time_id' => $bookedDevice->device_time_id,
+                    'status' => $bookedDevice->status,
+                ],
+            ])
+            ->tap(function ($activity) use ($bookedDevice) {
+                $activity->daily_id = $bookedDevice->sessionDevice?->daily_id;
+            })
+            ->log('BookedDevice end time updated');
+
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
+
         return $bookedDevice;
     }
+
     public function transferDeviceToGroup(int $id, array $data)
     {
         $bookedDevice = BookedDevice::findOrFail($id);

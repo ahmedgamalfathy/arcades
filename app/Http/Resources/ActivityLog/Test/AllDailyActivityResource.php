@@ -433,14 +433,21 @@ class AllDailyActivityResource extends JsonResource
         // Always show number if available
         if (!empty($attributes['number'])) {
             $props['number'] = [
-                'old' => $old['number'] ?? $attributes['number'],
+                'old' => $old['number'] ?? '',
                 'new' => $attributes['number']
+            ];
+        }
+
+        // Always show name if available
+        if (!empty($attributes['name'])) {
+            $props['name'] = [
+                'old' => $old['name'] ?? '',
+                'new' => $attributes['name']
             ];
         }
 
         $importantFields = [
             'price' => 'price',
-            'name' => 'name',
             'status' => 'deliveredStatus',
             'is_paid' => 'payStatus'
         ];
