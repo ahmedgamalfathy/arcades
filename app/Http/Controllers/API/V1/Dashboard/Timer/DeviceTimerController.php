@@ -287,9 +287,12 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     private function groupParentChildActivities($activities)
     {
         $grouped = collect();
-        $childrenMap = ['order' => []];
+        $childrenMap = [
+            'order' => [],
+            'sessiondevice' => []
+        ];
 
-        // First pass: identify children for each parent
+        // First pass: identify ALL children for each parent
         foreach ($activities as $activity) {
             $modelName = strtolower($activity->log_name);
 
@@ -301,6 +304,23 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                         $childrenMap['order'][$orderId] = [];
                     }
                     $childrenMap['order'][$orderId][] = $activity;
+                }
+            } elseif ($modelName === 'bookeddevice') {
+                // Try to get session_device_id from properties first
+                $sessionId = $activity->properties['attributes']['session_device_id'] ??
+                             $activity->properties['old']['session_device_id'] ?? null;
+
+                // If not in properties, get it from the actual BookedDevice record
+                if (!$sessionId && $activity->subject_id) {
+                    $bookedDevice = \App\Models\Timer\BookedDevice\BookedDevice::find($activity->subject_id);
+                    $sessionId = $bookedDevice?->session_device_id;
+                }
+
+                if ($sessionId) {
+                    if (!isset($childrenMap['sessiondevice'][$sessionId])) {
+                        $childrenMap['sessiondevice'][$sessionId] = [];
+                    }
+                    $childrenMap['sessiondevice'][$sessionId][] = $activity;
                 }
             }
         }
@@ -398,6 +418,125 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                                 'properties' => $properties
                             ];
                         })->all();
+                    }
+                } else {
+                    // Legacy system: look for separate OrderItem activities
+                    $allChildren = $childrenMap['order'][$orderId] ?? [];
+                    $activity->children = collect($allChildren)->filter(function($child) use ($activity) {
+                        $sameEvent = strtolower($child->event) === strtolower($activity->event);
+                        if (!$sameEvent) {
+                            return false;
+                        }
+
+                        $parentTime = \Carbon\Carbon::parse($activity->created_at);
+                        $childTime = \Carbon\Carbon::parse($child->created_at);
+                        $timeDiff = abs($parentTime->diffInSeconds($childTime));
+
+                        return $timeDiff <= 10;
+                    })->values()->all();
+
+                    foreach ($activity->children as $child) {
+                        $processedChildren[] = $child->id;
+                    }
+                }
+
+                $grouped->push($activity);
+
+            } elseif ($modelName === 'sessiondevice') {
+                $sessionId = $activity->subject_id;
+
+                // Check if this SessionDevice uses children in properties
+                $propertiesChildren = $activity->properties['children'] ?? [];
+
+                if (!empty($propertiesChildren)) {
+                    // Children are in properties - convert to objects for resource processing
+                    $activity->children = collect($propertiesChildren)->map(function($childData) {
+                        $event = $childData['event'] ?? 'updated';
+
+                        // For 'created' event, only use attributes (no old values)
+                        if ($event === 'created') {
+                            return (object)[
+                                'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                                'event' => $event,
+                                'subject_id' => $childData['id'] ?? null,
+                                'properties' => [
+                                    'attributes' => [
+                                        'device_id' => $childData['device_id'] ?? null,
+                                        'device_type_id' => $childData['device_type_id'] ?? null,
+                                        'device_time_id' => $childData['device_time_id'] ?? null,
+                                        'status' => $childData['status'] ?? null,
+                                    ]
+                                ]
+                            ];
+                        }
+
+                        // For 'deleted' event, use old values
+                        if ($event === 'deleted') {
+                            return (object)[
+                                'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                                'event' => $event,
+                                'subject_id' => $childData['id'] ?? null,
+                                'properties' => [
+                                    'old' => [
+                                        'device_id' => $childData['device_id'] ?? null,
+                                        'device_type_id' => $childData['device_type_id'] ?? null,
+                                        'device_time_id' => $childData['device_time_id'] ?? null,
+                                        'status' => $childData['status'] ?? null,
+                                    ]
+                                ]
+                            ];
+                        }
+
+                        // For 'updated' event, include both old and new values
+                        return (object)[
+                            'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                            'event' => $event,
+                            'subject_id' => $childData['id'] ?? null,
+                            'properties' => [
+                                'attributes' => [
+                                    'device_id' => $childData['device_id'] ?? null,
+                                    'device_type_id' => $childData['device_type_id'] ?? null,
+                                    'device_time_id' => $childData['device_time_id'] ?? null,
+                                    'status' => $childData['status'] ?? null,
+                                    'end_date_time' => $childData['end_date_time'] ?? null,
+                                ],
+                                'old' => [
+                                    'device_id' => $childData['device_id'] ?? null,
+                                    'device_type_id' => $childData['device_type_id'] ?? null,
+                                    'device_time_id' => $childData['old_device_time_id'] ?? $childData['device_time_id'] ?? null,
+                                    'status' => $childData['old_status'] ?? null,
+                                    'old_end_date_time' => $childData['old_end_date_time'] ?? null,
+                                ]
+                            ]
+                        ];
+                    })->all();
+                } else {
+                    // Legacy system: look for separate BookedDevice activities
+                    $allChildren = $childrenMap['sessiondevice'][$sessionId] ?? [];
+                    $activity->children = collect($allChildren)->values()->all();
+
+                    foreach ($activity->children as $child) {
+                        $processedChildren[] = $child->id;
+                    }
+                }
+
+                $grouped->push($activity);
+
+            } elseif ($modelName === 'orderitem') {
+                // Skip standalone OrderItems (they should be children of Orders)
+                continue;
+            } elseif ($modelName === 'bookeddevice') {
+                // Skip standalone BookedDevices (they should be children of SessionDevices)
+                continue;
+            } else {
+                // Other models (BookedDevicePause, etc.)
+                $activity->children = [];
+                $grouped->push($activity);
+            }
+        }
+
+        return $grouped;
+    }
                     }
                 } else {
                     // Legacy system: look for separate OrderItem activities
