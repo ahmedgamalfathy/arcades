@@ -623,13 +623,45 @@ class BookedDeviceService
                        ];
                    })->all();
                } else {
-                   $activity->children = [];
+                   // Legacy system: look for separate BookedDevice activities
+                   $allChildren = collect($activities)->filter(function($child) use ($activity, $bookedDeviceId) {
+                       if (strtolower($child->log_name) !== 'bookeddevice') {
+                           return false;
+                       }
+
+                       if ($child->subject_id != $bookedDeviceId) {
+                           return false;
+                       }
+
+                       // Must have same event type
+                       $sameEvent = strtolower($child->event) === strtolower($activity->event);
+                       if (!$sameEvent) {
+                           return false;
+                       }
+
+                       // Children must be within 10 seconds of parent
+                       $parentTime = \Carbon\Carbon::parse($activity->created_at);
+                       $childTime = \Carbon\Carbon::parse($child->created_at);
+                       $timeDiff = abs($parentTime->diffInSeconds($childTime));
+
+                       return $timeDiff <= 10;
+                   })->values();
+
+                   $activity->children = $allChildren->all();
+
+                   foreach ($activity->children as $child) {
+                       $processedChildren[] = $child->id;
+                   }
                }
 
                $grouped->push($activity);
 
            } elseif ($modelName === 'bookeddevice' && $activity->subject_id == $bookedDeviceId) {
-               // Standalone BookedDevice activity - don't show it separately
+               // Standalone BookedDevice activity - skip if already processed
+               if (in_array($activityId, $processedChildren)) {
+                   continue;
+               }
+               // If not processed, it means no parent found - skip it anyway
                continue;
            } else {
                // Other activities (expenses, etc.)
