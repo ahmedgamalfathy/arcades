@@ -469,7 +469,176 @@ class BookedDeviceService
     ->orderBy('created_at', 'desc')
     ->get();
 
-    return $activities;
+    // Group parent-child activities (same logic as DailyActivityController)
+    return $this->groupParentChildActivitiesForDevice($activities, $id, $orderIds, $sessionId);
+   }
+
+   private function groupParentChildActivitiesForDevice($activities, $bookedDeviceId, $orderIds, $sessionId)
+   {
+       $grouped = collect();
+       $processedChildren = [];
+
+       foreach ($activities as $activity) {
+           $modelName = strtolower($activity->log_name);
+           $activityId = $activity->id;
+
+           // Skip if already processed as a child
+           if (in_array($activityId, $processedChildren)) {
+               continue;
+           }
+
+           if ($modelName === 'order') {
+               // Check if this Order uses children in properties
+               $propertiesChildren = $activity->properties['children'] ?? [];
+
+               if (!empty($propertiesChildren)) {
+                   // LogBatch system: children are already in properties
+                   if ($activity->event === 'updated') {
+                       $oldItems = $activity->properties['old']['items'] ?? [];
+                       $oldItemsMap = collect($oldItems)->keyBy('id');
+                       $newItemsMap = collect($propertiesChildren)->keyBy('id');
+
+                       $children = collect($propertiesChildren)->map(function($childData) use ($oldItemsMap) {
+                           $itemId = $childData['id'] ?? null;
+                           $oldItem = $oldItemsMap->get($itemId);
+
+                           if (!$oldItem) {
+                               return (object)[
+                                   'log_name' => 'OrderItem',
+                                   'event' => 'created',
+                                   'properties' => ['attributes' => $childData]
+                               ];
+                           }
+
+                           $hasChanges = false;
+                           foreach (['product_id', 'qty', 'price'] as $field) {
+                               if (isset($oldItem[$field]) && isset($childData[$field]) && $oldItem[$field] != $childData[$field]) {
+                                   $hasChanges = true;
+                                   break;
+                               }
+                           }
+
+                           if ($hasChanges) {
+                               return (object)[
+                                   'log_name' => 'OrderItem',
+                                   'event' => 'updated',
+                                   'properties' => ['attributes' => $childData, 'old' => $oldItem]
+                               ];
+                           }
+                           return null;
+                       })->filter();
+
+                       $oldIds = $oldItemsMap->keys();
+                       $newIds = $newItemsMap->keys();
+                       $deletedIds = $oldIds->diff($newIds);
+
+                       foreach ($deletedIds as $deletedId) {
+                           $children->push((object)[
+                               'log_name' => 'OrderItem',
+                               'event' => 'deleted',
+                               'properties' => ['old' => $oldItemsMap->get($deletedId)]
+                           ]);
+                       }
+
+                       $activity->children = $children->all();
+                   } else {
+                       $activity->children = collect($propertiesChildren)->map(function($childData) use ($activity) {
+                           $properties = $activity->event === 'deleted'
+                               ? ['old' => $childData]
+                               : ['attributes' => $childData];
+
+                           return (object)[
+                               'log_name' => 'OrderItem',
+                               'event' => $activity->event,
+                               'properties' => $properties
+                           ];
+                       })->all();
+                   }
+               } else {
+                   $activity->children = [];
+               }
+
+               $grouped->push($activity);
+
+           } elseif ($modelName === 'sessiondevice') {
+               // Check if this SessionDevice uses children in properties
+               $propertiesChildren = $activity->properties['children'] ?? [];
+
+               if (!empty($propertiesChildren)) {
+                   $activity->children = collect($propertiesChildren)->map(function($childData) {
+                       $event = $childData['event'] ?? 'updated';
+
+                       if ($event === 'created') {
+                           return (object)[
+                               'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                               'event' => $event,
+                               'subject_id' => $childData['id'] ?? null,
+                               'properties' => [
+                                   'attributes' => [
+                                       'device_id' => $childData['device_id'] ?? null,
+                                       'device_type_id' => $childData['device_type_id'] ?? null,
+                                       'device_time_id' => $childData['device_time_id'] ?? null,
+                                       'status' => $childData['status'] ?? null,
+                                   ]
+                               ]
+                           ];
+                       }
+
+                       if ($event === 'deleted') {
+                           return (object)[
+                               'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                               'event' => $event,
+                               'subject_id' => $childData['id'] ?? null,
+                               'properties' => [
+                                   'old' => [
+                                       'device_id' => $childData['device_id'] ?? null,
+                                       'device_type_id' => $childData['device_type_id'] ?? null,
+                                       'device_time_id' => $childData['device_time_id'] ?? null,
+                                       'status' => $childData['status'] ?? null,
+                                   ]
+                               ]
+                           ];
+                       }
+
+                       return (object)[
+                           'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                           'event' => $event,
+                           'subject_id' => $childData['id'] ?? null,
+                           'properties' => [
+                               'attributes' => [
+                                   'device_id' => $childData['device_id'] ?? null,
+                                   'device_type_id' => $childData['device_type_id'] ?? null,
+                                   'device_time_id' => $childData['device_time_id'] ?? null,
+                                   'status' => $childData['status'] ?? null,
+                                   'end_date_time' => $childData['end_date_time'] ?? null,
+                               ],
+                               'old' => [
+                                   'device_id' => $childData['device_id'] ?? null,
+                                   'device_type_id' => $childData['device_type_id'] ?? null,
+                                   'device_time_id' => $childData['old_device_time_id'] ?? $childData['device_time_id'] ?? null,
+                                   'status' => $childData['old_status'] ?? null,
+                                   'old_end_date_time' => $childData['old_end_date_time'] ?? null,
+                               ]
+                           ]
+                       ];
+                   })->all();
+               } else {
+                   $activity->children = [];
+               }
+
+               $grouped->push($activity);
+
+           } elseif ($modelName === 'bookeddevice' && $activity->subject_id == $bookedDeviceId) {
+               // Standalone BookedDevice activity - don't show it separately
+               continue;
+           } else {
+               // Other activities (expenses, etc.)
+               $activity->children = [];
+               $grouped->push($activity);
+           }
+       }
+
+       return $grouped;
    }
 
     public function createBookedDeviceWithoutLog(array $data)
