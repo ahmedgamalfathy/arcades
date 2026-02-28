@@ -438,42 +438,83 @@ class BookedDeviceService
         return $updated;
         });
     }
-   public function getActivityLogToDevice($id)
+   public function getActivityLogToDevice($deviceId)
    {
-    $bookedDevice=BookedDevice::findOrFail($id);
+    // Get all BookedDevice records for this device (across all time types)
+    $bookedDevices = BookedDevice::where('device_id', $deviceId)
+        ->with(['orders', 'sessionDevice', 'pauses'])
+        ->orderBy('created_at', 'desc')
+        ->get();
 
-    // Get all related activities
-    $orderIds=$bookedDevice->orders->pluck('id')->toArray();
-    $sessionDevice = $bookedDevice->sessionDevice()->withTrashed()->first();
-    $sessionId = $sessionDevice ? $sessionDevice->id : null;
-    $pausesId=$bookedDevice->pauses->pluck('id')->toArray();
+    if ($bookedDevices->isEmpty()) {
+        throw new \Illuminate\Database\Eloquent\ModelNotFoundException('No booked devices found for this device');
+    }
 
-    $activities = Activity::where(function ($query) use ($id, $orderIds, $sessionId, $pausesId) {
-        $query->where(function ($q) use ($id) {
+    // Collect all related IDs
+    $bookedDeviceIds = $bookedDevices->pluck('id')->toArray();
+    $orderIds = [];
+    $sessionIds = [];
+    $pauseIds = [];
+
+    foreach ($bookedDevices as $bookedDevice) {
+        // Get order IDs
+        if ($bookedDevice->orders) {
+            $orderIds = array_merge($orderIds, $bookedDevice->orders->pluck('id')->toArray());
+        }
+
+        // Get session ID (including soft deleted)
+        if ($bookedDevice->sessionDevice) {
+            $sessionIds[] = $bookedDevice->sessionDevice->id;
+        } else {
+            // Try to get soft deleted session
+            $sessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
+            if ($sessionDevice) {
+                $sessionIds[] = $sessionDevice->id;
+            }
+        }
+
+        // Get pause IDs
+        if ($bookedDevice->pauses) {
+            $pauseIds = array_merge($pauseIds, $bookedDevice->pauses->pluck('id')->toArray());
+        }
+    }
+
+    // Remove duplicates
+    $sessionIds = array_unique($sessionIds);
+
+    // Get all activities for all related records
+    $activities = Activity::where(function ($query) use ($bookedDeviceIds, $orderIds, $sessionIds, $pauseIds) {
+        $query->where(function ($q) use ($bookedDeviceIds) {
             $q->where('subject_type', BookedDevice::class)
-            ->where('subject_id', $id);
+            ->whereIn('subject_id', $bookedDeviceIds);
         })
         ->orWhere(function ($q) use ($orderIds) {
-            $q->where('subject_type', Order::class)
-            ->whereIn('subject_id', $orderIds);
+            if (!empty($orderIds)) {
+                $q->where('subject_type', Order::class)
+                ->whereIn('subject_id', $orderIds);
+            }
         })
-        ->orWhere(function ($q) use ($sessionId) {
-            $q->where('subject_type', SessionDevice::class)
-            ->where('subject_id', $sessionId);
+        ->orWhere(function ($q) use ($sessionIds) {
+            if (!empty($sessionIds)) {
+                $q->where('subject_type', SessionDevice::class)
+                ->whereIn('subject_id', $sessionIds);
+            }
         })
-        ->orWhere(function ($q) use ($pausesId) {
-            $q->where('subject_type', BookedDevicePause::class)
-            ->whereIn('subject_id', $pausesId);
+        ->orWhere(function ($q) use ($pauseIds) {
+            if (!empty($pauseIds)) {
+                $q->where('subject_type', BookedDevicePause::class)
+                ->whereIn('subject_id', $pauseIds);
+            }
         });
     })
     ->orderBy('created_at', 'desc')
     ->get();
 
     // Group parent-child activities (same logic as DailyActivityController)
-    return $this->groupParentChildActivitiesForDevice($activities, $id, $orderIds, $sessionId);
+    return $this->groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds);
    }
 
-   private function groupParentChildActivitiesForDevice($activities, $bookedDeviceId, $orderIds, $sessionId)
+   private function groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds)
    {
        $grouped = collect();
        $processedChildren = [];
@@ -624,12 +665,13 @@ class BookedDeviceService
                    })->all();
                } else {
                    // Legacy system: look for separate BookedDevice activities
-                   $allChildren = collect($activities)->filter(function($child) use ($activity, $bookedDeviceId) {
+                   $allChildren = collect($activities)->filter(function($child) use ($activity, $bookedDeviceIds) {
                        if (strtolower($child->log_name) !== 'bookeddevice') {
                            return false;
                        }
 
-                       if ($child->subject_id != $bookedDeviceId) {
+                       // Check if child is one of our device's BookedDevice records
+                       if (!in_array($child->subject_id, $bookedDeviceIds)) {
                            return false;
                        }
 
@@ -655,7 +697,7 @@ class BookedDeviceService
 
                $grouped->push($activity);
 
-           } elseif ($modelName === 'bookeddevice' && $activity->subject_id == $bookedDeviceId) {
+           } elseif ($modelName === 'bookeddevice' && in_array($activity->subject_id, $bookedDeviceIds)) {
                // Standalone BookedDevice activity - skip if already processed
                if (in_array($activityId, $processedChildren)) {
                    continue;
