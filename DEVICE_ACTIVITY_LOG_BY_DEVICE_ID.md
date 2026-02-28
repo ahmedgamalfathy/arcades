@@ -1,4 +1,4 @@
-# Device Activity Log - Track by Device ID
+# Device Activity Log - Track by BookedDevice ID (Session-Based)
 
 ## المشكلة
 
@@ -6,158 +6,89 @@
 - النظام يقفل الـ `BookedDevice` القديم (finish)
 - ويفتح `BookedDevice` جديد بنوع وقت مختلف
 - لكن كلاهما لنفس الجهاز الفعلي (`device_id`)
+- وكلاهما في نفس الجلسة (`session_device_id`)
 
-الـ API القديم كان:
+**سيناريو إضافي:**
+- بعد إنهاء الجلسة، قد نفتح نفس الجهاز مرة أخرى في جلسة جديدة
+- هذه جلسة مختلفة تماماً ولا يجب أن تظهر مع الجلسة القديمة
+
+## الحل
+
+الـ API يأخذ `bookedDeviceId`، ثم:
+1. يجلب الـ `BookedDevice` المطلوب
+2. يستخرج `device_id` و `session_device_id` منه
+3. يبحث عن كل الـ `BookedDevice` records لنفس `device_id` **ونفس `session_device_id`**
+4. يجمع كل الأنشطة المرتبطة بهذه الجلسة فقط
+
+## التمييز الذكي
+
+### مثال توضيحي:
+
+**الجلسة الأولى:** (اليوم الساعة 10 صباحاً)
+- جهاز "بلايستيشن 3" (`device_id = 5`)
+- جلسة فردية (`session_device_id = 20`)
+- بدأ بوقت "ساعة" (`bookedDevice_id = 41`)
+- غيرنا لـ "نصف ساعة" (`bookedDevice_id = 42`)
+- غيرنا لـ "فردي" (`bookedDevice_id = 43`)
+- أنهينا الجلسة (finish)
+
+**الجلسة الثانية:** (نفس اليوم الساعة 3 مساءً)
+- نفس الجهاز "بلايستيشن 3" (`device_id = 5`)
+- جلسة فردية جديدة (`session_device_id = 25`)
+- بدأ بوقت "ساعة" (`bookedDevice_id = 50`)
+- غيرنا لـ "نصف ساعة" (`bookedDevice_id = 51`)
+
+### النتائج:
+
+```
+GET /device-timer/41/activity-log
+GET /device-timer/42/activity-log
+GET /device-timer/43/activity-log
+```
+كلهم يرجعون: أنشطة الجلسة الأولى فقط (41, 42, 43) ✅
+
+```
+GET /device-timer/50/activity-log
+GET /device-timer/51/activity-log
+```
+كلهم يرجعون: أنشطة الجلسة الثانية فقط (50, 51) ✅
+
+## الكود
+
+```php
+public function getActivityLogToDevice($bookedDeviceId)
+{
+    // 1. جلب الـ BookedDevice المطلوب
+    $currentBookedDevice = BookedDevice::findOrFail($bookedDeviceId);
+    $deviceId = $currentBookedDevice->device_id;
+    $sessionDeviceId = $currentBookedDevice->session_device_id;
+
+    // 2. جلب كل BookedDevice records لنفس الجهاز ونفس الجلسة
+    $bookedDevices = BookedDevice::where('device_id', $deviceId)
+        ->where('session_device_id', $sessionDeviceId)  // ✅ هنا التمييز!
+        ->get();
+    
+    // 3. جلب كل الأنشطة لهذه الجلسة فقط
+}
+```
+
+## جدول التمييز
+
+| bookedDeviceId | device_id | session_device_id | الجلسة | النتيجة |
+|---------------|-----------|-------------------|--------|---------|
+| 41 | 5 | 20 | الأولى | 41, 42, 43 |
+| 42 | 5 | 20 | الأولى | 41, 42, 43 |
+| 43 | 5 | 20 | الأولى | 41, 42, 43 |
+| 50 | 5 | 25 | الثانية | 50, 51 |
+| 51 | 5 | 25 | الثانية | 50, 51 |
+
+## الاستخدام
+
 ```
 GET /api/v1/admin/device-timer/{bookedDeviceId}/activity-log
 ```
 
-المشكلة:
-- يأخذ `bookedDeviceId` (معرف الوقت)
-- يعرض فقط أنشطة هذا الوقت المحدد
-- لا يعرض الأنشطة السابقة عندما كان الجهاز بنوع وقت مختلف
-
-## الحل
-
-تم تغيير الـ API ليأخذ `device_id` بدلاً من `bookedDeviceId`:
-
-```
-GET /api/v1/admin/device-timer/{deviceId}/activity-log
-```
-
-الآن:
-- يأخذ `device_id` (معرف الجهاز الفعلي مثل "بلايستيشن 3")
-- يبحث عن كل الـ `BookedDevice` records لهذا الجهاز
-- يجمع كل الأنشطة المرتبطة بكل هذه الـ records
-- يعرض تاريخ كامل للجهاز عبر كل أنواع الأوقات
-
-## مثال
-
-### السيناريو:
-1. جهاز "بلايستيشن 3" (`device_id = 5`)
-2. بدأ بوقت "ساعة" (`bookedDevice_id = 10`)
-3. تم تغيير الوقت إلى "نصف ساعة" (`bookedDevice_id = 15`)
-4. تم تغيير الوقت إلى "فردي" (`bookedDevice_id = 20`)
-
-### API القديم:
-```
-GET /device-timer/20/activity-log
-```
-النتيجة: فقط أنشطة الوقت "فردي" ❌
-
-### API الجديد:
-```
-GET /device-timer/5/activity-log
-```
-النتيجة: كل الأنشطة للجهاز عبر كل الأوقات ✅
-- أنشطة الوقت "ساعة"
-- أنشطة الوقت "نصف ساعة"  
-- أنشطة الوقت "فردي"
-- كل الطلبات (Orders) المرتبطة
-- كل الإيقافات (Pauses)
-- كل التحويلات (Transfers)
-
-## التغييرات التقنية
-
-### 1. BookedDeviceService.php
-
-#### getActivityLogToDevice()
-```php
-// قبل
-public function getActivityLogToDevice($id)
-{
-    $bookedDevice = BookedDevice::findOrFail($id);
-    // يجلب أنشطة هذا الـ BookedDevice فقط
-}
-
-// بعد
-public function getActivityLogToDevice($deviceId)
-{
-    // يجلب كل الـ BookedDevice records لهذا الجهاز
-    $bookedDevices = BookedDevice::where('device_id', $deviceId)
-        ->with(['orders', 'sessionDevice', 'pauses'])
-        ->get();
-    
-    // يجمع كل الـ IDs المرتبطة
-    $bookedDeviceIds = $bookedDevices->pluck('id')->toArray();
-    $orderIds = [...];
-    $sessionIds = [...];
-    $pauseIds = [...];
-    
-    // يجلب كل الأنشطة
-    $activities = Activity::where(function ($query) use (...) {
-        // BookedDevice activities
-        // Order activities
-        // SessionDevice activities
-        // Pause activities
-    })->get();
-}
-```
-
-#### groupParentChildActivitiesForDevice()
-```php
-// قبل
-private function groupParentChildActivitiesForDevice($activities, $bookedDeviceId, ...)
-{
-    // يتحقق من bookedDeviceId واحد
-    if ($child->subject_id != $bookedDeviceId) {
-        return false;
-    }
-}
-
-// بعد
-private function groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, ...)
-{
-    // يتحقق من array من bookedDeviceIds
-    if (!in_array($child->subject_id, $bookedDeviceIds)) {
-        return false;
-    }
-}
-```
-
-### 2. DeviceTimerController.php
-
-```php
-// قبل
-public function getActitvityLogToDevice($id)
-{
-    $groupedActivities = $this->bookedDeviceService->getActivityLogToDevice($id);
-}
-
-// بعد
-public function getActitvityLogToDevice($deviceId)
-{
-    $groupedActivities = $this->bookedDeviceService->getActivityLogToDevice($deviceId);
-}
-```
-
-## الاستخدام
-
-### الحصول على device_id
-
-من جدول `booked_devices`:
-```sql
-SELECT device_id FROM booked_devices WHERE id = {bookedDeviceId};
-```
-
-أو من الـ API:
-```
-GET /device-timer/{bookedDeviceId}/show
-```
-الرد يحتوي على `device_id`
-
-### استدعاء الـ API
-
-```
-GET /api/v1/admin/device-timer/{device_id}/activity-log
-```
-
-مثال:
-```
-GET /api/v1/admin/device-timer/5/activity-log
-```
-
-### الرد
+### النتيجة
 
 ```json
 [
@@ -166,44 +97,68 @@ GET /api/v1/admin/device-timer/5/activity-log
     "date": "28-Feb",
     "time": "10:00",
     "eventType": "created",
-    "model": {"modelName": "SessionDevice", "modelId": 10},
-    "details": {...},
-    "children": [...]
+    "model": {"modelName": "SessionDevice", "modelId": 20},
+    "details": {
+      "name": {"old": "", "new": "individual"},
+      "type": {"old": "", "new": 0}
+    },
+    "children": [{
+      "modelName": "BookedDevice",
+      "eventType": "created",
+      "deviceName": {"old": "", "new": "بلايستيشن 3"},
+      "deviceType": {"old": "", "new": "بلايستيشن"},
+      "deviceTime": {"old": "", "new": "ساعة"},
+      "status": {"old": "", "new": 1}
+    }]
   },
   {
     "activityLogId": 105,
     "date": "28-Feb",
     "time": "11:00",
     "eventType": "updated",
-    "model": {"modelName": "SessionDevice", "modelId": 10},
-    "details": {"deviceTime": {"old": "ساعة", "new": "نصف ساعة"}},
-    "children": [...]
+    "model": {"modelName": "SessionDevice", "modelId": 20},
+    "details": {
+      "name": {"old": "individual", "new": "individual"},
+      "type": {"old": 0, "new": 0}
+    },
+    "children": [{
+      "modelName": "BookedDevice",
+      "eventType": "updated",
+      "deviceTime": {"old": "ساعة", "new": "نصف ساعة"}
+    }]
   },
   {
     "activityLogId": 110,
     "date": "28-Feb",
     "time": "12:00",
     "eventType": "updated",
-    "model": {"modelName": "SessionDevice", "modelId": 15},
-    "details": {"deviceTime": {"old": "نصف ساعة", "new": "فردي"}},
-    "children": [...]
+    "model": {"modelName": "SessionDevice", "modelId": 20},
+    "details": {
+      "name": {"old": "individual", "new": "individual"},
+      "type": {"old": 0, "new": 0}
+    },
+    "children": [{
+      "modelName": "BookedDevice",
+      "eventType": "updated",
+      "deviceTime": {"old": "نصف ساعة", "new": "فردي"}
+    }]
   }
 ]
 ```
 
 ## الفوائد
 
-1. ✅ تتبع كامل لتاريخ الجهاز
-2. ✅ رؤية كل تغييرات نوع الوقت
-3. ✅ رؤية كل الطلبات والإيقافات عبر كل الأوقات
-4. ✅ تقارير أفضل وأكثر دقة
-5. ✅ تجربة مستخدم أفضل
+1. ✅ الـ API يأخذ `bookedDeviceId` كما كان (لا تغيير في الاستخدام)
+2. ✅ تتبع كامل لتاريخ الجلسة الواحدة
+3. ✅ لو غيرنا نوع الوقت 10 مرات في نفس الجلسة، كل الأنشطة تظهر
+4. ✅ الجلسات المختلفة لنفس الجهاز لا تختلط
+5. ✅ تمييز واضح بين الجلسات المختلفة
+6. ✅ يؤثر فقط على اللوج - لا يؤثر على أي شيء آخر
 
 ## الملفات المعدلة
 
 - `app/Services/Timer/BookedDeviceService.php`
   - `getActivityLogToDevice()` method
-  - `groupParentChildActivitiesForDevice()` method
   
 - `app/Http/Controllers/API/V1/Dashboard/Timer/DeviceTimerController.php`
   - `getActitvityLogToDevice()` method
@@ -211,7 +166,10 @@ GET /api/v1/admin/device-timer/5/activity-log
 ## ملاحظات مهمة
 
 1. الـ Route لم يتغير: `Route::get('{id}/activity-log','getActitvityLogToDevice')`
-2. لكن الآن `{id}` يمثل `device_id` وليس `bookedDevice_id`
-3. إذا لم يوجد أي `BookedDevice` لهذا `device_id`، يرجع خطأ 404
-4. الأنشطة مرتبة من الأحدث للأقدم
-5. يتعامل مع الـ soft deleted sessions بشكل صحيح
+2. الـ `{id}` يمثل `bookedDevice_id` (كما كان)
+3. يجلب كل الأنشطة للجلسة الواحدة فقط
+4. الجلسات المختلفة لنفس الجهاز تبقى منفصلة
+5. إذا لم يوجد الـ `bookedDevice_id`، يرجع خطأ 404
+6. الأنشطة مرتبة من الأحدث للأقدم
+7. التغيير يؤثر فقط على اللوج - لا يؤثر على أي شيء آخر
+8. `session_device_id` هو المعرّف الذي يربط الأجهزة في نفس الجلسة

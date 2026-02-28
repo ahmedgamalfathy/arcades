@@ -438,22 +438,26 @@ class BookedDeviceService
         return $updated;
         });
     }
-   public function getActivityLogToDevice($deviceId)
+   public function getActivityLogToDevice($bookedDeviceId)
    {
-    // Get all BookedDevice records for this device (across all time types)
+    // Get the BookedDevice to find the device_id and session_device_id
+    $currentBookedDevice = BookedDevice::findOrFail($bookedDeviceId);
+    $deviceId = $currentBookedDevice->device_id;
+    $sessionDeviceId = $currentBookedDevice->session_device_id;
+
+    // Get all BookedDevice records for this device in the SAME SESSION
+    // This ensures we only get activities from the same booking session
+    // Even if the device was booked multiple times, we only show the current session
     $bookedDevices = BookedDevice::where('device_id', $deviceId)
+        ->where('session_device_id', $sessionDeviceId)
         ->with(['orders', 'sessionDevice', 'pauses'])
         ->orderBy('created_at', 'desc')
         ->get();
 
-    if ($bookedDevices->isEmpty()) {
-        throw new \Illuminate\Database\Eloquent\ModelNotFoundException('No booked devices found for this device');
-    }
-
     // Collect all related IDs
     $bookedDeviceIds = $bookedDevices->pluck('id')->toArray();
     $orderIds = [];
-    $sessionIds = [];
+    $sessionIds = [$sessionDeviceId]; // Only this session
     $pauseIds = [];
 
     foreach ($bookedDevices as $bookedDevice) {
@@ -462,25 +466,11 @@ class BookedDeviceService
             $orderIds = array_merge($orderIds, $bookedDevice->orders->pluck('id')->toArray());
         }
 
-        // Get session ID (including soft deleted)
-        if ($bookedDevice->sessionDevice) {
-            $sessionIds[] = $bookedDevice->sessionDevice->id;
-        } else {
-            // Try to get soft deleted session
-            $sessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
-            if ($sessionDevice) {
-                $sessionIds[] = $sessionDevice->id;
-            }
-        }
-
         // Get pause IDs
         if ($bookedDevice->pauses) {
             $pauseIds = array_merge($pauseIds, $bookedDevice->pauses->pluck('id')->toArray());
         }
     }
-
-    // Remove duplicates
-    $sessionIds = array_unique($sessionIds);
 
     // Get all activities for all related records
     $activities = Activity::where(function ($query) use ($bookedDeviceIds, $orderIds, $sessionIds, $pauseIds) {

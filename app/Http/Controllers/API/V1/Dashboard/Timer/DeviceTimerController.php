@@ -331,10 +331,10 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-    public function getActitvityLogToDevice($deviceId){
+    public function getActitvityLogToDevice($bookedDeviceId){
         try {
             // Get grouped activities from service (already grouped)
-            $groupedActivities = $this->bookedDeviceService->getActivityLogToDevice($deviceId);
+            $groupedActivities = $this->bookedDeviceService->getActivityLogToDevice($bookedDeviceId);
 
             // Get user names
             $userIds = $groupedActivities->pluck('causer_id')->unique()->filter();
