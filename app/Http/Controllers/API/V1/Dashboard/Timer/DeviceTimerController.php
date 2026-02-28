@@ -537,37 +537,6 @@ class DeviceTimerController extends Controller  implements HasMiddleware
 
         return $grouped;
     }
-                    }
-                } else {
-                    // Legacy system: look for separate OrderItem activities
-                    $allChildren = $childrenMap['order'][$orderId] ?? [];
-                    $activity->children = collect($allChildren)->filter(function($child) use ($activity) {
-                        $sameEvent = strtolower($child->event) === strtolower($activity->event);
-                        if (!$sameEvent) {
-                            return false;
-                        }
-
-                        $parentTime = \Carbon\Carbon::parse($activity->created_at);
-                        $childTime = \Carbon\Carbon::parse($child->created_at);
-                        $timeDiff = abs($parentTime->diffInSeconds($childTime));
-
-                        return $timeDiff <= 10;
-                    })->values()->all();
-
-                    foreach ($activity->children as $child) {
-                        $processedChildren[] = $child->id;
-                    }
-                }
-
-                $grouped->push($activity);
-            } else {
-                $activity->children = [];
-                $grouped->push($activity);
-            }
-        }
-
-        return $grouped;
-    }
     //delete device timer
     public function destroy(int $id){
         try {
