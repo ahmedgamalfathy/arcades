@@ -634,17 +634,16 @@ class BookedDeviceService
                        }
 
                        // Must have same event type
-                       $sameEvent = strtolower($child->event) === strtolower($activity->event);
-                       if (!$sameEvent) {
+                       if (strtolower($child->event) !== strtolower($activity->event)) {
                            return false;
                        }
 
-                       // Children must be within 10 seconds of parent
+                       // Children must be within 30 seconds of parent (increased tolerance)
                        $parentTime = \Carbon\Carbon::parse($activity->created_at);
                        $childTime = \Carbon\Carbon::parse($child->created_at);
                        $timeDiff = abs($parentTime->diffInSeconds($childTime));
 
-                       return $timeDiff <= 10;
+                       return $timeDiff <= 30;
                    })->values();
 
                    $activity->children = $allChildren->all();
