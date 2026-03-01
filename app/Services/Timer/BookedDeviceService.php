@@ -501,10 +501,11 @@ class BookedDeviceService
     ->get();
 
     // Group parent-child activities (same logic as DailyActivityController)
-    return $this->groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds);
+    // Pass deviceId to filter children by device
+    return $this->groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds, $deviceId);
    }
 
-   private function groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds)
+   private function groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds, $deviceId = null)
    {
        $grouped = collect();
        $processedChildren = [];
@@ -596,7 +597,21 @@ class BookedDeviceService
                $propertiesChildren = $activity->properties['children'] ?? [];
 
                if (!empty($propertiesChildren)) {
-                   $activity->children = collect($propertiesChildren)->map(function($childData) {
+                   $activity->children = collect($propertiesChildren)
+                       // Filter children by device_id if provided (for group sessions)
+                       ->filter(function($childData) use ($deviceId, $bookedDeviceIds) {
+                           // If deviceId is provided, only include children for this device
+                           if ($deviceId !== null) {
+                               // Check if this child belongs to our device
+                               $childDeviceId = $childData['device_id'] ?? null;
+                               $childId = $childData['id'] ?? null;
+
+                               // Include if device_id matches OR if child_id is in our bookedDeviceIds
+                               return ($childDeviceId == $deviceId) || in_array($childId, $bookedDeviceIds);
+                           }
+                           return true;
+                       })
+                       ->map(function($childData) {
                        $event = $childData['event'] ?? 'updated';
 
                        if ($event === 'created') {
@@ -652,7 +667,7 @@ class BookedDeviceService
                                ]
                            ]
                        ];
-                   })->all();
+                   })->values()->all();
                } else {
                    // Legacy system: look for separate BookedDevice activities
                    $allChildren = collect($activities)->filter(function($child) use ($activity, $bookedDeviceIds) {
