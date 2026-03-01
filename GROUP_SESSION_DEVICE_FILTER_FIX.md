@@ -8,53 +8,24 @@
 - جهاز رقم 1 "بلايستيشن 3" (`device_id = 5`, `session_device_id = 20`)
 - جهاز رقم 2 "بلايستيشن 5" (`device_id = 8`, `session_device_id = 20`)
 
-**المشكلة:**
-عند طلب activity log لجهاز رقم 1، كان يظهر أنشطة الجهازين معاً!
+**المشكلة الأولى:**
+عند طلب activity log لجهاز رقم 1، كان يظهر أنشطة الجهازين معاً في الـ children!
+
+**المشكلة الثانية:**
+نشاط "قام بتحديث جلسة" كان يظهر مرتين:
+- مرة للجهاز الأول
+- مرة للجهاز الثاني
 
 **السبب:**
 - الكود كان يجلب كل الأنشطة للـ `session_device_id`
-- لكن لم يكن يفلتر الـ children حسب `device_id`
-- فكانت أنشطة كل الأجهزة في الجلسة تظهر
+- لم يكن يفلتر الـ children حسب `device_id`
+- كان يعرض كل SessionDevice activities حتى لو ما كان ليها children للجهاز المطلوب
 
 ## الحل
 
-تم إضافة فلترة إضافية في `groupParentChildActivitiesForDevice`:
+تم إضافة فلترة مزدوجة في `groupParentChildActivitiesForDevice`:
 
-### 1. تمرير `device_id` للدالة
-
-```php
-public function getActivityLogToDevice($bookedDeviceId)
-{
-    $currentBookedDevice = BookedDevice::findOrFail($bookedDeviceId);
-    $deviceId = $currentBookedDevice->device_id;
-    $sessionDeviceId = $currentBookedDevice->session_device_id;
-    
-    // ...
-    
-    // Pass deviceId to filter children by device
-    return $this->groupParentChildActivitiesForDevice(
-        $activities, 
-        $bookedDeviceIds, 
-        $orderIds, 
-        $sessionIds, 
-        $deviceId  // ✅ تمرير device_id
-    );
-}
-```
-
-### 2. تحديث signature الدالة
-
-```php
-private function groupParentChildActivitiesForDevice(
-    $activities, 
-    $bookedDeviceIds, 
-    $orderIds, 
-    $sessionIds, 
-    $deviceId = null  // ✅ معامل جديد
-)
-```
-
-### 3. فلترة الـ children حسب device_id
+### 1. فلترة الـ children حسب device_id
 
 ```php
 if (!empty($propertiesChildren)) {
@@ -79,90 +50,109 @@ if (!empty($propertiesChildren)) {
 }
 ```
 
+### 2. فلترة الأنشطة نفسها
+
+```php
+// ✅ نعرض SessionDevice activity فقط إذا كان ليها children للجهاز المطلوب
+if (!empty($activity->children)) {
+    $grouped->push($activity);
+}
+```
+
+هذا يمنع ظهور نشاط "قام بتحديث جلسة" للأجهزة الأخرى في نفس الجلسة.
+
 ## النتيجة
 
 ### قبل الإصلاح:
 
-```
-GET /device-timer/41/activity-log  (جهاز 1)
-```
-
-النتيجة:
+**جهاز 1:**
 ```json
-{
-  "model": {"modelName": "SessionDevice", "modelId": 20},
-  "children": [
-    {"deviceName": "بلايستيشن 3"},  // ✅ جهاز 1
-    {"deviceName": "بلايستيشن 5"}   // ❌ جهاز 2 (خطأ!)
-  ]
-}
+[
+  {
+    "eventType": "created",
+    "model": {"modelName": "SessionDevice"},
+    "children": [
+      {"deviceName": "بلايستيشن 3"},  // ✅ جهاز 1
+      {"deviceName": "بلايستيشن 5"}   // ❌ جهاز 2
+    ]
+  },
+  {
+    "eventType": "updated",
+    "model": {"modelName": "SessionDevice"},
+    "children": [
+      {"deviceName": "بلايستيشن 3"}   // ✅ جهاز 1
+    ]
+  },
+  {
+    "eventType": "updated",  // ❌ مكرر!
+    "model": {"modelName": "SessionDevice"},
+    "children": [
+      {"deviceName": "بلايستيشن 5"}   // ❌ جهاز 2
+    ]
+  }
+]
 ```
 
 ### بعد الإصلاح:
 
-```
-GET /device-timer/41/activity-log  (جهاز 1)
-```
-
-النتيجة:
+**جهاز 1:**
 ```json
-{
-  "model": {"modelName": "SessionDevice", "modelId": 20},
-  "children": [
-    {"deviceName": "بلايستيشن 3"}  // ✅ جهاز 1 فقط
-  ]
-}
+[
+  {
+    "eventType": "created",
+    "model": {"modelName": "SessionDevice"},
+    "children": [
+      {"deviceName": "بلايستيشن 3"}  // ✅ جهاز 1 فقط
+    ]
+  },
+  {
+    "eventType": "updated",
+    "model": {"modelName": "SessionDevice"},
+    "children": [
+      {"deviceName": "بلايستيشن 3"}  // ✅ جهاز 1 فقط
+    ]
+  }
+]
 ```
 
-```
-GET /device-timer/50/activity-log  (جهاز 2)
-```
-
-النتيجة:
+**جهاز 2:**
 ```json
-{
-  "model": {"modelName": "SessionDevice", "modelId": 20},
-  "children": [
-    {"deviceName": "بلايستيشن 5"}  // ✅ جهاز 2 فقط
-  ]
-}
+[
+  {
+    "eventType": "created",
+    "model": {"modelName": "SessionDevice"},
+    "children": [
+      {"deviceName": "بلايستيشن 5"}  // ✅ جهاز 2 فقط
+    ]
+  },
+  {
+    "eventType": "updated",
+    "model": {"modelName": "SessionDevice"},
+    "children": [
+      {"deviceName": "بلايستيشن 5"}  // ✅ جهاز 2 فقط
+    ]
+  }
+]
 ```
-
-## السيناريوهات المدعومة
-
-### 1. وقت فردي (Individual)
-- جهاز واحد في جلسة واحدة
-- يعمل كما كان ✅
-
-### 2. وقت مجمع (Group)
-- عدة أجهزة في جلسة واحدة
-- كل جهاز يعرض أنشطته فقط ✅
-
-### 3. تغيير نوع الوقت
-- نفس الجهاز، نفس الجلسة، أنواع أوقات مختلفة
-- يعرض كل الأنشطة للجهاز في هذه الجلسة ✅
-
-### 4. جلسات متعددة لنفس الجهاز
-- نفس الجهاز، جلسات مختلفة
-- كل جلسة منفصلة ✅
 
 ## الملفات المعدلة
 
 - `app/Services/Timer/BookedDeviceService.php`
   - `getActivityLogToDevice()` - تمرير `device_id`
-  - `groupParentChildActivitiesForDevice()` - إضافة فلترة بـ `device_id`
+  - `groupParentChildActivitiesForDevice()` - إضافة فلترة مزدوجة:
+    1. فلترة الـ children حسب `device_id`
+    2. فلترة الأنشطة نفسها (عرض فقط اللي ليها children)
 
 ## الفوائد
 
 1. ✅ فصل واضح بين أنشطة الأجهزة المختلفة في الوقت المجمع
 2. ✅ كل جهاز يعرض أنشطته فقط
-3. ✅ لا تداخل بين الأجهزة
-4. ✅ يعمل مع كل السيناريوهات (فردي، مجمع، تغيير وقت، جلسات متعددة)
-5. ✅ الحل متوافق مع الكود الموجود (backward compatible)
+3. ✅ لا تكرار للأنشطة
+4. ✅ لا تداخل بين الأجهزة
+5. ✅ يعمل مع كل السيناريوهات (فردي، مجمع، تغيير وقت، جلسات متعددة)
 
 ## ملاحظات
 
-- الفلترة تحدث فقط عند وجود `device_id` (للأمان)
-- إذا لم يتم تمرير `device_id`، يعمل الكود كما كان
-- الفلترة تعمل على الـ children من properties فقط
-- Legacy system (الأنشطة المنفصلة) تستخدم `bookedDeviceIds` للفلترة
+- الفلترة المزدوجة تضمن عدم ظهور أنشطة فارغة
+- SessionDevice activity يظهر فقط إذا كان له children للجهاز المطلوب
+- هذا يمنع التكرار والتداخل بين الأجهزة في الوقت المجمع

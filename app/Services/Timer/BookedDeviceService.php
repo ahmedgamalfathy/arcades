@@ -700,7 +700,11 @@ class BookedDeviceService
                    }
                }
 
-               $grouped->push($activity);
+               // Only add SessionDevice activity if it has children for this device
+               // This prevents showing "updated session" for other devices in group session
+               if (!empty($activity->children)) {
+                   $grouped->push($activity);
+               }
 
            } elseif ($modelName === 'bookeddevice' && in_array($activity->subject_id, $bookedDeviceIds)) {
                // Standalone BookedDevice activity - skip if already processed
