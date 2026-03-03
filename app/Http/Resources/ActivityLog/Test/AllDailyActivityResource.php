@@ -815,6 +815,7 @@ class AllDailyActivityResource extends JsonResource
             'created' => $this->getSessionDeviceCreatedProperties(),
             'updated' => $this->getSessionDeviceUpdatedProperties(),
             'deleted' => $this->getSessionDeviceDeletedProperties(),
+            'transfer' => $this->getSessionDeviceTransferProperties(),
             default => []
         };
     }
@@ -877,6 +878,26 @@ class AllDailyActivityResource extends JsonResource
             'type' => [
                 'old' => '',
                 'new' => $attributes['type'] ?? ''
+            ]
+        ];
+    }
+
+    private function getSessionDeviceTransferProperties(): array
+    {
+        $attributes = $this->properties['attributes'] ?? [];
+
+        return [
+            'name' => [
+                'old' => '',
+                'new' => $attributes['name'] ?? ''
+            ],
+            'type' => [
+                'old' => '',
+                'new' => $attributes['type'] ?? ''
+            ],
+            'transferredFrom' => [
+                'old' => '',
+                'new' => $attributes['transferredFrom'] ?? ''
             ]
         ];
     }

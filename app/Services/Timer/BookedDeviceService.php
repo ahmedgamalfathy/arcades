@@ -378,6 +378,9 @@ class BookedDeviceService
             throw new Exception("The booked device has a finished status.");
         }
 
+        // Get old session name for logging
+        $oldSessionName = $currentSession ? $currentSession->name : '';
+
         // Create new session without triggering automatic activity log
         $newSessionDevice = SessionDevice::withoutEvents(function () use ($dailyId) {
             return SessionDevice::create([
@@ -398,7 +401,7 @@ class BookedDeviceService
         // Log the transfer with BookedDevice as child
         activity()
             ->useLog('SessionDevice')
-            ->event('created')
+            ->event('transfer')  // ✅ Changed from 'created' to 'transfer'
             ->performedOn($newSessionDevice)
             ->causedBy(auth('api')->user())
             ->withProperties([
@@ -406,15 +409,17 @@ class BookedDeviceService
                     'id' => $newSessionDevice->id,
                     'name' => $newSessionDevice->name,
                     'type' => $newSessionDevice->type,
+                    'transferredFrom' => $oldSessionName,  // ✅ Added old session name
                 ],
                 'old' => [
-                    'name' => $newSessionDevice->name,
-                    'type' => $newSessionDevice->type,
+                    'name' => '',
+                    'type' => '',
+                    'transferredFrom' => '',  // ✅ Added for consistency
                 ],
                 'children' => [
                     [
                         'id' => $bookedDevice->id,
-                        'event' => 'created',
+                        'event' => 'transfer',  // ✅ Changed from 'created' to 'transfer'
                         'log_name' => 'BookedDevice',
                         'device_id' => $bookedDevice->device_id,
                         'device_type_id' => $bookedDevice->device_type_id,
