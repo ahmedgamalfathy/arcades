@@ -1,18 +1,28 @@
 # Transfer Event Implementation Summary
 
 ## Overview
-Implemented the 'transfer' event for device transfers from group to individual sessions, showing the old session name in the activity log.
+Implemented the 'transfer' event for ALL device transfer operations between sessions, showing the old session name in the activity log.
+
+## Transfer Types
+All transfer operations now use event='transfer':
+1. **Group to Individual** (`transferBookedDeviceToSessionDevice`)
+2. **Individual to Group** (`transferDeviceToGroup`)
+3. **Group to Group** (`transferDeviceToGroup`)
 
 ## Changes Made
 
 ### 1. Service Layer (BookedDeviceService.php)
 **File**: `app/Services/Timer/BookedDeviceService.php`
 
-**Method**: `transferBookedDeviceToSessionDevice()`
+**Method**: `transferBookedDeviceToSessionDevice()` (Group → Individual)
 - Changed event from 'created' to 'transfer' for SessionDevice activity
-- Added `transferredFrom` field in attributes with old session name
-- Added `transferredFrom` in old properties for consistency
+- Shows old session name in `name.old` field
 - Changed child event from 'created' to 'transfer'
+
+**Method**: `transferDeviceToGroup()` (Individual → Group OR Group → Group)
+- Changed event from 'updated' to 'transfer' for SessionDevice activity
+- Shows old session name in `name.old` field
+- Changed child event from 'updated' to 'transfer'
 
 ```php
 activity()
@@ -90,8 +100,7 @@ if ($event === 'created' || $event === 'transfer') {
 
 ## Expected Output Format
 
-When transferring a device from group to individual session:
-
+### Transfer from Group to Individual:
 ```json
 {
   "activityLogId": 153,
@@ -117,22 +126,45 @@ When transferring a device from group to individual session:
     {
       "modelName": "BookedDevice",
       "eventType": "transfer",
-      "deviceName": {
-        "old": "",
-        "new": "fgeger"
-      },
-      "deviceType": {
-        "old": "",
-        "new": "mglke"
-      },
-      "deviceTime": {
-        "old": "",
-        "new": "egrlk"
-      },
-      "status": {
-        "old": "",
-        "new": 1
-      }
+      "deviceName": {"old": "", "new": "fgeger"},
+      "deviceType": {"old": "", "new": "mglke"},
+      "deviceTime": {"old": "", "new": "egrlk"},
+      "status": {"old": "", "new": 1}
+    }
+  ]
+}
+```
+
+### Transfer from Individual to Group (or Group to Group):
+```json
+{
+  "activityLogId": 154,
+  "date": "26-Feb",
+  "time": "08:15",
+  "eventType": "transfer",
+  "userName": "admin",
+  "model": {
+    "modelName": "SessionDevice",
+    "modelId": 17
+  },
+  "details": {
+    "name": {
+      "old": "individual",
+      "new": "new group session"
+    },
+    "type": {
+      "old": "",
+      "new": 1
+    }
+  },
+  "children": [
+    {
+      "modelName": "BookedDevice",
+      "eventType": "transfer",
+      "deviceName": {"old": "", "new": "PS5"},
+      "deviceType": {"old": "", "new": "Console"},
+      "deviceTime": {"old": "", "new": "Hourly"},
+      "status": {"old": "", "new": 1}
     }
   ]
 }
@@ -156,7 +188,19 @@ When transferring a device from group to individual session:
 ## Testing
 
 To test the transfer functionality:
-1. Create a group session with multiple devices
-2. Transfer one device to an individual session
-3. Check the activity log - should show 'transfer' event with old session name
-4. Verify device details are preserved in the child
+
+### Test 1: Group to Individual
+1. Create a group session with a device
+2. Transfer the device to an individual session
+3. Check activity log - should show 'transfer' event with old group session name
+
+### Test 2: Individual to Group
+1. Create an individual session with a device
+2. Transfer the device to a group session
+3. Check activity log - should show 'transfer' event with "individual" as old name
+
+### Test 3: Group to Group
+1. Create two group sessions
+2. Add a device to the first group
+3. Transfer the device to the second group
+4. Check activity log - should show 'transfer' event with first group name as old name

@@ -320,12 +320,12 @@ class BookedDeviceService
         'session_device_id' => $data['sessionDeviceId'],
         ]);
 
-        // Log the transfer as an update to the target session with BookedDevice as child
+        // Log the transfer with BookedDevice as child
         $targetSession = SessionDevice::find($data['sessionDeviceId']);
         if ($targetSession) {
             activity()
                 ->useLog('SessionDevice')
-                ->event('updated')
+                ->event('transfer')
                 ->performedOn($targetSession)
                 ->causedBy(auth('api')->user())
                 ->withProperties([
@@ -341,7 +341,7 @@ class BookedDeviceService
                     'children' => [
                         [
                             'id' => $bookedDevice->id,
-                            'event' => 'updated',
+                            'event' => 'transfer',
                             'log_name' => 'BookedDevice',
                             'device_id' => $bookedDevice->device_id,
                             'device_type_id' => $bookedDevice->device_type_id,
@@ -353,7 +353,7 @@ class BookedDeviceService
                 ->tap(function ($activity) use ($targetSession) {
                     $activity->daily_id = $targetSession->daily_id;
                 })
-                ->log('Device transferred to group');
+                ->log('Device transferred');
         }
 
         //delete any session device if no booked devices left (without triggering events)
