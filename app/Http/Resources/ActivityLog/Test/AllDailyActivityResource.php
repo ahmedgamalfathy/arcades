@@ -886,19 +886,16 @@ class AllDailyActivityResource extends JsonResource
     private function getSessionDeviceTransferProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
+        $old = $this->properties['old'] ?? [];
 
         return [
             'name' => [
-                'old' => '',
+                'old' => $old['name'] ?? '',
                 'new' => $attributes['name'] ?? ''
             ],
             'type' => [
                 'old' => '',
                 'new' => $attributes['type'] ?? ''
-            ],
-            'transferredFrom' => [
-                'old' => '',
-                'new' => $attributes['transferredFrom'] ?? ''
             ]
         ];
     }

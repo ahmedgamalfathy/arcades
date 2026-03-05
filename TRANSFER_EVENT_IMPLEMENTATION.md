@@ -25,12 +25,10 @@ activity()
             'id' => $newSessionDevice->id,
             'name' => $newSessionDevice->name,
             'type' => $newSessionDevice->type,
-            'transferredFrom' => $oldSessionName,  // Added
         ],
         'old' => [
-            'name' => '',
-            'type' => '',
-            'transferredFrom' => '',  // Added
+            'name' => $oldSessionName,  // Old session name
+            'type' => $newSessionDevice->type,
         ],
         'children' => [
             [
@@ -56,9 +54,10 @@ activity()
 **Method**: `getSessionDeviceProperties()`
 - Added 'transfer' case to match statement
 
-**Method**: `getSessionDeviceTransferProperties()` (already existed)
-- Returns name, type, and transferredFrom fields
-- Format: `{old: "", new: value}` for all fields
+**Method**: `getSessionDeviceTransferProperties()`
+- Returns name and type fields
+- Name shows old session name in `old` and new session name in `new`
+- Type shows only new value with empty old
 
 **Method**: `getBookedDevicePropertiesForChild()`
 - Added 'transfer' case that uses same logic as 'created'
@@ -106,16 +105,12 @@ When transferring a device from group to individual session:
   },
   "details": {
     "name": {
-      "old": "",
+      "old": "group session name",
       "new": "individual"
     },
     "type": {
       "old": "",
       "new": 0
-    },
-    "transferredFrom": {
-      "old": "",
-      "new": "group session name"
     }
   },
   "children": [
@@ -146,10 +141,11 @@ When transferring a device from group to individual session:
 ## Key Features
 
 1. **Event Type**: Changed from 'created' to 'transfer' for clarity
-2. **Old Session Name**: Shows which session the device was transferred from
-3. **Device Details**: Preserves all device information (name, type, time, status)
-4. **Unified Format**: Uses `{old: "", new: value}` format consistently
-5. **Child Event**: BookedDevice child also shows 'transfer' event
+2. **Old Session Name**: Shows in `name.old` field (which session the device was transferred from)
+3. **New Session Name**: Shows in `name.new` field (the new individual session name)
+4. **Device Details**: Preserves all device information (name, type, time, status)
+5. **Unified Format**: Uses `{old: value, new: value}` format for name field
+6. **Child Event**: BookedDevice child also shows 'transfer' event
 
 ## Files Modified
 

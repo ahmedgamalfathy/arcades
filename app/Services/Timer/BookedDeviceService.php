@@ -401,7 +401,7 @@ class BookedDeviceService
         // Log the transfer with BookedDevice as child
         activity()
             ->useLog('SessionDevice')
-            ->event('transfer')  // ✅ Changed from 'created' to 'transfer'
+            ->event('transfer')
             ->performedOn($newSessionDevice)
             ->causedBy(auth('api')->user())
             ->withProperties([
@@ -409,17 +409,15 @@ class BookedDeviceService
                     'id' => $newSessionDevice->id,
                     'name' => $newSessionDevice->name,
                     'type' => $newSessionDevice->type,
-                    'transferredFrom' => $oldSessionName,  // ✅ Added old session name
                 ],
                 'old' => [
-                    'name' => '',
-                    'type' => '',
-                    'transferredFrom' => '',  // ✅ Added for consistency
+                    'name' => $oldSessionName,  // Old session name in old.name
+                    'type' => $newSessionDevice->type,
                 ],
                 'children' => [
                     [
                         'id' => $bookedDevice->id,
-                        'event' => 'transfer',  // ✅ Changed from 'created' to 'transfer'
+                        'event' => 'transfer',
                         'log_name' => 'BookedDevice',
                         'device_id' => $bookedDevice->device_id,
                         'device_type_id' => $bookedDevice->device_type_id,
@@ -445,16 +443,13 @@ class BookedDeviceService
     }
    public function getActivityLogToDevice($bookedDeviceId)
    {
-    // Get the BookedDevice to find the device_id and session_device_id
+    // Get the BookedDevice to find the device_id
     $currentBookedDevice = BookedDevice::findOrFail($bookedDeviceId);
     $deviceId = $currentBookedDevice->device_id;
-    $sessionDeviceId = $currentBookedDevice->session_device_id;
 
-    // Get all BookedDevice records for this device in the SAME SESSION
-    // This ensures we only get activities from the same booking session
-    // Even if the device was booked multiple times, we only show the current session
+    // Get ALL BookedDevice records for this device (across all sessions)
+    // This ensures we show complete history even after transfers
     $bookedDevices = BookedDevice::where('device_id', $deviceId)
-        ->where('session_device_id', $sessionDeviceId)
         ->with(['orders', 'sessionDevice', 'pauses'])
         ->orderBy('created_at', 'desc')
         ->get();
@@ -462,7 +457,7 @@ class BookedDeviceService
     // Collect all related IDs
     $bookedDeviceIds = $bookedDevices->pluck('id')->toArray();
     $orderIds = [];
-    $sessionIds = [$sessionDeviceId]; // Only this session
+    $sessionIds = []; // Collect all session IDs
     $pauseIds = [];
 
     foreach ($bookedDevices as $bookedDevice) {
@@ -470,6 +465,17 @@ class BookedDeviceService
         if ($bookedDevice->orders) {
             $orderIds = array_merge($orderIds, $bookedDevice->orders->pluck('id')->toArray());
         }
+
+        // Get session IDs (collect all sessions this device was in)
+        if ($bookedDevice->session_device_id && !in_array($bookedDevice->session_device_id, $sessionIds)) {
+            $sessionIds[] = $bookedDevice->session_device_id;
+        }
+
+        // Get pause IDs
+        if ($bookedDevice->pauses) {
+            $pauseIds = array_merge($pauseIds, $bookedDevice->pauses->pluck('id')->toArray());
+        }
+    }
 
         // Get pause IDs
         if ($bookedDevice->pauses) {
