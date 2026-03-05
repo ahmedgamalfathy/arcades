@@ -357,10 +357,12 @@ class BookedDeviceService
         }
 
         //delete any session device if no booked devices left (without triggering events)
+        // DON'T delete the old session - keep it for activity log history
         if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
-            $oldSessionDevice->withoutEvents(function () use ($oldSessionDevice) {
-                $oldSessionDevice->delete();
-            });
+            // Don't delete - just leave it as is for history
+            // $oldSessionDevice->withoutEvents(function () use ($oldSessionDevice) {
+            //     $oldSessionDevice->delete();
+            // });
         }
 
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
@@ -378,8 +380,9 @@ class BookedDeviceService
             throw new Exception("The booked device has a finished status.");
         }
 
-        // Get old session name for logging
+        // Get old session name and ID for logging
         $oldSessionName = $currentSession ? $currentSession->name : '';
+        $oldSessionId = $bookedDevice->session_device_id;
 
         // Create new session without triggering automatic activity log
         $newSessionDevice = SessionDevice::withoutEvents(function () use ($dailyId) {
@@ -432,11 +435,14 @@ class BookedDeviceService
             ->log('SessionDevice transfer');
 
         //delete any session device if no booked devices left (without triggering events)
-        $oldSessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
+        // DON'T delete the old session - keep it for activity log history
+        // The soft-deleted sessions will still be accessible through withTrashed()
+        $oldSessionDevice = SessionDevice::withTrashed()->find($oldSessionId);
         if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
-            $oldSessionDevice->withoutEvents(function () use ($oldSessionDevice) {
-                $oldSessionDevice->delete();
-            });
+            // Don't delete - just leave it as is for history
+            // $oldSessionDevice->withoutEvents(function () use ($oldSessionDevice) {
+            //     $oldSessionDevice->delete();
+            // });
         }
         return $updated;
         });
