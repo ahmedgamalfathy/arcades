@@ -265,8 +265,8 @@ private function groupParentChildActivities($activities)
                 $activity->children = collect($propertiesChildren)->map(function($childData) {
                     $event = $childData['event'] ?? 'updated';
 
-                    // For 'created' event, only use attributes (no old values)
-                    if ($event === 'created') {
+                    // For 'created' or 'transfer' event, only use attributes (no old values)
+                    if ($event === 'created' || $event === 'transfer') {
                         return (object)[
                             'log_name' => $childData['log_name'] ?? 'BookedDevice',
                             'event' => $event,

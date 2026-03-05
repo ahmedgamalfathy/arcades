@@ -619,7 +619,7 @@ class BookedDeviceService
                        ->map(function($childData) {
                        $event = $childData['event'] ?? 'updated';
 
-                       if ($event === 'created') {
+                       if ($event === 'created' || $event === 'transfer') {
                            return (object)[
                                'log_name' => $childData['log_name'] ?? 'BookedDevice',
                                'event' => $event,

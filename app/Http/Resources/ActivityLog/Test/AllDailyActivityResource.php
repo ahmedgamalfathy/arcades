@@ -78,6 +78,7 @@ class AllDailyActivityResource extends JsonResource
             'created' => $this->extractBookedDeviceCreated($child->properties),
             'updated' => $this->extractBookedDeviceUpdatedForChild($child->properties, $child->subject_id ?? null),
             'deleted' => $this->extractBookedDeviceDeleted($child->properties),
+            'transfer' => $this->extractBookedDeviceCreated($child->properties), // Same as created - show device details
             default => []
         };
     }
