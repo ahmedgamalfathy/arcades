@@ -33,7 +33,7 @@ class AllDailyActivityResource extends JsonResource
         return [
             'activityLogId' => $this->id,
             'date' => Carbon::parse($this->created_at)->format('d-M'),
-            'time' => Carbon::parse($this->created_at)->format('h:i A'),
+            'time' => Carbon::parse($this->created_at)->format('H:i'),
             'eventType' => $this->event,
             'userName' => $this->causerName,
             'model' => [
@@ -76,10 +76,95 @@ class AllDailyActivityResource extends JsonResource
     {
         return match($event) {
             'created' => $this->extractBookedDeviceCreated($child->properties),
-            'updated' => $this->extractBookedDeviceUpdated($child->properties, $child->subject_id ?? null),
+            'updated' => $this->extractBookedDeviceUpdatedForChild($child->properties, $child->subject_id ?? null),
             'deleted' => $this->extractBookedDeviceDeleted($child->properties),
+            'transfer' => $this->extractBookedDeviceCreated($child->properties), // Same as created - show device details
             default => []
         };
+    }
+
+    private function extractBookedDeviceUpdatedForChild($properties, $bookedDeviceId = null): array
+    {
+        $attributes = $properties['attributes'] ?? [];
+        $old = $properties['old'] ?? [];
+
+        $props = [];
+
+        // Get the current BookedDevice to access all fields
+        $bookedDevice = null;
+        if ($bookedDeviceId) {
+            $bookedDevice = BookedDevice::find($bookedDeviceId);
+        }
+
+        $allFields = ['device_id', 'device_type_id', 'device_time_id', 'status', 'end_date_time'];
+
+        foreach ($allFields as $field) {
+            $displayField = match($field) {
+                'device_id' => 'deviceName',
+                'device_type_id' => 'deviceType',
+                'device_time_id' => 'deviceTime',
+                'status' => 'status',
+                'end_date_time' => 'endTime',
+                default => $field
+            };
+
+            // Check if field changed (special handling for end_date_time with old_end_date_time)
+            $oldFieldName = $field === 'end_date_time' ? 'old_end_date_time' : $field;
+
+            $hasChanged = (array_key_exists($oldFieldName, $old) || array_key_exists($field, $old)) &&
+                         array_key_exists($field, $attributes);
+
+            if ($hasChanged) {
+                $oldValue = $old[$oldFieldName] ?? $old[$field] ?? null;
+                $newValue = $attributes[$field] ?? null;
+
+                // For end_date_time, always show if it exists in properties (even if both are empty)
+                if ($oldValue != $newValue || $field === 'end_date_time') {
+                    // Convert IDs to names
+                    if ($field === 'device_id') {
+                        $oldValue = !empty($oldValue) ? (Device::find($oldValue)?->name ?? '') : '';
+                        $newValue = !empty($newValue) ? (Device::find($newValue)?->name ?? '') : '';
+                    } elseif ($field === 'device_type_id') {
+                        $oldValue = !empty($oldValue) ? (DeviceType::find($oldValue)?->name ?? '') : '';
+                        $newValue = !empty($newValue) ? (DeviceType::find($newValue)?->name ?? '') : '';
+                    } elseif ($field === 'device_time_id') {
+                        $oldValue = !empty($oldValue) ? (DeviceTime::find($oldValue)?->name ?? '') : '';
+                        $newValue = !empty($newValue) ? (DeviceTime::find($newValue)?->name ?? '') : '';
+                    }
+
+                    // Convert null to empty string for display
+                    $oldValue = $oldValue ?? '';
+                    $newValue = $newValue ?? '';
+
+                    $props[$displayField] = [
+                        'old' => $oldValue,
+                        'new' => $newValue
+                    ];
+                    continue;
+                }
+            }
+
+            // Field didn't change or not in properties - show with old=""
+            if ($bookedDevice) {
+                $value = $bookedDevice->{$field} ?? '';
+
+                // Convert IDs to names
+                if ($field === 'device_id') {
+                    $value = !empty($value) ? (Device::find($value)?->name ?? '') : '';
+                } elseif ($field === 'device_type_id') {
+                    $value = !empty($value) ? (DeviceType::find($value)?->name ?? '') : '';
+                } elseif ($field === 'device_time_id') {
+                    $value = !empty($value) ? (DeviceTime::find($value)?->name ?? '') : '';
+                }
+
+                $props[$displayField] = [
+                    'old' => '',
+                    'new' => $value
+                ];
+            }
+        }
+
+        return $props;
     }
 
     private function extractOrderItemCreated($properties): array
@@ -433,19 +518,34 @@ class AllDailyActivityResource extends JsonResource
         // Always show number if available
         if (!empty($attributes['number'])) {
             $props['number'] = [
-                'old' => $old['number'] ?? $attributes['number'],
+                'old' => $old['number'] ?? '',
                 'new' => $attributes['number']
             ];
         }
 
-        $importantFields = [
-            'price' => 'price',
-            'name' => 'name',
+        // Always show name if available
+        if (!empty($attributes['name'])) {
+            $props['name'] = [
+                'old' => $old['name'] ?? '',
+                'new' => $attributes['name']
+            ];
+        }
+
+        // Always show price if available
+        if (array_key_exists('price', $attributes)) {
+            $props['price'] = [
+                'old' => $old['price'] ?? '',
+                'new' => $attributes['price']
+            ];
+        }
+
+        // Show status and is_paid only if changed
+        $conditionalFields = [
             'status' => 'deliveredStatus',
             'is_paid' => 'payStatus'
         ];
 
-        foreach ($importantFields as $dbField => $responseField) {
+        foreach ($conditionalFields as $dbField => $responseField) {
             if (array_key_exists($dbField, $attributes) &&
                 array_key_exists($dbField, $old) &&
                 $old[$dbField] != $attributes[$dbField]) {
@@ -477,6 +577,10 @@ class AllDailyActivityResource extends JsonResource
         $attributes = $this->properties['old'] ?? [];
 
         $props = [
+            'name' => [
+                'old' => '',
+                'new' => $attributes['name'] ?? ''
+            ],
             'number' => [
                 'old' => '',
                 'new' => $attributes['number'] ?? ''
@@ -573,8 +677,9 @@ class AllDailyActivityResource extends JsonResource
     private function getExpenseCreatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
+        $type = $attributes['type'] ?? 0;
 
-        return [
+        $props = [
             'name' => [
                 'old' => '',
                 'new' => $attributes['name'] ?? ''
@@ -584,6 +689,20 @@ class AllDailyActivityResource extends JsonResource
                 'new' => $attributes['price'] ?? ''
             ],
         ];
+
+        // Add date and note only for external expenses (type = 1)
+        if ($type == 1) {
+            $props['date'] = [
+                'old' => '',
+                'new' => $attributes['date'] ?? ''
+            ];
+            $props['note'] = [
+                'old' => '',
+                'new' => $attributes['note'] ?? ''
+            ];
+        }
+
+        return $props;
     }
 
     private function getExpenseUpdatedProperties(): array
@@ -592,16 +711,66 @@ class AllDailyActivityResource extends JsonResource
         $old = $this->properties['old'] ?? [];
 
         $props = [];
-        $importantFields = ['name', 'price'];
 
-        foreach ($importantFields as $field) {
-            if (array_key_exists($field, $attributes) &&
-                array_key_exists($field, $old) &&
-                $old[$field] != $attributes[$field]) {
+        // Get the Expense to access current values if not in attributes (including soft deleted)
+        $expense = null;
+        if ($this->subject_id) {
+            $expense = \App\Models\Expense\Expense::withTrashed()->find($this->subject_id);
+        }
 
-                $props[$field] = [
-                    'old' => $old[$field],
-                    'new' => $attributes[$field]
+        $type = $attributes['type'] ?? $old['type'] ?? ($expense ? $expense->type : 0);
+
+        // Always show name
+        if (!empty($attributes['name'])) {
+            $props['name'] = [
+                'old' => $old['name'] ?? '',
+                'new' => $attributes['name']
+            ];
+        } elseif ($expense) {
+            $props['name'] = [
+                'old' => '',
+                'new' => $expense->name
+            ];
+        }
+
+        // Always show price
+        if (array_key_exists('price', $attributes)) {
+            $props['price'] = [
+                'old' => $old['price'] ?? '',
+                'new' => $attributes['price']
+            ];
+        } elseif ($expense) {
+            $props['price'] = [
+                'old' => '',
+                'new' => $expense->price
+            ];
+        }
+
+        // Show date and note only for external expenses (type = 1)
+        if ($type == 1) {
+            // Always show date
+            if (array_key_exists('date', $attributes)) {
+                $props['date'] = [
+                    'old' => $old['date'] ?? '',
+                    'new' => $attributes['date']
+                ];
+            } elseif ($expense) {
+                $props['date'] = [
+                    'old' => '',
+                    'new' => $expense->date
+                ];
+            }
+
+            // Always show note
+            if (array_key_exists('note', $attributes)) {
+                $props['note'] = [
+                    'old' => $old['note'] ?? '',
+                    'new' => $attributes['note'] ?? ''
+                ];
+            } elseif ($expense) {
+                $props['note'] = [
+                    'old' => '',
+                    'new' => $expense->note ?? ''
                 ];
             }
         }
@@ -612,8 +781,9 @@ class AllDailyActivityResource extends JsonResource
     private function getExpenseDeletedProperties(): array
     {
         $attributes = $this->properties['old'] ?? [];
+        $type = $attributes['type'] ?? 0;
 
-        return [
+        $props = [
             'name' => [
                 'old' => '',
                 'new' => $attributes['name'] ?? ''
@@ -623,6 +793,20 @@ class AllDailyActivityResource extends JsonResource
                 'new' => $attributes['price'] ?? ''
             ],
         ];
+
+        // Add date and note only for external expenses (type = 1)
+        if ($type == 1) {
+            $props['date'] = [
+                'old' => '',
+                'new' => $attributes['date'] ?? ''
+            ];
+            $props['note'] = [
+                'old' => '',
+                'new' => $attributes['note'] ?? ''
+            ];
+        }
+
+        return $props;
     }
 
     // ==================== SessionDevice ====================
@@ -632,6 +816,7 @@ class AllDailyActivityResource extends JsonResource
             'created' => $this->getSessionDeviceCreatedProperties(),
             'updated' => $this->getSessionDeviceUpdatedProperties(),
             'deleted' => $this->getSessionDeviceDeletedProperties(),
+            'transfer' => $this->getSessionDeviceTransferProperties(),
             default => []
         };
     }
@@ -661,14 +846,21 @@ class AllDailyActivityResource extends JsonResource
         $importantFields = ['name', 'type'];
 
         foreach ($importantFields as $field) {
-            if (array_key_exists($field, $old) &&
-                array_key_exists($field, $attributes) &&
-                $old[$field] != $attributes[$field]) {
-
-                $props[$field] = [
-                    'old' => $old[$field] ?? '',
-                    'new' => $attributes[$field] ?? ''
-                ];
+            if (array_key_exists($field, $attributes)) {
+                // Check if field changed
+                if (array_key_exists($field, $old) && $old[$field] != $attributes[$field]) {
+                    // Field changed - show old and new
+                    $props[$field] = [
+                        'old' => $old[$field] ?? '',
+                        'new' => $attributes[$field] ?? ''
+                    ];
+                } else {
+                    // Field didn't change - show with old=""
+                    $props[$field] = [
+                        'old' => '',
+                        'new' => $attributes[$field] ?? ''
+                    ];
+                }
             }
         }
 
@@ -682,6 +874,23 @@ class AllDailyActivityResource extends JsonResource
         return [
             'name' => [
                 'old' => '',
+                'new' => $attributes['name'] ?? ''
+            ],
+            'type' => [
+                'old' => '',
+                'new' => $attributes['type'] ?? ''
+            ]
+        ];
+    }
+
+    private function getSessionDeviceTransferProperties(): array
+    {
+        $attributes = $this->properties['attributes'] ?? [];
+        $old = $this->properties['old'] ?? [];
+
+        return [
+            'name' => [
+                'old' => $old['name'] ?? '',
                 'new' => $attributes['name'] ?? ''
             ],
             'type' => [

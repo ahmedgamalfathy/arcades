@@ -11,11 +11,14 @@ class BookedDevicePauseService
     public function createPause(int $id)
     {
         $bookedDevice=BookedDevice::findOrFail($id);
-        $bookedDevice->pauses()->create([
-            'paused_at' => Carbon::now('UTC'),
-        ]);
-        return $bookedDevice;
 
+        // Create pause without triggering events/logging
+        $pause = null;
+        $bookedDevice->pauses()->make([
+            'paused_at' => Carbon::now('UTC'),
+        ])->saveQuietly();
+
+        return $bookedDevice;
     }
 
     public function resumePause(int $id)
@@ -24,18 +27,21 @@ class BookedDevicePauseService
         $pause = $bookedDevice->pauses()->whereNull('resumed_at')->latest()->first();
 
         if ($pause) {
-            $pause->update([
-                'resumed_at' => Carbon::now(),
-                'duration_seconds' => $pause->paused_at->diffInSeconds(Carbon::now()),
-            ]);
+            // Update pause without triggering events/logging
+            $pause->withoutEvents(function() use ($pause, $bookedDevice) {
+                $pause->update([
+                    'resumed_at' => Carbon::now(),
+                    'duration_seconds' => $pause->paused_at->diffInSeconds(Carbon::now()),
+                ]);
 
-            $bookedDevice->increment('total_paused_seconds', $pause->duration_seconds);
-            if($bookedDevice->end_date_time){
-                $bookedDevice->end_date_time = Carbon::parse($bookedDevice->end_date_time)
-                    ->addSeconds($pause->duration_seconds);
-                $bookedDevice->period_cost = $bookedDevice->calculatePrice();
-                $bookedDevice->save();
-            }
+                $bookedDevice->increment('total_paused_seconds', $pause->duration_seconds);
+                if($bookedDevice->end_date_time){
+                    $bookedDevice->end_date_time = Carbon::parse($bookedDevice->end_date_time)
+                        ->addSeconds($pause->duration_seconds);
+                    $bookedDevice->period_cost = $bookedDevice->calculatePrice();
+                    $bookedDevice->save();
+                }
+            });
         }
 
         return $pause;

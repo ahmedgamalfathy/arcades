@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Timer;
 
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use Exception;
 use Carbon\Carbon;
 use App\Models\User;
@@ -56,11 +57,15 @@ class DeviceTimerController extends Controller  implements HasMiddleware
 
          DB::beginTransaction();
          $data = $createIndividualRequest->validated();
-        $sessionDevice= $this->sessionDeviceService->createSessionDevice([
-            'name'=>'individual',
-            'type'=>SessionDeviceEnum::INDIVIDUAL->value,
-            'daily_id'=>$data['dailyId']
-        ]);
+
+        // Create SessionDevice without automatic logging
+        $sessionDevice = \App\Models\Timer\SessionDevice\SessionDevice::withoutEvents(function () use ($data) {
+            return \App\Models\Timer\SessionDevice\SessionDevice::create([
+                'name' => 'individual',
+                'type' => SessionDeviceEnum::INDIVIDUAL->value,
+                'daily_id' => $data['dailyId']
+            ]);
+        });
 
         $start = Carbon::parse($data['startDateTime']);
         $end = $data['endDateTime']
@@ -74,7 +79,48 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         $data['startDateTime'] = $start;
         $data['endDateTime'] = $end;
         $data['sessionDeviceId'] = $sessionDevice->id;
-               $this->timerService->startOrSetTime($data);
+
+        // Set status based on start/end time
+        if (!empty($data['startDateTime']) && !empty($data['endDateTime'])) {
+            $data['status'] = BookedDeviceEnum::ACTIVE->value;
+            $data['totalUsedSeconds'] = $start->diffInSeconds($end);
+        } else {
+            $data['status'] = BookedDeviceEnum::ACTIVE->value;
+        }
+
+        // Create device without automatic logging
+        $device = $this->bookedDeviceService->createBookedDeviceWithoutLog($data);
+
+        // Manual activity log for SessionDevice with BookedDevice as child
+        activity()
+            ->useLog('SessionDevice')
+            ->event('created')
+            ->performedOn($sessionDevice)
+            ->withProperties([
+                'attributes' => [
+                    'id' => $sessionDevice->id,
+                    'name' => $sessionDevice->name,
+                    'type' => $sessionDevice->type,
+                ],
+                'old' => [
+                    'name' => '',
+                    'type' => '',
+                ],
+                'children' => [[
+                    'id' => $device->id,
+                    'event' => 'created',
+                    'log_name' => 'BookedDevice',
+                    'device_id' => $device->device_id,
+                    'device_type_id' => $device->device_type_id,
+                    'device_time_id' => $device->device_time_id,
+                    'status' => $device->status,
+                ]],
+            ])
+            ->tap(function ($activity) use ($sessionDevice) {
+                $activity->daily_id = $sessionDevice->daily_id;
+            })
+            ->log('SessionDevice - Individual time created');
+
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
         } catch (\Illuminate\Validation\ValidationException $th) {
@@ -92,15 +138,20 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         if( $data['name'] && $data['sessionDeviceId']){
             throw new exception("name and sessionDeviceId are required");
         }elseIf($data['name']){
-             $sessionDevice= $this->sessionDeviceService->createSessionDevice([
-                'name'=>$data['name'],
-                'type'=>SessionDeviceEnum::GROUP->value,
-                'daily_id'=>$data['dailyId']
-            ]);
+             // Create new group session without automatic logging
+             $sessionDevice = \App\Models\Timer\SessionDevice\SessionDevice::withoutEvents(function () use ($data) {
+                return \App\Models\Timer\SessionDevice\SessionDevice::create([
+                    'name' => $data['name'],
+                    'type' => SessionDeviceEnum::GROUP->value,
+                    'daily_id' => $data['dailyId']
+                ]);
+            });
             $data['sessionDeviceId']=$sessionDevice->id;
+            $isNewSession = true;
         }elseIf($data['sessionDeviceId']){
             $sessionDevice= $this->sessionDeviceService->editSessionDevice($data['sessionDeviceId']);
             $data['sessionDeviceId']=$sessionDevice->id;
+            $isNewSession = false;
         }
         $start = Carbon::parse($data['startDateTime']);
         $end = $data['endDateTime']
@@ -112,7 +163,82 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         }
         $data['startDateTime'] = $start;
         $data['endDateTime'] = $end;
-        $device = $this->timerService->startOrSetTime($data);
+
+        // Set status based on start/end time
+        if (!empty($data['startDateTime']) && !empty($data['endDateTime'])) {
+            $data['status'] = BookedDeviceEnum::ACTIVE->value;
+            $data['totalUsedSeconds'] = $start->diffInSeconds($end);
+        } else {
+            $data['status'] = BookedDeviceEnum::ACTIVE->value;
+        }
+
+        // Create device without automatic logging
+        $device = $this->bookedDeviceService->createBookedDeviceWithoutLog($data);
+
+        // Manual activity log for SessionDevice with BookedDevice as child
+        if ($isNewSession) {
+            // New session - created event
+            activity()
+                ->useLog('SessionDevice')
+                ->event('created')
+                ->performedOn($sessionDevice)
+                ->withProperties([
+                    'attributes' => [
+                        'id' => $sessionDevice->id,
+                        'name' => $sessionDevice->name,
+                        'type' => $sessionDevice->type,
+                    ],
+                    'old' => [
+                        'name' => '',
+                        'type' => '',
+                    ],
+                    'children' => [[
+                        'id' => $device->id,
+                        'event' => 'created',
+                        'log_name' => 'BookedDevice',
+                        'device_id' => $device->device_id,
+                        'device_type_id' => $device->device_type_id,
+                        'device_time_id' => $device->device_time_id,
+                        'status' => $device->status,
+                    ]],
+                ])
+                ->tap(function ($activity) use ($sessionDevice) {
+                    $activity->daily_id = $sessionDevice->daily_id;
+                })
+                ->log('SessionDevice - Group time created');
+        } else {
+            // Existing session - updated event
+            activity()
+                ->useLog('SessionDevice')
+                ->event('updated')
+                ->performedOn($sessionDevice)
+                ->withProperties([
+                    'attributes' => [
+                        'id' => $sessionDevice->id,
+                        'name' => $sessionDevice->name,
+                        'type' => $sessionDevice->type,
+                    ],
+                    'old' => [
+                        'id' => $sessionDevice->id,
+                        'name' => $sessionDevice->name,
+                        'type' => $sessionDevice->type,
+                    ],
+                    'children' => [[
+                        'id' => $device->id,
+                        'event' => 'created',
+                        'log_name' => 'BookedDevice',
+                        'device_id' => $device->device_id,
+                        'device_type_id' => $device->device_type_id,
+                        'device_time_id' => $device->device_time_id,
+                        'status' => $device->status,
+                    ]],
+                ])
+                ->tap(function ($activity) use ($sessionDevice) {
+                    $activity->daily_id = $sessionDevice->daily_id;
+                })
+                ->log('SessionDevice - New device added to group');
+        }
+
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
         } catch (\Illuminate\Validation\ValidationException $th) {
@@ -205,27 +331,27 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-    public function getActitvityLogToDevice($id){
+    public function getActitvityLogToDevice($bookedDeviceId){
         try {
-            $activities = $this->bookedDeviceService->getActivityLogToDevice($id);
+            // Get grouped activities from service (already grouped)
+            $groupedActivities = $this->bookedDeviceService->getActivityLogToDevice($bookedDeviceId);
 
             // Get user names
-            $userIds = $activities->pluck('causer_id')->unique()->filter();
+            $userIds = $groupedActivities->pluck('causer_id')->unique()->filter();
             $users = DB::connection('mysql')->table('users')
                 ->whereIn('id', $userIds)
                 ->pluck('name', 'id');
 
-            $allActivities = $activities->map(function ($activity) use ($users) {
-                $activity->properties = json_decode($activity->properties, true);
+            $allActivities = $groupedActivities->map(function ($activity) use ($users) {
+                $activity->properties = is_string($activity->properties)
+                    ? json_decode($activity->properties, true)
+                    : $activity->properties;
                 $activity->causerName = $users[$activity->causer_id] ?? null;
                 return $activity;
             });
 
-            // Group activities by parent-child relationship (same logic as DailyActivityController)
-            $groupedActivities = $this->groupParentChildActivities($allActivities);
-
             return ApiResponse::success(
-                \App\Http\Resources\ActivityLog\Test\AllDailyActivityResource::collection($groupedActivities)
+                \App\Http\Resources\ActivityLog\Test\AllDailyActivityResource::collection($allActivities)
             );
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
@@ -237,9 +363,12 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     private function groupParentChildActivities($activities)
     {
         $grouped = collect();
-        $childrenMap = ['order' => []];
+        $childrenMap = [
+            'order' => [],
+            'sessiondevice' => []
+        ];
 
-        // First pass: identify children for each parent
+        // First pass: identify ALL children for each parent
         foreach ($activities as $activity) {
             $modelName = strtolower($activity->log_name);
 
@@ -251,6 +380,23 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                         $childrenMap['order'][$orderId] = [];
                     }
                     $childrenMap['order'][$orderId][] = $activity;
+                }
+            } elseif ($modelName === 'bookeddevice') {
+                // Try to get session_device_id from properties first
+                $sessionId = $activity->properties['attributes']['session_device_id'] ??
+                             $activity->properties['old']['session_device_id'] ?? null;
+
+                // If not in properties, get it from the actual BookedDevice record
+                if (!$sessionId && $activity->subject_id) {
+                    $bookedDevice = \App\Models\Timer\BookedDevice\BookedDevice::find($activity->subject_id);
+                    $sessionId = $bookedDevice?->session_device_id;
+                }
+
+                if ($sessionId) {
+                    if (!isset($childrenMap['sessiondevice'][$sessionId])) {
+                        $childrenMap['sessiondevice'][$sessionId] = [];
+                    }
+                    $childrenMap['sessiondevice'][$sessionId][] = $activity;
                 }
             }
         }
@@ -371,7 +517,95 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                 }
 
                 $grouped->push($activity);
+
+            } elseif ($modelName === 'sessiondevice') {
+                $sessionId = $activity->subject_id;
+
+                // Check if this SessionDevice uses children in properties
+                $propertiesChildren = $activity->properties['children'] ?? [];
+
+                if (!empty($propertiesChildren)) {
+                    // Children are in properties - convert to objects for resource processing
+                    $activity->children = collect($propertiesChildren)->map(function($childData) {
+                        $event = $childData['event'] ?? 'updated';
+
+                        // For 'created' event, only use attributes (no old values)
+                        if ($event === 'created') {
+                            return (object)[
+                                'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                                'event' => $event,
+                                'subject_id' => $childData['id'] ?? null,
+                                'properties' => [
+                                    'attributes' => [
+                                        'device_id' => $childData['device_id'] ?? null,
+                                        'device_type_id' => $childData['device_type_id'] ?? null,
+                                        'device_time_id' => $childData['device_time_id'] ?? null,
+                                        'status' => $childData['status'] ?? null,
+                                    ]
+                                ]
+                            ];
+                        }
+
+                        // For 'deleted' event, use old values
+                        if ($event === 'deleted') {
+                            return (object)[
+                                'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                                'event' => $event,
+                                'subject_id' => $childData['id'] ?? null,
+                                'properties' => [
+                                    'old' => [
+                                        'device_id' => $childData['device_id'] ?? null,
+                                        'device_type_id' => $childData['device_type_id'] ?? null,
+                                        'device_time_id' => $childData['device_time_id'] ?? null,
+                                        'status' => $childData['status'] ?? null,
+                                    ]
+                                ]
+                            ];
+                        }
+
+                        // For 'updated' event, include both old and new values
+                        return (object)[
+                            'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                            'event' => $event,
+                            'subject_id' => $childData['id'] ?? null,
+                            'properties' => [
+                                'attributes' => [
+                                    'device_id' => $childData['device_id'] ?? null,
+                                    'device_type_id' => $childData['device_type_id'] ?? null,
+                                    'device_time_id' => $childData['device_time_id'] ?? null,
+                                    'status' => $childData['status'] ?? null,
+                                    'end_date_time' => $childData['end_date_time'] ?? null,
+                                ],
+                                'old' => [
+                                    'device_id' => $childData['device_id'] ?? null,
+                                    'device_type_id' => $childData['device_type_id'] ?? null,
+                                    'device_time_id' => $childData['old_device_time_id'] ?? $childData['device_time_id'] ?? null,
+                                    'status' => $childData['old_status'] ?? null,
+                                    'old_end_date_time' => $childData['old_end_date_time'] ?? null,
+                                ]
+                            ]
+                        ];
+                    })->all();
+                } else {
+                    // Legacy system: look for separate BookedDevice activities
+                    $allChildren = $childrenMap['sessiondevice'][$sessionId] ?? [];
+                    $activity->children = collect($allChildren)->values()->all();
+
+                    foreach ($activity->children as $child) {
+                        $processedChildren[] = $child->id;
+                    }
+                }
+
+                $grouped->push($activity);
+
+            } elseif ($modelName === 'orderitem') {
+                // Skip standalone OrderItems (they should be children of Orders)
+                continue;
+            } elseif ($modelName === 'bookeddevice') {
+                // Skip standalone BookedDevices (they should be children of SessionDevices)
+                continue;
             } else {
+                // Other models (BookedDevicePause, etc.)
                 $activity->children = [];
                 $grouped->push($activity);
             }

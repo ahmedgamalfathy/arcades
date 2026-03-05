@@ -353,7 +353,10 @@ class OrderService
         $order->status = $data['status'];
         $order->save();
 
-        // Log the status change
+        // Load items with product for children
+        $order->load('items.product');
+
+        // Log the status change with items as children
         activity()
             ->useLog('Order')
             ->event('updated')
@@ -361,15 +364,29 @@ class OrderService
             ->withProperties([
                 'old' => [
                     'status' => $oldStatus,
-                    'number' => $order->number,
+                    'number' => '',
+                    'name' => '',
+                    'price' => '',
                     'booked_device_id' => $order->booked_device_id,
                 ],
                 'attributes' => [
                     'id' => $order->id,
                     'status' => $order->status,
                     'number' => $order->number,
+                    'name' => $order->name,
+                    'price' => $order->price,
                     'booked_device_id' => $order->booked_device_id,
                 ],
+                'children' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product?->name,
+                        'qty' => $item->qty,
+                        'price' => $item->price,
+                        'total' => $item->qty * $item->price,
+                    ];
+                })->toArray(),
             ])
             ->tap(function ($activity) use ($order) {
                 $activity->daily_id = $order->daily_id;
@@ -385,7 +402,10 @@ class OrderService
         $order->is_paid = $data['isPaid'];
         $order->save();
 
-        // Log the payment status change
+        // Load items with product for children
+        $order->load('items.product');
+
+        // Log the payment status change with items as children
         activity()
             ->useLog('Order')
             ->event('updated')
@@ -393,15 +413,29 @@ class OrderService
             ->withProperties([
                 'old' => [
                     'is_paid' => $oldIsPaid,
-                    'number' => $order->number,
+                    'number' => '',
+                    'name' => '',
+                    'price' => '',
                     'booked_device_id' => $order->booked_device_id,
                 ],
                 'attributes' => [
                     'id' => $order->id,
                     'is_paid' => $order->is_paid,
                     'number' => $order->number,
+                    'name' => $order->name,
+                    'price' => $order->price,
                     'booked_device_id' => $order->booked_device_id,
                 ],
+                'children' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product?->name,
+                        'qty' => $item->qty,
+                        'price' => $item->price,
+                        'total' => $item->qty * $item->price,
+                    ];
+                })->toArray(),
             ])
             ->tap(function ($activity) use ($order) {
                 $activity->daily_id = $order->daily_id;

@@ -123,7 +123,8 @@ class BookedDeviceService
 
         if ($sessionDevice && $sessionDevice->type == SessionDeviceEnum::GROUP->value) {
             if ($sessionDevice->bookedDevices()->count() == 1) {
-                $sessionDevice->delete();
+                // Last device in group session - delete session with logging
+                $this->deleteSessionWithLogging($sessionDevice, [$bookedDevice]);
             }
             if ($bookedDevice->pauses()->count() > 0) {
                 $bookedDevice->pauses()->delete();
@@ -133,17 +134,61 @@ class BookedDeviceService
                 ->where('device_type_id', $bookedDevice->device_type_id)
                 ->delete();
         } else {
-            /*
-            $bookedDevice->delete();
-            */
+            // Individual session - delete device and session with logging
+            if ($bookedDevice->pauses()->count() > 0) {
+                $bookedDevice->pauses()->delete();
+            }
+
             BookedDevice::where('session_device_id', $sessionDevice->id)
                 ->where('device_id', $bookedDevice->device_id)
                 ->where('device_type_id', $bookedDevice->device_type_id)
                 ->delete();
+
             if ($sessionDevice) {
-                $sessionDevice->delete();
+                // Delete session with logging including device details
+                $this->deleteSessionWithLogging($sessionDevice, [$bookedDevice]);
             }
         }
+    }
+
+    private function deleteSessionWithLogging($sessionDevice, $bookedDevices)
+    {
+        // Prepare children data
+        $children = collect($bookedDevices)->map(function ($device) {
+            return [
+                'id' => $device->id,
+                'event' => 'deleted',
+                'log_name' => 'BookedDevice',
+                'device_id' => $device->device_id,
+                'device_type_id' => $device->device_type_id,
+                'device_time_id' => $device->device_time_id,
+                'status' => $device->status,
+            ];
+        })->toArray();
+
+        // Delete without triggering automatic events
+        $sessionDevice->withoutEvents(function () use ($sessionDevice) {
+            $sessionDevice->delete();
+        });
+
+        // Log the deletion manually with children
+        activity()
+            ->useLog('SessionDevice')
+            ->event('deleted')
+            ->performedOn($sessionDevice)
+            ->causedBy(auth('api')->user())
+            ->withProperties([
+                'old' => [
+                    'id' => $sessionDevice->id,
+                    'name' => $sessionDevice->name,
+                    'type' => $sessionDevice->type,
+                ],
+                'children' => $children
+            ])
+            ->tap(function ($activity) use ($sessionDevice) {
+                $activity->daily_id = $sessionDevice->daily_id;
+            })
+            ->log('SessionDevice deleted');
     }
 
     public function restoreBookedDevice(int $id)
@@ -167,26 +212,78 @@ class BookedDeviceService
         $bookedDevice->forceDelete();
     }
     public function updateEndDateTime(int $id, array $data)
-    {
-        $bookedDevice=BookedDevice::findOrFail($id);
-        if($bookedDevice->status == BookedDeviceEnum::FINISHED->value)
         {
-            throw new Exception("the booked device Finished status");
+            $bookedDevice = BookedDevice::findOrFail($id);
+
+            if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
+                throw new Exception("the booked device Finished status");
+            }
+
+            // Save old values for logging (keep as Carbon object or null)
+            $oldEndDateTime = $bookedDevice->end_date_time;
+
+            // Update fields without triggering events
+            $bookedDevice->withoutEvents(function () use ($bookedDevice, $data) {
+                if (empty($data['endDateTime'])) {
+                    $bookedDevice->end_date_time = null;
+                } else {
+                    $bookedDevice->end_date_time = Carbon::parse($data['endDateTime']);
+                }
+
+                $bookedDevice->total_used_seconds = 0;
+                $bookedDevice->period_cost = 0;
+                $bookedDevice->save();
+            });
+
+            // Refresh to get updated values
+            $bookedDevice->refresh();
+
+            // Get session device
+            $sessionDevice = $bookedDevice->sessionDevice;
+
+            if ($sessionDevice) {
+                // Manual activity log for SessionDevice with BookedDevice as child
+                activity()
+                    ->useLog('SessionDevice')
+                    ->event('updated')
+                    ->performedOn($sessionDevice)
+                    ->withProperties([
+                        'attributes' => [
+                            'id' => $sessionDevice->id,
+                            'name' => $sessionDevice->name,
+                            'type' => $sessionDevice->type,
+                        ],
+                        'old' => [
+                            'name' => $sessionDevice->name,
+                            'type' => $sessionDevice->type,
+                        ],
+                        'children' => [[
+                            'id' => $bookedDevice->id,
+                            'event' => 'updated',
+                            'log_name' => 'BookedDevice',
+                            'device_id' => $bookedDevice->device_id,
+                            'device_type_id' => $bookedDevice->device_type_id,
+                            'device_time_id' => $bookedDevice->device_time_id,
+                            'status' => $bookedDevice->status,
+                            'end_date_time' => $bookedDevice->end_date_time ? $bookedDevice->end_date_time->format('Y-m-d H:i:s') : null,
+                            'old_end_date_time' => $oldEndDateTime ? $oldEndDateTime->format('Y-m-d H:i:s') : null,
+                        ]],
+                    ])
+                    ->tap(function ($activity) use ($sessionDevice) {
+                        $activity->daily_id = $sessionDevice->daily_id;
+                    })
+                    ->log('SessionDevice - BookedDevice end time updated');
+            }
+
+            // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
+
+            return $bookedDevice;
         }
-        if(empty($data['endDateTime'])){
-            $bookedDevice->end_date_time =null;
-        }else{
-            $bookedDevice->end_date_time = Carbon::parse($data['endDateTime']);
-        }
-        $bookedDevice->total_used_seconds=0;
-        $bookedDevice->period_cost=0;
-        $bookedDevice->save();
-        // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
-        return $bookedDevice;
-    }
+
     public function transferDeviceToGroup(int $id, array $data)
     {
         $bookedDevice = BookedDevice::findOrFail($id);
+        $oldSessionDevice = $bookedDevice->sessionDevice()->withTrashed()->first();
 
         if ($data['sessionDeviceId'] ?? null) {
 
@@ -197,11 +294,13 @@ class BookedDeviceService
             }
         } elseif ($data['name'] ?? null) {
             $currentSession = $bookedDevice->sessionDevice()->withTrashed()->first();
-            $sessionDevice = SessionDevice::create([
-                'name' => $data['name'],
-                'type' => SessionDeviceEnum::GROUP->value,
-                'daily_id' => $currentSession ? $currentSession->daily_id : ($data['dailyId'] ?? null),
-            ]);
+            $sessionDevice = SessionDevice::withoutEvents(function () use ($data, $currentSession) {
+                return SessionDevice::create([
+                    'name' => $data['name'],
+                    'type' => SessionDeviceEnum::GROUP->value,
+                    'daily_id' => $currentSession ? $currentSession->daily_id : ($data['dailyId'] ?? null),
+                ]);
+            });
             $data['sessionDeviceId'] = $sessionDevice->id;
         }
 
@@ -212,18 +311,60 @@ class BookedDeviceService
         if ($bookedDevice->session_device_id === $data['sessionDeviceId']) {
             throw new Exception("The booked device is already in this session device.");
         }
-         $updated = BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
+
+        $updated = BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
         ->where('device_id', $bookedDevice->device_id)
         ->where('device_type_id', $bookedDevice->device_type_id)
         // ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
         ->update([
         'session_device_id' => $data['sessionDeviceId'],
         ]);
-       //delete any session device if no booked devices left
-       $oldSessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
-       if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
-           $oldSessionDevice->delete();
-       }
+
+        // Log the transfer with BookedDevice as child
+        $targetSession = SessionDevice::find($data['sessionDeviceId']);
+        if ($targetSession) {
+            activity()
+                ->useLog('SessionDevice')
+                ->event('transfer')
+                ->performedOn($targetSession)
+                ->causedBy(auth('api')->user())
+                ->withProperties([
+                    'attributes' => [
+                        'id' => $targetSession->id,
+                        'name' => $targetSession->name,
+                        'type' => $targetSession->type,
+                    ],
+                    'old' => [
+                        'name' => $oldSessionDevice ? $oldSessionDevice->name : '',
+                        'type' => $targetSession->type,
+                    ],
+                    'children' => [
+                        [
+                            'id' => $bookedDevice->id,
+                            'event' => 'transfer',
+                            'log_name' => 'BookedDevice',
+                            'device_id' => $bookedDevice->device_id,
+                            'device_type_id' => $bookedDevice->device_type_id,
+                            'device_time_id' => $bookedDevice->device_time_id,
+                            'status' => $bookedDevice->status,
+                        ]
+                    ]
+                ])
+                ->tap(function ($activity) use ($targetSession) {
+                    $activity->daily_id = $targetSession->daily_id;
+                })
+                ->log('Device transferred');
+        }
+
+        //delete any session device if no booked devices left (without triggering events)
+        // DON'T delete the old session - keep it for activity log history
+        if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
+            // Don't delete - just leave it as is for history
+            // $oldSessionDevice->withoutEvents(function () use ($oldSessionDevice) {
+            //     $oldSessionDevice->delete();
+            // });
+        }
+
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $updated;
     }
@@ -238,11 +379,20 @@ class BookedDeviceService
         if ($bookedDevice->status === BookedDeviceEnum::FINISHED->value) {
             throw new Exception("The booked device has a finished status.");
         }
-        $newSessionDevice = SessionDevice::create([
-            'name' =>'individual',
-            'type' => SessionDeviceEnum::INDIVIDUAL->value,
-            'daily_id' => $dailyId,
-        ]);
+
+        // Get old session name and ID for logging
+        $oldSessionName = $currentSession ? $currentSession->name : '';
+        $oldSessionId = $bookedDevice->session_device_id;
+
+        // Create new session without triggering automatic activity log
+        $newSessionDevice = SessionDevice::withoutEvents(function () use ($dailyId) {
+            return SessionDevice::create([
+                'name' =>'individual',
+                'type' => SessionDeviceEnum::INDIVIDUAL->value,
+                'daily_id' => $dailyId,
+            ]);
+        });
+
         //
         $updated = BookedDevice::where('session_device_id', $bookedDevice->session_device_id)
         ->where('device_id', $bookedDevice->device_id)
@@ -250,45 +400,400 @@ class BookedDeviceService
         ->update([
         'session_device_id' => $newSessionDevice->id,
         ]);
-        //delete any session device if no booked devices left
-        $oldSessionDevice = SessionDevice::withTrashed()->find($bookedDevice->session_device_id);
+
+        // Log the transfer with BookedDevice as child
+        activity()
+            ->useLog('SessionDevice')
+            ->event('transfer')
+            ->performedOn($newSessionDevice)
+            ->causedBy(auth('api')->user())
+            ->withProperties([
+                'attributes' => [
+                    'id' => $newSessionDevice->id,
+                    'name' => $newSessionDevice->name,
+                    'type' => $newSessionDevice->type,
+                ],
+                'old' => [
+                    'name' => $oldSessionName,  // Old session name in old.name
+                    'type' => $newSessionDevice->type,
+                ],
+                'children' => [
+                    [
+                        'id' => $bookedDevice->id,
+                        'event' => 'transfer',
+                        'log_name' => 'BookedDevice',
+                        'device_id' => $bookedDevice->device_id,
+                        'device_type_id' => $bookedDevice->device_type_id,
+                        'device_time_id' => $bookedDevice->device_time_id,
+                        'status' => $bookedDevice->status,
+                    ]
+                ]
+            ])
+            ->tap(function ($activity) use ($dailyId) {
+                $activity->daily_id = $dailyId;
+            })
+            ->log('SessionDevice transfer');
+
+        //delete any session device if no booked devices left (without triggering events)
+        // DON'T delete the old session - keep it for activity log history
+        // The soft-deleted sessions will still be accessible through withTrashed()
+        $oldSessionDevice = SessionDevice::withTrashed()->find($oldSessionId);
         if ($oldSessionDevice && $oldSessionDevice->bookedDevices()->count() == 0) {
-            $oldSessionDevice->delete();
+            // Don't delete - just leave it as is for history
+            // $oldSessionDevice->withoutEvents(function () use ($oldSessionDevice) {
+            //     $oldSessionDevice->delete();
+            // });
         }
         return $updated;
         });
     }
-   public function getActivityLogToDevice($id)
+   public function getActivityLogToDevice($bookedDeviceId)
    {
-    $bookedDevice=BookedDevice::findOrFail($id);
+    // Get the BookedDevice to find the device_id
+    $currentBookedDevice = BookedDevice::findOrFail($bookedDeviceId);
+    $deviceId = $currentBookedDevice->device_id;
 
-    // Get all related activities
-    $orderIds=$bookedDevice->orders->pluck('id')->toArray();
-    $sessionDevice = $bookedDevice->sessionDevice()->withTrashed()->first();
-    $sessionId = $sessionDevice ? $sessionDevice->id : null;
-    $pausesId=$bookedDevice->pauses->pluck('id')->toArray();
+    // Get ALL BookedDevice records for this device (across all sessions)
+    // This ensures we show complete history even after transfers
+    $bookedDevices = BookedDevice::where('device_id', $deviceId)
+        ->with(['orders', 'sessionDevice', 'pauses'])
+        ->orderBy('created_at', 'desc')
+        ->get();
 
-    $activities = Activity::where(function ($query) use ($id, $orderIds, $sessionId, $pausesId) {
-        $query->where(function ($q) use ($id) {
+    // Collect all related IDs
+    $bookedDeviceIds = $bookedDevices->pluck('id')->toArray();
+    $orderIds = [];
+    $sessionIds = []; // Collect all session IDs
+    $pauseIds = [];
+
+    foreach ($bookedDevices as $bookedDevice) {
+        // Get order IDs
+        if ($bookedDevice->orders) {
+            $orderIds = array_merge($orderIds, $bookedDevice->orders->pluck('id')->toArray());
+        }
+
+        // Get session IDs (collect all sessions this device was in)
+        if ($bookedDevice->session_device_id && !in_array($bookedDevice->session_device_id, $sessionIds)) {
+            $sessionIds[] = $bookedDevice->session_device_id;
+        }
+
+        // Get pause IDs
+        if ($bookedDevice->pauses) {
+            $pauseIds = array_merge($pauseIds, $bookedDevice->pauses->pluck('id')->toArray());
+        }
+    }
+
+    // Also get SessionDevice activities that have this device in children (for old sessions after transfer)
+    $sessionActivitiesWithDevice = Activity::where('subject_type', SessionDevice::class)
+        ->where(function($q) use ($bookedDeviceIds, $deviceId) {
+            // Check if any of our bookedDeviceIds or deviceId is in the children
+            $q->whereJsonContains('properties->children', function($query) use ($bookedDeviceIds) {
+                // This won't work directly, so we'll fetch all and filter in PHP
+            });
+        })
+        ->get()
+        ->filter(function($activity) use ($bookedDeviceIds, $deviceId) {
+            $children = $activity->properties['children'] ?? [];
+            foreach ($children as $child) {
+                $childId = $child['id'] ?? null;
+                $childDeviceId = $child['device_id'] ?? null;
+
+                // Include if child ID matches our bookedDeviceIds OR device_id matches
+                if (in_array($childId, $bookedDeviceIds) || $childDeviceId == $deviceId) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+    // Add these session IDs to our list
+    foreach ($sessionActivitiesWithDevice as $activity) {
+        if ($activity->subject_id && !in_array($activity->subject_id, $sessionIds)) {
+            $sessionIds[] = $activity->subject_id;
+        }
+    }
+
+    // Get all activities for all related records
+    $activities = Activity::where(function ($query) use ($bookedDeviceIds, $orderIds, $sessionIds, $pauseIds) {
+        $query->where(function ($q) use ($bookedDeviceIds) {
             $q->where('subject_type', BookedDevice::class)
-            ->where('subject_id', $id);
+            ->whereIn('subject_id', $bookedDeviceIds);
         })
         ->orWhere(function ($q) use ($orderIds) {
-            $q->where('subject_type', Order::class)
-            ->whereIn('subject_id', $orderIds);
+            if (!empty($orderIds)) {
+                $q->where('subject_type', Order::class)
+                ->whereIn('subject_id', $orderIds);
+            }
         })
-        ->orWhere(function ($q) use ($sessionId) {
-            $q->where('subject_type', SessionDevice::class)
-            ->where('subject_id', $sessionId);
+        ->orWhere(function ($q) use ($sessionIds) {
+            if (!empty($sessionIds)) {
+                $q->where('subject_type', SessionDevice::class)
+                ->whereIn('subject_id', $sessionIds);
+            }
         })
-        ->orWhere(function ($q) use ($pausesId) {
-            $q->where('subject_type', BookedDevicePause::class)
-            ->whereIn('subject_id', $pausesId);
+        ->orWhere(function ($q) use ($pauseIds) {
+            if (!empty($pauseIds)) {
+                $q->where('subject_type', BookedDevicePause::class)
+                ->whereIn('subject_id', $pauseIds);
+            }
         });
     })
     ->orderBy('created_at', 'desc')
     ->get();
 
-    return $activities;
+    // Group parent-child activities (same logic as DailyActivityController)
+    // Pass deviceId to filter children by device
+    return $this->groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds, $deviceId);
    }
+
+   private function groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds, $deviceId = null)
+   {
+       $grouped = collect();
+       $processedChildren = [];
+
+       foreach ($activities as $activity) {
+           $modelName = strtolower($activity->log_name);
+           $activityId = $activity->id;
+
+           // Skip if already processed as a child
+           if (in_array($activityId, $processedChildren)) {
+               continue;
+           }
+
+           if ($modelName === 'order') {
+               // Check if this Order uses children in properties
+               $propertiesChildren = $activity->properties['children'] ?? [];
+
+               if (!empty($propertiesChildren)) {
+                   // LogBatch system: children are already in properties
+                   if ($activity->event === 'updated') {
+                       $oldItems = $activity->properties['old']['items'] ?? [];
+                       $oldItemsMap = collect($oldItems)->keyBy('id');
+                       $newItemsMap = collect($propertiesChildren)->keyBy('id');
+
+                       $children = collect($propertiesChildren)->map(function($childData) use ($oldItemsMap) {
+                           $itemId = $childData['id'] ?? null;
+                           $oldItem = $oldItemsMap->get($itemId);
+
+                           if (!$oldItem) {
+                               return (object)[
+                                   'log_name' => 'OrderItem',
+                                   'event' => 'created',
+                                   'properties' => ['attributes' => $childData]
+                               ];
+                           }
+
+                           $hasChanges = false;
+                           foreach (['product_id', 'qty', 'price'] as $field) {
+                               if (isset($oldItem[$field]) && isset($childData[$field]) && $oldItem[$field] != $childData[$field]) {
+                                   $hasChanges = true;
+                                   break;
+                               }
+                           }
+
+                           if ($hasChanges) {
+                               return (object)[
+                                   'log_name' => 'OrderItem',
+                                   'event' => 'updated',
+                                   'properties' => ['attributes' => $childData, 'old' => $oldItem]
+                               ];
+                           }
+                           return null;
+                       })->filter();
+
+                       $oldIds = $oldItemsMap->keys();
+                       $newIds = $newItemsMap->keys();
+                       $deletedIds = $oldIds->diff($newIds);
+
+                       foreach ($deletedIds as $deletedId) {
+                           $children->push((object)[
+                               'log_name' => 'OrderItem',
+                               'event' => 'deleted',
+                               'properties' => ['old' => $oldItemsMap->get($deletedId)]
+                           ]);
+                       }
+
+                       $activity->children = $children->all();
+                   } else {
+                       $activity->children = collect($propertiesChildren)->map(function($childData) use ($activity) {
+                           $properties = $activity->event === 'deleted'
+                               ? ['old' => $childData]
+                               : ['attributes' => $childData];
+
+                           return (object)[
+                               'log_name' => 'OrderItem',
+                               'event' => $activity->event,
+                               'properties' => $properties
+                           ];
+                       })->all();
+                   }
+               } else {
+                   $activity->children = [];
+               }
+
+               $grouped->push($activity);
+
+           } elseif ($modelName === 'sessiondevice') {
+               // Check if this SessionDevice uses children in properties
+               $propertiesChildren = $activity->properties['children'] ?? [];
+
+               if (!empty($propertiesChildren)) {
+                   $activity->children = collect($propertiesChildren)
+                       // Filter children by device_id if provided (for group sessions)
+                       ->filter(function($childData) use ($deviceId, $bookedDeviceIds) {
+                           // If deviceId is provided, only include children for this device
+                           if ($deviceId !== null) {
+                               // Check if this child belongs to our device
+                               $childDeviceId = $childData['device_id'] ?? null;
+                               $childId = $childData['id'] ?? null;
+
+                               // Include if device_id matches OR if child_id is in our bookedDeviceIds
+                               return ($childDeviceId == $deviceId) || in_array($childId, $bookedDeviceIds);
+                           }
+                           return true;
+                       })
+                       ->map(function($childData) {
+                       $event = $childData['event'] ?? 'updated';
+
+                       if ($event === 'created' || $event === 'transfer') {
+                           return (object)[
+                               'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                               'event' => $event,
+                               'subject_id' => $childData['id'] ?? null,
+                               'properties' => [
+                                   'attributes' => [
+                                       'device_id' => $childData['device_id'] ?? null,
+                                       'device_type_id' => $childData['device_type_id'] ?? null,
+                                       'device_time_id' => $childData['device_time_id'] ?? null,
+                                       'status' => $childData['status'] ?? null,
+                                   ]
+                               ]
+                           ];
+                       }
+
+                       if ($event === 'deleted') {
+                           return (object)[
+                               'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                               'event' => $event,
+                               'subject_id' => $childData['id'] ?? null,
+                               'properties' => [
+                                   'old' => [
+                                       'device_id' => $childData['device_id'] ?? null,
+                                       'device_type_id' => $childData['device_type_id'] ?? null,
+                                       'device_time_id' => $childData['device_time_id'] ?? null,
+                                       'status' => $childData['status'] ?? null,
+                                   ]
+                               ]
+                           ];
+                       }
+
+                       return (object)[
+                           'log_name' => $childData['log_name'] ?? 'BookedDevice',
+                           'event' => $event,
+                           'subject_id' => $childData['id'] ?? null,
+                           'properties' => [
+                               'attributes' => [
+                                   'device_id' => $childData['device_id'] ?? null,
+                                   'device_type_id' => $childData['device_type_id'] ?? null,
+                                   'device_time_id' => $childData['device_time_id'] ?? null,
+                                   'status' => $childData['status'] ?? null,
+                                   'end_date_time' => $childData['end_date_time'] ?? null,
+                               ],
+                               'old' => [
+                                   'device_id' => $childData['device_id'] ?? null,
+                                   'device_type_id' => $childData['device_type_id'] ?? null,
+                                   'device_time_id' => $childData['old_device_time_id'] ?? $childData['device_time_id'] ?? null,
+                                   'status' => $childData['old_status'] ?? null,
+                                   'old_end_date_time' => $childData['old_end_date_time'] ?? null,
+                               ]
+                           ]
+                       ];
+                   })->values()->all();
+               } else {
+                   // Legacy system: look for separate BookedDevice activities
+                   $allChildren = collect($activities)->filter(function($child) use ($activity, $bookedDeviceIds) {
+                       if (strtolower($child->log_name) !== 'bookeddevice') {
+                           return false;
+                       }
+
+                       // Check if child is one of our device's BookedDevice records
+                       if (!in_array($child->subject_id, $bookedDeviceIds)) {
+                           return false;
+                       }
+
+                       // Must have same event type
+                       if (strtolower($child->event) !== strtolower($activity->event)) {
+                           return false;
+                       }
+
+                       // Children must be within 30 seconds of parent (increased tolerance)
+                       $parentTime = \Carbon\Carbon::parse($activity->created_at);
+                       $childTime = \Carbon\Carbon::parse($child->created_at);
+                       $timeDiff = abs($parentTime->diffInSeconds($childTime));
+
+                       return $timeDiff <= 30;
+                   })->values();
+
+                   $activity->children = $allChildren->all();
+
+                   foreach ($activity->children as $child) {
+                       $processedChildren[] = $child->id;
+                   }
+               }
+
+               // Only add SessionDevice activity if it has children for this device
+               // This prevents showing "updated session" for other devices in group session
+               if (!empty($activity->children)) {
+                   $grouped->push($activity);
+               }
+
+           } elseif ($modelName === 'bookeddevice' && in_array($activity->subject_id, $bookedDeviceIds)) {
+               // Standalone BookedDevice activity - skip if already processed
+               if (in_array($activityId, $processedChildren)) {
+                   continue;
+               }
+               // If not processed, it means no parent found - skip it anyway
+               continue;
+           } else {
+               // Other activities (expenses, etc.)
+               $activity->children = [];
+               $grouped->push($activity);
+           }
+       }
+
+       return $grouped;
+   }
+
+    public function createBookedDeviceWithoutLog(array $data)
+    {
+        $alreadyBooked = BookedDevice::where('device_id', $data['deviceId'])
+        ->where('device_type_id', $data['deviceTypeId'])
+        ->whereIn('status', [
+            BookedDeviceEnum::ACTIVE->value,
+            BookedDeviceEnum::PAUSED->value
+        ])
+        ->exists();
+
+        if ($alreadyBooked) {
+            throw ValidationException::withMessages([
+              "alreadyBooked" => __('validation.validation_create_booked_device')
+              ]);
+        }
+
+        // Create without triggering events/logging
+        $bookedDevice = new BookedDevice([
+            'session_device_id'=>$data['sessionDeviceId'],
+            'device_type_id'=>$data['deviceTypeId'],
+            'device_id'=>$data['deviceId'],
+            'device_time_id'=>$data['deviceTimeId'],
+            'start_date_time'=>$data['startDateTime'],
+            'total_used_seconds'=>$data['totalUsedSeconds']??0,
+            'end_date_time'=>$data['endDateTime']??null,
+            'status'=>$data['status'],
+        ]);
+
+        $bookedDevice->saveQuietly();
+
+        return $bookedDevice;
+    }
 }
