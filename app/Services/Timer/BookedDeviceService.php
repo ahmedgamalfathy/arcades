@@ -483,12 +483,6 @@ class BookedDeviceService
         }
     }
 
-        // Get pause IDs
-        if ($bookedDevice->pauses) {
-            $pauseIds = array_merge($pauseIds, $bookedDevice->pauses->pluck('id')->toArray());
-        }
-    }
-
     // Get all activities for all related records
     $activities = Activity::where(function ($query) use ($bookedDeviceIds, $orderIds, $sessionIds, $pauseIds) {
         $query->where(function ($q) use ($bookedDeviceIds) {
