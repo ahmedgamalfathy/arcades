@@ -483,6 +483,36 @@ class BookedDeviceService
         }
     }
 
+    // Also get SessionDevice activities that have this device in children (for old sessions after transfer)
+    $sessionActivitiesWithDevice = Activity::where('subject_type', SessionDevice::class)
+        ->where(function($q) use ($bookedDeviceIds, $deviceId) {
+            // Check if any of our bookedDeviceIds or deviceId is in the children
+            $q->whereJsonContains('properties->children', function($query) use ($bookedDeviceIds) {
+                // This won't work directly, so we'll fetch all and filter in PHP
+            });
+        })
+        ->get()
+        ->filter(function($activity) use ($bookedDeviceIds, $deviceId) {
+            $children = $activity->properties['children'] ?? [];
+            foreach ($children as $child) {
+                $childId = $child['id'] ?? null;
+                $childDeviceId = $child['device_id'] ?? null;
+
+                // Include if child ID matches our bookedDeviceIds OR device_id matches
+                if (in_array($childId, $bookedDeviceIds) || $childDeviceId == $deviceId) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+    // Add these session IDs to our list
+    foreach ($sessionActivitiesWithDevice as $activity) {
+        if ($activity->subject_id && !in_array($activity->subject_id, $sessionIds)) {
+            $sessionIds[] = $activity->subject_id;
+        }
+    }
+
     // Get all activities for all related records
     $activities = Activity::where(function ($query) use ($bookedDeviceIds, $orderIds, $sessionIds, $pauseIds) {
         $query->where(function ($q) use ($bookedDeviceIds) {
