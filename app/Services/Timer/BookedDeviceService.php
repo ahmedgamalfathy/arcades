@@ -482,49 +482,37 @@ class BookedDeviceService
         // Primary condition: Activities with the same timer_id (current timer lifecycle)
         $query->whereJsonContains('properties->timer_id', $timerId)
               // AND only from today
-              ->whereDate('created_at', today())
-              // AND related to current session or current booked device
-              ->where(function ($subQuery) use ($currentBookedDevice) {
-                  $subQuery->where(function ($q) use ($currentBookedDevice) {
-                      // Activities for current BookedDevice
-                      $q->where('subject_type', BookedDevice::class)
-                        ->where('subject_id', $currentBookedDevice->id);
-                  })
-                  ->orWhere(function ($q) use ($currentBookedDevice) {
-                      // Activities for current SessionDevice
-                      if ($currentBookedDevice->session_device_id) {
-                          $q->where('subject_type', SessionDevice::class)
-                            ->where('subject_id', $currentBookedDevice->session_device_id);
-                      }
-                  })
-                  ->orWhere(function ($q) use ($currentBookedDevice) {
-                      // Activities for Orders related to current BookedDevice
-                      $q->where('subject_type', Order::class)
-                        ->whereIn('subject_id', function($orderQuery) use ($currentBookedDevice) {
-                            $orderQuery->select('id')
-                                       ->from('orders')
-                                       ->where('booked_device_id', $currentBookedDevice->id)
-                                       ->whereDate('created_at', today());
-                        });
-                  });
-              });
+              ->whereDate('created_at', today());
     })
     ->orderBy('created_at', 'desc')
     ->get();
 
     // If no activities found with timer_id, fall back to current session only
     if ($activities->isEmpty()) {
-        $activities = Activity::where(function ($query) use ($currentBookedDevice) {
+        // Get all sessions that this device has been part of today
+        $allSessionIds = Activity::where('subject_type', SessionDevice::class)
+            ->whereDate('created_at', today())
+            ->whereJsonContains('properties->device_id', $currentBookedDevice->device_id)
+            ->pluck('subject_id')
+            ->unique()
+            ->toArray();
+
+        // Add current session if not already included
+        if ($currentBookedDevice->session_device_id && !in_array($currentBookedDevice->session_device_id, $allSessionIds)) {
+            $allSessionIds[] = $currentBookedDevice->session_device_id;
+        }
+
+        $activities = Activity::where(function ($query) use ($currentBookedDevice, $allSessionIds) {
             $query->where(function ($q) use ($currentBookedDevice) {
                 // Current BookedDevice activities from today only
                 $q->where('subject_type', BookedDevice::class)
                   ->where('subject_id', $currentBookedDevice->id);
             })
-            ->orWhere(function ($q) use ($currentBookedDevice) {
-                // Current SessionDevice activities from today only
-                if ($currentBookedDevice->session_device_id) {
+            ->orWhere(function ($q) use ($allSessionIds) {
+                // All SessionDevice activities for sessions this device was part of
+                if (!empty($allSessionIds)) {
                     $q->where('subject_type', SessionDevice::class)
-                      ->where('subject_id', $currentBookedDevice->session_device_id);
+                      ->whereIn('subject_id', $allSessionIds);
                 }
             })
             ->orWhere(function ($q) use ($currentBookedDevice) {
