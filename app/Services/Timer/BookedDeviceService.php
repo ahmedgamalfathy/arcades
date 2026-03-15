@@ -759,7 +759,7 @@ class BookedDeviceService
 
         return $bookedDevice;
     }
-}
+
     /**
      * Find the current session key for a booked device
      * This creates a unique key that links all activities in the same session
@@ -808,3 +808,4 @@ class BookedDeviceService
             return $activity;
         });
     }
+}
