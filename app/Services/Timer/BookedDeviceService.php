@@ -474,32 +474,34 @@ class BookedDeviceService
     // Find the persistent device session key
     $deviceSessionKey = $this->findCurrentSessionKey($currentBookedDevice);
 
-    // Get all activities for this device across all sessions on the same day
+    // Get only activities for the current active session
+    // Include activities that have the same device_session_key OR activities from today for this device
     $activities = Activity::where(function ($query) use ($deviceSessionKey, $deviceId, $currentBookedDevice) {
         $query->where(function ($q) use ($deviceSessionKey) {
             // Get activities that have the same device_session_key (new activities)
             $q->whereJsonContains('properties->device_session_key', $deviceSessionKey);
         })
-        ->orWhere(function ($q) use ($deviceId) {
-            // Include all BookedDevice activities for this device_id
-            $q->where('subject_type', BookedDevice::class)
-              ->whereIn('subject_id', function($subQuery) use ($deviceId) {
-                  $subQuery->select('id')
-                           ->from('booked_devices')
-                           ->where('device_id', $deviceId);
-              });
-        })
-        ->orWhere(function ($q) use ($deviceId) {
-            // Include SessionDevice activities for sessions that contain this device
-            $q->where('subject_type', SessionDevice::class)
-              ->whereIn('subject_id', function($subQuery) use ($deviceId) {
-                  $subQuery->select('session_device_id')
-                           ->from('booked_devices')
-                           ->where('device_id', $deviceId)
-                           ->whereNotNull('session_device_id');
-              });
+        ->orWhere(function ($q) use ($deviceId, $currentBookedDevice) {
+            // Include activities from today for this device (for current session only)
+            $q->where(function($subQ) use ($deviceId) {
+                $subQ->where('subject_type', BookedDevice::class)
+                     ->whereIn('subject_id', function($subQuery) use ($deviceId) {
+                         $subQuery->select('id')
+                                  ->from('booked_devices')
+                                  ->where('device_id', $deviceId)
+                                  ->whereDate('created_at', today());
+                     });
+            })
+            ->orWhere(function($subQ) use ($currentBookedDevice) {
+                // Include SessionDevice activities for current session only
+                if ($currentBookedDevice->session_device_id) {
+                    $subQ->where('subject_type', SessionDevice::class)
+                         ->where('subject_id', $currentBookedDevice->session_device_id);
+                }
+            });
         });
     })
+    ->whereDate('created_at', today()) // Only today's activities
     ->orderBy('created_at', 'desc')
     ->get();
 
@@ -518,20 +520,21 @@ class BookedDeviceService
         return $activity;
     });
 
-    // Use the existing grouping method with device filtering
+    // Use the existing grouping method with current session filtering
     $bookedDeviceIds = BookedDevice::where('device_id', $deviceId)
+                                   ->whereDate('created_at', today())
                                    ->pluck('id')
                                    ->toArray();
 
     $orderIds = [];
-    $sessionIds = SessionDevice::whereIn('id', function($query) use ($deviceId) {
-        $query->select('session_device_id')
-              ->from('booked_devices')
-              ->where('device_id', $deviceId)
-              ->whereNotNull('session_device_id');
-    })->pluck('id')->toArray();
+    $sessionIds = [];
 
-    // Get related order IDs if any
+    // Only include current session
+    if ($currentBookedDevice->session_device_id) {
+        $sessionIds = [$currentBookedDevice->session_device_id];
+    }
+
+    // Get related order IDs for today's booked devices only
     $orderIds = Order::whereIn('booked_device_id', $bookedDeviceIds)
                      ->pluck('id')
                      ->toArray();
