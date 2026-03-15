@@ -11,6 +11,7 @@ use Spatie\QueryBuilder\AllowedFilter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Enums\Order\OrderStatus;
 use Spatie\Activitylog\Facades\LogBatch;
+use App\Models\Timer\BookedDevice\BookedDevice;
 
 class OrderService
 {
@@ -84,6 +85,30 @@ class OrderService
 
         // تسجيل يدوي واحد فقط لكل الـ batch
         $order->load('items.product'); // تحميل العلاقات
+
+        // Generate timer tracking keys if order is related to a booked device
+        $timerTrackingProperties = [];
+        if ($order->booked_device_id) {
+            $bookedDevice = BookedDevice::find($order->booked_device_id);
+            if ($bookedDevice) {
+                $sessionDevice = $bookedDevice->sessionDevice;
+                if ($sessionDevice) {
+                    $dailyId = $sessionDevice->daily_id;
+                    $deviceStartDate = $bookedDevice->created_at->format('Y-m-d');
+                    $deviceSessionKey = 'device_' . $bookedDevice->device_id . '_daily_' . $dailyId . '_' . $deviceStartDate;
+                    $timerId = 'timer_' . $bookedDevice->device_id . '_' . $bookedDevice->created_at->timestamp;
+
+                    $timerTrackingProperties = [
+                        'device_session_key' => $deviceSessionKey,
+                        'timer_id' => $timerId,
+                        'device_id' => $bookedDevice->device_id,
+                        'related_to_device' => true,
+                        'session_type' => $sessionDevice->type == 0 ? 'individual' : 'group'
+                    ];
+                }
+            }
+        }
+
         activity()
             ->useLog('Order')
             ->event('created')
@@ -114,6 +139,7 @@ class OrderService
                     'total_items' => $order->items->count(),
                     'total_price' => $order->price,
                 ],
+                ...$timerTrackingProperties // Add timer tracking properties if available
             ])
             ->tap(function ($activity) use ($order) {
                 $activity->daily_id = $order->daily_id;
@@ -185,6 +211,30 @@ class OrderService
 
         // تسجيل يدوي واحد بعد اكتمال كل شيء
         $order->load('items.product'); // تحميل العلاقات
+
+        // Generate timer tracking keys if order is related to a booked device
+        $timerTrackingProperties = [];
+        if ($order->booked_device_id) {
+            $bookedDevice = BookedDevice::find($order->booked_device_id);
+            if ($bookedDevice) {
+                $sessionDevice = $bookedDevice->sessionDevice;
+                if ($sessionDevice) {
+                    $dailyId = $sessionDevice->daily_id;
+                    $deviceStartDate = $bookedDevice->created_at->format('Y-m-d');
+                    $deviceSessionKey = 'device_' . $bookedDevice->device_id . '_daily_' . $dailyId . '_' . $deviceStartDate;
+                    $timerId = 'timer_' . $bookedDevice->device_id . '_' . $bookedDevice->created_at->timestamp;
+
+                    $timerTrackingProperties = [
+                        'device_session_key' => $deviceSessionKey,
+                        'timer_id' => $timerId,
+                        'device_id' => $bookedDevice->device_id,
+                        'related_to_device' => true,
+                        'session_type' => $sessionDevice->type == 0 ? 'individual' : 'group'
+                    ];
+                }
+            }
+        }
+
         activity()
             ->useLog('Order')
             ->event('updated')
@@ -216,6 +266,7 @@ class OrderService
                     'total_items' => $order->items->count(),
                     'total_price' => $order->price,
                 ],
+                ...$timerTrackingProperties // Add timer tracking properties if available
             ])
             ->tap(function ($activity) use ($order) {
                 $activity->daily_id = $order->daily_id;

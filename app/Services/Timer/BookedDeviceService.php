@@ -496,6 +496,16 @@ class BookedDeviceService
                           $q->where('subject_type', SessionDevice::class)
                             ->where('subject_id', $currentBookedDevice->session_device_id);
                       }
+                  })
+                  ->orWhere(function ($q) use ($currentBookedDevice) {
+                      // Activities for Orders related to current BookedDevice
+                      $q->where('subject_type', Order::class)
+                        ->whereIn('subject_id', function($orderQuery) use ($currentBookedDevice) {
+                            $orderQuery->select('id')
+                                       ->from('orders')
+                                       ->where('booked_device_id', $currentBookedDevice->id)
+                                       ->whereDate('created_at', today());
+                        });
                   });
               });
     })
@@ -516,6 +526,16 @@ class BookedDeviceService
                     $q->where('subject_type', SessionDevice::class)
                       ->where('subject_id', $currentBookedDevice->session_device_id);
                 }
+            })
+            ->orWhere(function ($q) use ($currentBookedDevice) {
+                // Orders related to current BookedDevice from today only
+                $q->where('subject_type', Order::class)
+                  ->whereIn('subject_id', function($orderQuery) use ($currentBookedDevice) {
+                      $orderQuery->select('id')
+                                 ->from('orders')
+                                 ->where('booked_device_id', $currentBookedDevice->id)
+                                 ->whereDate('created_at', today());
+                  });
             });
         })
         ->whereDate('created_at', today()) // STRICT: Only today
@@ -525,7 +545,7 @@ class BookedDeviceService
 
     // Add consistent metadata to all activities
     $deviceSessionKey = $this->findCurrentSessionKey($currentBookedDevice);
-    $activities = $activities->map(function ($activity) use ($deviceSessionKey, $deviceId, $timerId) {
+    $activities = $activities->map(function ($activity) use ($deviceSessionKey, $deviceId, $timerId, $currentBookedDevice) {
         $properties = is_string($activity->properties)
             ? json_decode($activity->properties, true)
             : ($activity->properties ?? []);
@@ -535,6 +555,12 @@ class BookedDeviceService
         $properties['device_id'] = $deviceId;
         $properties['timer_id'] = $timerId;
         $properties['current_session_only'] = true;
+
+        // Add booked_device_id for Order activities
+        if ($activity->subject_type === Order::class) {
+            $properties['booked_device_id'] = $currentBookedDevice->id;
+            $properties['related_to_device'] = true;
+        }
 
         $activity->properties = $properties;
         return $activity;
@@ -552,6 +578,7 @@ class BookedDeviceService
 
     // Get related order IDs for current booked device only
     $orderIds = Order::where('booked_device_id', $currentBookedDevice->id)
+                     ->whereDate('created_at', today()) // Only today's orders
                      ->pluck('id')
                      ->toArray();
 
