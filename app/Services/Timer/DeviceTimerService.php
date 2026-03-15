@@ -138,6 +138,24 @@ class DeviceTimerService
             return;
         }
 
+        // Generate consistent keys for activity tracking
+        $dailyId = $sessionDevice->daily_id;
+        $deviceStartDate = $bookedDevice->created_at->format('Y-m-d');
+        $deviceSessionKey = 'device_' . $bookedDevice->device_id . '_daily_' . $dailyId . '_' . $deviceStartDate;
+        $timerId = 'timer_' . $bookedDevice->device_id . '_' . $bookedDevice->created_at->timestamp;
+
+        // Determine action type based on status change
+        $actionType = '';
+        if ($oldStatus == BookedDeviceEnum::ACTIVE->value && $bookedDevice->status == BookedDeviceEnum::PAUSED->value) {
+            $actionType = 'pause';
+        } elseif ($oldStatus == BookedDeviceEnum::PAUSED->value && $bookedDevice->status == BookedDeviceEnum::ACTIVE->value) {
+            $actionType = 'resume';
+        } elseif ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
+            $actionType = 'finish';
+        } else {
+            $actionType = 'update';
+        }
+
         // Create activity log for SessionDevice with BookedDevice as child
         activity()
             ->useLog('SessionDevice')
@@ -163,11 +181,15 @@ class DeviceTimerService
                     'status' => $bookedDevice->status,
                     'old_status' => $oldStatus,
                 ]],
+                'device_session_key' => $deviceSessionKey, // Add persistent device key
+                'timer_id' => $timerId, // Add timer lifecycle ID
+                'action_type' => $actionType, // Add action type for clarity
+                'session_type' => $sessionDevice->type == 0 ? 'individual' : 'group' // Add session type
             ])
             ->tap(function ($activity) use ($sessionDevice) {
                 $activity->daily_id = $sessionDevice->daily_id;
             })
-            ->log('SessionDevice action on BookedDevice');
+            ->log("SessionDevice - Device {$actionType}");
     }
 
     public function changeDeviceTime($id, int $newTimeId)
@@ -206,6 +228,12 @@ class DeviceTimerService
 
             // Manual activity log for SessionDevice with BookedDevice change
             if ($sessionDevice) {
+                // Generate consistent keys for activity tracking
+                $dailyId = $sessionDevice->daily_id;
+                $deviceStartDate = $BookedDeviceChange->created_at->format('Y-m-d');
+                $deviceSessionKey = 'device_' . $BookedDeviceChange->device_id . '_daily_' . $dailyId . '_' . $deviceStartDate;
+                $timerId = 'timer_' . $BookedDeviceChange->device_id . '_' . $BookedDeviceChange->created_at->timestamp;
+
                 $childData = [
                     'id' => $BookedDeviceChange->id,
                     'event' => 'updated',
@@ -237,6 +265,10 @@ class DeviceTimerService
                             'type' => $sessionDevice->type,
                         ],
                         'children' => [$childData],
+                        'device_session_key' => $deviceSessionKey, // Add persistent device key
+                        'timer_id' => $timerId, // Add timer lifecycle ID
+                        'action_type' => 'change_time', // Add action type
+                        'session_type' => $sessionDevice->type == 0 ? 'individual' : 'group' // Add session type
                     ])
                     ->tap(function ($activity) use ($sessionDevice) {
                         $activity->daily_id = $sessionDevice->daily_id;
