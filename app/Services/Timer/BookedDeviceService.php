@@ -364,6 +364,7 @@ class BookedDeviceService
                         ]
                     ],
                     'session_key' => $newSessionKey, // Add session key
+                    'timer_id' => $this->getTimerId($bookedDevice), // Add timer lifecycle ID
                     'transfer_type' => 'to_group' // Mark transfer type
                 ])
                 ->tap(function ($activity) use ($targetSession) {
@@ -445,6 +446,7 @@ class BookedDeviceService
                     ]
                 ],
                 'session_key' => 'individual_' . $bookedDevice->device_id . '_' . $newSessionDevice->created_at->format('Y-m-d_H-i-s'), // Add session key
+                'timer_id' => $this->getTimerId($bookedDevice), // Add timer lifecycle ID
                 'transfer_type' => 'to_individual' // Mark transfer type
             ])
             ->tap(function ($activity) use ($dailyId) {
@@ -506,7 +508,7 @@ class BookedDeviceService
     ->get();
 
     // Add device_session_key to all activities
-    $activities = $activities->map(function ($activity) use ($deviceSessionKey, $deviceId) {
+    $activities = $activities->map(function ($activity) use ($deviceSessionKey, $deviceId, $currentBookedDevice) {
         $properties = is_string($activity->properties)
             ? json_decode($activity->properties, true)
             : ($activity->properties ?? []);
@@ -515,6 +517,11 @@ class BookedDeviceService
         $properties['device_session_key'] = $deviceSessionKey;
         $properties['device_id'] = $deviceId;
         $properties['persistent_tracking'] = true;
+
+        // Add timer_id for complete timer lifecycle tracking
+        if (!isset($properties['timer_id'])) {
+            $properties['timer_id'] = $this->getTimerId($currentBookedDevice);
+        }
 
         $activity->properties = $properties;
         return $activity;
@@ -813,6 +820,33 @@ class BookedDeviceService
         // Create persistent device session key using device_id + daily_id + device start date
         $deviceStartDate = $bookedDevice->created_at->format('Y-m-d');
         return 'device_' . $bookedDevice->device_id . '_daily_' . ($dailyId ?? 'unknown') . '_' . $deviceStartDate;
+    }
+
+    /**
+     * Generate or retrieve timer ID for a booked device
+     * This ID stays constant throughout the timer's lifecycle regardless of session transfers
+     */
+    private function getTimerId($bookedDevice)
+    {
+        // Check if timer_id already exists in the first activity for this device
+        $existingActivity = Activity::where('subject_type', BookedDevice::class)
+            ->where('subject_id', $bookedDevice->id)
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        if ($existingActivity) {
+            $properties = is_string($existingActivity->properties)
+                ? json_decode($existingActivity->properties, true)
+                : ($existingActivity->properties ?? []);
+
+            if (isset($properties['timer_id'])) {
+                return $properties['timer_id'];
+            }
+        }
+
+        // Generate new timer_id if not found - use device creation time for consistency
+        // Format: timer_{device_id}_{creation_timestamp}
+        return 'timer_' . $bookedDevice->device_id . '_' . $bookedDevice->created_at->timestamp;
     }
 
     /**

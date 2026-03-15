@@ -95,6 +95,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         $dailyId = $data['dailyId'];
         $deviceStartDate = now()->format('Y-m-d');
         $deviceSessionKey = 'device_' . $device->device_id . '_daily_' . $dailyId . '_' . $deviceStartDate;
+        $timerId = 'timer_' . $device->device_id . '_' . $device->created_at->timestamp;
 
         activity()
             ->useLog('SessionDevice')
@@ -120,6 +121,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                     'status' => $device->status,
                 ]],
                 'device_session_key' => $deviceSessionKey, // Add persistent device key
+                'timer_id' => $timerId, // Add timer lifecycle ID
                 'session_type' => 'individual' // Mark session type
             ])
             ->tap(function ($activity) use ($sessionDevice) {
@@ -185,6 +187,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         $dailyId = $data['dailyId'];
         $deviceStartDate = now()->format('Y-m-d');
         $deviceSessionKey = 'device_' . $device->device_id . '_daily_' . $dailyId . '_' . $deviceStartDate;
+        $timerId = 'timer_' . $device->device_id . '_' . $device->created_at->timestamp;
 
         if ($isNewSession) {
             // New session - created event
@@ -212,6 +215,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                         'status' => $device->status,
                     ]],
                     'device_session_key' => $deviceSessionKey, // Add persistent device key
+                    'timer_id' => $timerId, // Add timer lifecycle ID
                     'session_type' => 'group' // Mark session type
                 ])
                 ->tap(function ($activity) use ($sessionDevice) {
@@ -245,6 +249,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                         'status' => $device->status,
                     ]],
                     'device_session_key' => $deviceSessionKey, // Add persistent device key
+                    'timer_id' => $timerId, // Add timer lifecycle ID
                     'session_type' => 'group', // Mark session type
                     'action_type' => 'add_device' // Mark action type
                 ])
