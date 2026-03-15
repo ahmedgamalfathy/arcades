@@ -183,7 +183,11 @@ class BookedDeviceService
                     'name' => $sessionDevice->name,
                     'type' => $sessionDevice->type,
                 ],
-                'children' => $children
+                'children' => $children,
+                'session_key' => $sessionDevice->type === SessionDeviceEnum::INDIVIDUAL->value
+                    ? 'individual_' . ($bookedDevices[0]->device_id ?? 'unknown') . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s')
+                    : 'session_' . $sessionDevice->id . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s'), // Add session key
+                'delete_type' => 'session_with_devices' // Mark delete type
             ])
             ->tap(function ($activity) use ($sessionDevice) {
                 $activity->daily_id = $sessionDevice->daily_id;
@@ -242,6 +246,11 @@ class BookedDeviceService
             $sessionDevice = $bookedDevice->sessionDevice;
 
             if ($sessionDevice) {
+                // Generate session key
+                $sessionKey = $sessionDevice->type === SessionDeviceEnum::INDIVIDUAL->value
+                    ? 'individual_' . $bookedDevice->device_id . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s')
+                    : 'session_' . $sessionDevice->id . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s');
+
                 // Manual activity log for SessionDevice with BookedDevice as child
                 activity()
                     ->useLog('SessionDevice')
@@ -268,6 +277,8 @@ class BookedDeviceService
                             'end_date_time' => $bookedDevice->end_date_time ? $bookedDevice->end_date_time->format('Y-m-d H:i:s') : null,
                             'old_end_date_time' => $oldEndDateTime ? $oldEndDateTime->format('Y-m-d H:i:s') : null,
                         ]],
+                        'session_key' => $sessionKey, // Add session key
+                        'update_type' => 'end_time' // Mark update type
                     ])
                     ->tap(function ($activity) use ($sessionDevice) {
                         $activity->daily_id = $sessionDevice->daily_id;
@@ -323,6 +334,9 @@ class BookedDeviceService
         // Log the transfer with BookedDevice as child
         $targetSession = SessionDevice::find($data['sessionDeviceId']);
         if ($targetSession) {
+            // Generate session key for the new session
+            $newSessionKey = 'session_' . $targetSession->id . '_' . $targetSession->created_at->format('Y-m-d_H-i-s');
+
             activity()
                 ->useLog('SessionDevice')
                 ->event('transfer')
@@ -348,7 +362,9 @@ class BookedDeviceService
                             'device_time_id' => $bookedDevice->device_time_id,
                             'status' => $bookedDevice->status,
                         ]
-                    ]
+                    ],
+                    'session_key' => $newSessionKey, // Add session key
+                    'transfer_type' => 'to_group' // Mark transfer type
                 ])
                 ->tap(function ($activity) use ($targetSession) {
                     $activity->daily_id = $targetSession->daily_id;
@@ -427,7 +443,9 @@ class BookedDeviceService
                         'device_time_id' => $bookedDevice->device_time_id,
                         'status' => $bookedDevice->status,
                     ]
-                ]
+                ],
+                'session_key' => 'individual_' . $bookedDevice->device_id . '_' . $newSessionDevice->created_at->format('Y-m-d_H-i-s'), // Add session key
+                'transfer_type' => 'to_individual' // Mark transfer type
             ])
             ->tap(function ($activity) use ($dailyId) {
                 $activity->daily_id = $dailyId;
@@ -449,101 +467,46 @@ class BookedDeviceService
     }
    public function getActivityLogToDevice($bookedDeviceId)
    {
-    // Get the BookedDevice to find the device_id
+    // Get the current BookedDevice
     $currentBookedDevice = BookedDevice::findOrFail($bookedDeviceId);
     $deviceId = $currentBookedDevice->device_id;
 
-    // Get ALL BookedDevice records for this device (across all sessions)
-    // This ensures we show complete history even after transfers
-    $bookedDevices = BookedDevice::where('device_id', $deviceId)
-        ->with(['orders', 'sessionDevice', 'pauses'])
-        ->orderBy('created_at', 'desc')
-        ->get();
+    // Find the session key for the current active session
+    $sessionKey = $this->findCurrentSessionKey($currentBookedDevice);
 
-    // Collect all related IDs
-    $bookedDeviceIds = $bookedDevices->pluck('id')->toArray();
-    $orderIds = [];
-    $sessionIds = []; // Collect all session IDs
-    $pauseIds = [];
-
-    foreach ($bookedDevices as $bookedDevice) {
-        // Get order IDs
-        if ($bookedDevice->orders) {
-            $orderIds = array_merge($orderIds, $bookedDevice->orders->pluck('id')->toArray());
-        }
-
-        // Get session IDs (collect all sessions this device was in)
-        if ($bookedDevice->session_device_id && !in_array($bookedDevice->session_device_id, $sessionIds)) {
-            $sessionIds[] = $bookedDevice->session_device_id;
-        }
-
-        // Get pause IDs
-        if ($bookedDevice->pauses) {
-            $pauseIds = array_merge($pauseIds, $bookedDevice->pauses->pluck('id')->toArray());
-        }
-    }
-
-    // Also get SessionDevice activities that have this device in children (for old sessions after transfer)
-    $sessionActivitiesWithDevice = Activity::where('subject_type', SessionDevice::class)
-        ->where(function($q) use ($bookedDeviceIds, $deviceId) {
-            // Check if any of our bookedDeviceIds or deviceId is in the children
-            $q->whereJsonContains('properties->children', function($query) use ($bookedDeviceIds) {
-                // This won't work directly, so we'll fetch all and filter in PHP
-            });
+    // Get only activities for the current active session using session_key
+    $activities = Activity::where(function ($query) use ($sessionKey, $bookedDeviceId) {
+        $query->where(function ($q) use ($sessionKey) {
+            // Get activities that have the same session_key
+            $q->whereJsonContains('properties->session_key', $sessionKey);
         })
-        ->get()
-        ->filter(function($activity) use ($bookedDeviceIds, $deviceId) {
-            $children = $activity->properties['children'] ?? [];
-            foreach ($children as $child) {
-                $childId = $child['id'] ?? null;
-                $childDeviceId = $child['device_id'] ?? null;
-
-                // Include if child ID matches our bookedDeviceIds OR device_id matches
-                if (in_array($childId, $bookedDeviceIds) || $childDeviceId == $deviceId) {
-                    return true;
-                }
-            }
-            return false;
-        });
-
-    // Add these session IDs to our list
-    foreach ($sessionActivitiesWithDevice as $activity) {
-        if ($activity->subject_id && !in_array($activity->subject_id, $sessionIds)) {
-            $sessionIds[] = $activity->subject_id;
-        }
-    }
-
-    // Get all activities for all related records
-    $activities = Activity::where(function ($query) use ($bookedDeviceIds, $orderIds, $sessionIds, $pauseIds) {
-        $query->where(function ($q) use ($bookedDeviceIds) {
+        ->orWhere(function ($q) use ($bookedDeviceId) {
+            // Also include direct activities for this specific booked device
+            // that might not have session_key yet (for backward compatibility)
             $q->where('subject_type', BookedDevice::class)
-            ->whereIn('subject_id', $bookedDeviceIds);
-        })
-        ->orWhere(function ($q) use ($orderIds) {
-            if (!empty($orderIds)) {
-                $q->where('subject_type', Order::class)
-                ->whereIn('subject_id', $orderIds);
-            }
-        })
-        ->orWhere(function ($q) use ($sessionIds) {
-            if (!empty($sessionIds)) {
-                $q->where('subject_type', SessionDevice::class)
-                ->whereIn('subject_id', $sessionIds);
-            }
-        })
-        ->orWhere(function ($q) use ($pauseIds) {
-            if (!empty($pauseIds)) {
-                $q->where('subject_type', BookedDevicePause::class)
-                ->whereIn('subject_id', $pauseIds);
-            }
+              ->where('subject_id', $bookedDeviceId)
+              ->whereDate('created_at', today()); // Only today's activities
         });
     })
     ->orderBy('created_at', 'desc')
     ->get();
 
-    // Group parent-child activities (same logic as DailyActivityController)
-    // Pass deviceId to filter children by device
-    return $this->groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds, $deviceId);
+    // Add session_key to activities that don't have it
+    $activities = $activities->map(function ($activity) use ($sessionKey) {
+        $properties = is_string($activity->properties)
+            ? json_decode($activity->properties, true)
+            : ($activity->properties ?? []);
+
+        if (!isset($properties['session_key'])) {
+            $properties['session_key'] = $sessionKey;
+            $activity->properties = $properties;
+        }
+
+        return $activity;
+    });
+
+    // Group activities by session_key for better organization
+    return $this->groupActivitiesBySessionKey($activities, $sessionKey);
    }
 
    private function groupParentChildActivitiesForDevice($activities, $bookedDeviceIds, $orderIds, $sessionIds, $deviceId = null)
@@ -797,3 +760,51 @@ class BookedDeviceService
         return $bookedDevice;
     }
 }
+    /**
+     * Find the current session key for a booked device
+     * This creates a unique key that links all activities in the same session
+     */
+    private function findCurrentSessionKey($bookedDevice)
+    {
+        // Check if device is in a session (group)
+        if ($bookedDevice->session_device_id) {
+            $sessionDevice = SessionDevice::find($bookedDevice->session_device_id);
+            if ($sessionDevice) {
+                // Use session start time + session_id as unique key
+                return 'session_' . $sessionDevice->id . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s');
+            }
+        }
+
+        // For individual devices, use booked device start time + device_id
+        return 'individual_' . $bookedDevice->device_id . '_' . $bookedDevice->created_at->format('Y-m-d_H-i-s');
+    }
+
+    /**
+     * Group activities by session key for better organization
+     */
+    private function groupActivitiesBySessionKey($activities, $sessionKey)
+    {
+        // Filter activities to only include those with matching session_key or recent activities
+        $filteredActivities = $activities->filter(function ($activity) use ($sessionKey) {
+            $properties = is_string($activity->properties)
+                ? json_decode($activity->properties, true)
+                : ($activity->properties ?? []);
+
+            // Include if has matching session_key or is from today
+            return (isset($properties['session_key']) && $properties['session_key'] === $sessionKey) ||
+                   $activity->created_at->isToday();
+        });
+
+        // Add session metadata to each activity
+        return $filteredActivities->map(function ($activity) use ($sessionKey) {
+            $properties = is_string($activity->properties)
+                ? json_decode($activity->properties, true)
+                : ($activity->properties ?? []);
+
+            $properties['session_key'] = $sessionKey;
+            $properties['session_group'] = true; // Mark as part of session group
+
+            $activity->properties = $properties;
+            return $activity;
+        });
+    }

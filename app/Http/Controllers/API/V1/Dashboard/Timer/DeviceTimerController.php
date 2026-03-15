@@ -92,6 +92,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         $device = $this->bookedDeviceService->createBookedDeviceWithoutLog($data);
 
         // Manual activity log for SessionDevice with BookedDevice as child
+        $sessionKey = 'individual_' . $device->device_id . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s');
+
         activity()
             ->useLog('SessionDevice')
             ->event('created')
@@ -115,6 +117,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                     'device_time_id' => $device->device_time_id,
                     'status' => $device->status,
                 ]],
+                'session_key' => $sessionKey, // Add session key
+                'session_type' => 'individual' // Mark session type
             ])
             ->tap(function ($activity) use ($sessionDevice) {
                 $activity->daily_id = $sessionDevice->daily_id;
@@ -176,6 +180,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         $device = $this->bookedDeviceService->createBookedDeviceWithoutLog($data);
 
         // Manual activity log for SessionDevice with BookedDevice as child
+        $sessionKey = 'session_' . $sessionDevice->id . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s');
+
         if ($isNewSession) {
             // New session - created event
             activity()
@@ -201,6 +207,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                         'device_time_id' => $device->device_time_id,
                         'status' => $device->status,
                     ]],
+                    'session_key' => $sessionKey, // Add session key
+                    'session_type' => 'group' // Mark session type
                 ])
                 ->tap(function ($activity) use ($sessionDevice) {
                     $activity->daily_id = $sessionDevice->daily_id;
@@ -232,6 +240,9 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                         'device_time_id' => $device->device_time_id,
                         'status' => $device->status,
                     ]],
+                    'session_key' => $sessionKey, // Add session key
+                    'session_type' => 'group', // Mark session type
+                    'action_type' => 'add_device' // Mark action type
                 ])
                 ->tap(function ($activity) use ($sessionDevice) {
                     $activity->daily_id = $sessionDevice->daily_id;
