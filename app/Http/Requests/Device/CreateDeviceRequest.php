@@ -37,7 +37,7 @@ class CreateDeviceRequest extends FormRequest
              Rule::unique('devices','name')
                 ->where(fn ($q) =>
                     $q->where('device_type_id', $this->get('deviceTypeId'))
-                    //   ->whereNull('deleted_at')
+                      ->whereNull('deleted_at')
                 )
             ],
           'deviceTimeIds'=>['nullable','array','min:1','required_without:deviceTimeSpecial'],

@@ -24,7 +24,9 @@ class UniqueDeviceTimeName implements ValidationRule
     {
         $query = DB::table('device_times')
             ->where('device_type_id', $this->deviceTypeId)
-            ->where('name', $value);
+            ->where('name', $value)
+            ->whereNull('deleted_at');
+
 
         if ($this->ignoreId) {
             $query->where('id', '!=', $this->ignoreId);

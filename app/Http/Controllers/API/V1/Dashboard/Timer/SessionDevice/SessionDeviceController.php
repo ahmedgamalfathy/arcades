@@ -66,11 +66,15 @@ class SessionDeviceController extends Controller  implements HasMiddleware
     public function destroy(string $id)
     {
         try {
+            DB::beginTransaction();
             $this->sessionDeviceService->deleteSessionDevice($id);
+            DB::commit();
             return ApiResponse::success([],__('crud.deleted'));
         } catch (ModelNotFoundException $e) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),$e->getMessage(), HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $e ) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }

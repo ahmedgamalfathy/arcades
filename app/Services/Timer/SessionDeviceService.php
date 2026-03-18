@@ -7,9 +7,13 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use App\Filters\Timer\FilterSessionDevice;
 use App\Filters\Timer\FilterTypeSessionDevice;
-
+use App\Services\Timer\BookedDeviceService;
 class SessionDeviceService
 {
+     public function __construct(public BookedDeviceService $bookedDeviceService)
+    {
+        //
+    }
     public function getSessionDevices( Request $request)
     {
         $perPage= $request->query('perPage',10);
@@ -58,6 +62,9 @@ class SessionDeviceService
     public function deleteSessionDevice(int $id): void
     {
         $sessionDevice=SessionDevice::findOrFail($id);
+        $sessionDevice->bookedDevices()->each(function ($bookedDevice) {
+            $this->bookedDeviceService->deleteBookedDevice($bookedDevice->id);
+        });
         $sessionDevice->delete();
     }
 

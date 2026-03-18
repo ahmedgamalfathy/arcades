@@ -7,7 +7,7 @@ use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
+use Illuminate\Validation\Rule;
 
 
 class CreateDeviceTypeRequest extends FormRequest
@@ -28,7 +28,7 @@ class CreateDeviceTypeRequest extends FormRequest
     public function rules(): array
     {//name , rate , device_type_id
         return [
-            'name' => ['string','required','unique:device_types,name'],
+            'name' => ['string','required',Rule::unique('device_types','name')->whereNull('deleted_at')],
             'times'=> ['required','array','min:1'],
            'times.*.name' => [
             'required',

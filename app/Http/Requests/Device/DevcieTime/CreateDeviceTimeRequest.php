@@ -47,10 +47,10 @@ class CreateDeviceTimeRequest extends FormRequest
                 'string',
             Rule::unique('device_times', 'name')
                 ->when($this->deviceTypeId, fn($query) =>
-                    $query->where('device_type_id', $this->deviceTypeId)
+                    $query->where('device_type_id', $this->deviceTypeId)->whereNull('deleted_at')
                 )
                 ->when($this->deviceId, fn($query) =>
-                    $query->where('device_id', $this->deviceId)
+                    $query->where('device_id', $this->deviceId)->whereNull('deleted_at')
                 ),
            ],
           'rate'=> ['required','numeric','min:1'],

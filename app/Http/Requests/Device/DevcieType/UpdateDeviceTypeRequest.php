@@ -33,6 +33,7 @@ class UpdateDeviceTypeRequest extends FormRequest
     {
         return [
             'name' => ['string','required',Rule::unique('device_types', 'name')
+            ->whereNull('deleted_at')
             ->ignore($this->route('device_type'))],
             'times'=> ['required','array','min:1'],
             'times.*.name' => [

@@ -7,6 +7,7 @@ use App\Helpers\ApiResponse;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\Rule;
 
 
 
@@ -28,7 +29,7 @@ class CreateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['string','required','unique:products,name'],
+            'name' => ['string','required',   Rule::unique('products', 'name')->whereNull('deleted_at'),],
             'price'=> ['required','numeric','min:1'],
             // 'status' => ['nullable', new Enum(StatusEnum::class)],
             'path' => ["nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
