@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'locale' => \App\Http\Middleware\ApiLocale::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             // 'check.permission' => CheckPermission::class,

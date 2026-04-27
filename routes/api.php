@@ -37,12 +37,12 @@ use App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes\EndGroupTimesEdite
 use App\Http\Controllers\API\V2\Dashboard\Report\AllDailyRangeOfDateController;
 
 
-    Route::prefix('v1/admin')->group(function () {
+    Route::prefix('v1/admin')->middleware('locale')->group(function () {
             Route::prefix('auth')->group(function () {
                 Route::post('/login ', LoginController::class);
                 Route::post('/logout',LogoutController::class);
             });
-            Route::prefix('forgot-password')->group(function () {
+            Route::prefix('forgot-password')->middleware('locale')->group(function () {
                 Route::post('/send-code', SendCodeController::class);
                 Route::post('/verify-code', VerifyCodeController::class);
                 // Route::post('/resendCode', ResendCodeController::class);
@@ -50,7 +50,7 @@ use App\Http\Controllers\API\V2\Dashboard\Report\AllDailyRangeOfDateController;
             });
     });
 
-    Route::prefix('v1/admin')->group(function () {
+    Route::prefix('v1/admin')->middleware('locale')->group(function () {
                     Route::put('orders/{id}/changeStatus',[OrderController::class,'changeOrderStatus']);
                     Route::put('orders/{id}/changeTypePay',[OrderController::class,'changeOrderPaymentStatus']);
                     Route::put('users/changePassword',[UserController::class,'userChangePassword']);
