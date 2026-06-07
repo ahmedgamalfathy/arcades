@@ -8,34 +8,20 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Services\Device\DeviceTime\DeviceTimeService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Resources\Devices\DeviceTime\DeviceTimeResource;
-use App\Http\Requests\Device\DevcieTime\CreateDeviceTimeRequest;
-use App\Http\Requests\Device\DevcieTime\UpdateDeviceTimeRequest;
+use App\Http\Requests\Device\DeviceTime\CreateDeviceTimeRequest;
+use App\Http\Requests\Device\DeviceTime\UpdateDeviceTimeRequest;
 use App\Http\Resources\Devices\DeviceTime\AllDeviceTimeResource;
 use Illuminate\Validation\ValidationException;
 
-class DeviceTimeController extends Controller implements HasMiddleware
+class DeviceTimeController extends Controller
 {
     protected $deviceTimeService;
     public function __construct(DeviceTimeService $deviceTimeService)
     {
         $this->deviceTimeService = $deviceTimeService;
-    }
-    public static function middleware(): array
-    {
-        return [//deviceTimes ,create_deviceTimes,edit_deviceTime,update_deviceTime,destroy_deviceTime
-            new Middleware('auth:api'),
-            new Middleware('permission:deviceTimes', only:['index']),
-            new Middleware('permission:create_deviceTimes', only:['create']),
-            new Middleware('permission:edit_deviceTime', only:['edit']),
-            new Middleware('permission:update_deviceTime', only:['update']),
-            new Middleware('permission:destroy_deviceTime', only:['destroy', 'restore', 'forceDelete']),
-            new Middleware('tenant'),
-        ];
     }
 
     /**

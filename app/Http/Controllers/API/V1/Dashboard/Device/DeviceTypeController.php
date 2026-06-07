@@ -9,18 +9,16 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Services\Device\DeviceTime\DeviceTimeService;
 use App\Services\Device\DeviceType\DeviceTypeService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Http\Requests\Device\DevcieType\CreateDeviceTypeRequest;
-use App\Http\Requests\Device\DevcieType\UpdateDeviceTypeRequest;
+use App\Http\Requests\Device\DeviceType\CreateDeviceTypeRequest;
+use App\Http\Requests\Device\DeviceType\UpdateDeviceTypeRequest;
 use App\Http\Resources\Devices\DeviceType\AllDeviceTypeResource;
 use App\Http\Resources\Devices\DeviceType\DeviceTypeEditResource;
 
-class DeviceTypeController extends Controller  implements HasMiddleware
+class DeviceTypeController extends Controller
 {
     protected $deviceTypeService;
     protected $deviceTimeService;
@@ -29,36 +27,24 @@ class DeviceTypeController extends Controller  implements HasMiddleware
         $this->deviceTypeService = $deviceTypeService;
         $this->deviceTimeService = $deviceTimeService;
     }
-    public static function middleware(): array
-    {//deviceTypes , create_deviceTypes ,edit_deviceType ,update_deviceType ,destroy_deviceType
-        return [
-            new Middleware('auth:api'),
-            new Middleware('permission:deviceTypes', only:['index']),
-            new Middleware('permission:create_deviceTypes', only:['create']),
-            new Middleware('permission:edit_deviceType', only:['edit']),
-            new Middleware('permission:update_deviceType', only:['update']),
-            new Middleware('permission:destroy_deviceType', only:['destroy', 'restore', 'forceDelete']),
-            new Middleware('tenant'),
-        ];
-    }
 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $devcieTypes=$this->deviceTypeService->allDeviceTypes($request);
-        return ApiResponse::success(new AllDeviceTypeResource ($devcieTypes));
+        $deviceTypes=$this->deviceTypeService->allDeviceTypes($request);
+        return ApiResponse::success(new AllDeviceTypeResource ($deviceTypes));
     }
 
     /**
      * Display the specified resource.
      */
-      public function show($id)
+    public function show($id)
     {
         try {
-            $devcieTime=$this->deviceTypeService->editDeviceType($id);
-            return ApiResponse::success(new DeviceTypeEditResource($devcieTime));
+            $deviceTime=$this->deviceTypeService->editDeviceType($id);
+            return ApiResponse::success(new DeviceTypeEditResource($deviceTime));
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {

@@ -14,11 +14,9 @@ use App\Enums\Device\DeviceStatusEnum;
 use App\Services\Device\DeviceService;
 use Illuminate\Database\QueryException;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Validation\ValidationException;
 use App\Http\Requests\Device\CreateDeviceRequest;
 use App\Http\Requests\Device\UpdateDeviceRequest;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\Order\CreateOrderDeviceRequest;
 use App\Http\Resources\Devices\Device\DeviceResource;
 use App\Services\Device\DeviceTime\DeviceTimeService;
@@ -26,7 +24,7 @@ use App\Http\Resources\Devices\Device\AllDeviceResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 
-class DeviceController extends Controller  implements HasMiddleware
+class DeviceController extends Controller
 {
     protected $deviceTimeService;
     protected $deviceService;
@@ -36,19 +34,6 @@ class DeviceController extends Controller  implements HasMiddleware
         $this->deviceTimeService = $deviceTimeService;
         $this->deviceService = $deviceService;
         $this->orderService = $orderService;
-    }
-    public static function middleware(): array
-    {
-        return [//'changeStatus, devices ,create_devices, edit_device,update_device ,destroy_device
-            new Middleware('auth:api'),
-            new Middleware('permission:devices', only:['index']),
-            new Middleware('permission:devices_changeStatus', only:['changeStatus']),
-            new Middleware('permission:create_devices', only:['create']),
-            new Middleware('permission:edit_device', only:['edit']),
-            new Middleware('permission:update_device', only:['update']),
-            new Middleware('permission:destroy_device', only:['destroy','restore','forceDelete']),
-            new Middleware('tenant'),
-        ];
     }
 
     /**

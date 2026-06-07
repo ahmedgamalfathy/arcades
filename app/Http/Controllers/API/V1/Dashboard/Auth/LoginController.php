@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Http\Requests\Auth\LoginUserRequest;
-use App\Services\UserRolePremission\UserPermissionService;
+use App\Services\UserRolePermission\UserPermissionService;
 
 class LoginController extends Controller
 {

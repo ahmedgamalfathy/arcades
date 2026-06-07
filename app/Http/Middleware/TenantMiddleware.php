@@ -6,11 +6,8 @@ use Closure;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Symfony\Component\HttpFoundation\Response;
 
 class TenantMiddleware
 {
@@ -50,21 +47,21 @@ class TenantMiddleware
             DB::reconnect('tenant');
             DB::setDefaultConnection('tenant');
             // DB::connection('tenant')->getPdo();
-            Log::info('✅ Tenant connected successfully', [
+            logger()->info('Tenant connected successfully.', [
                 'user_id' => $user->id,
                 'database' => $user->database_name,
             ]);
 
-        } catch (\Exception $e) {
-            Log::error('❌ Tenant connection failed', [
+        } catch (\Throwable $e) {
+            logger()->error('Tenant database connection failed.', [
                 'user_id' => $user->id,
                 'database' => $user->database_name,
-                'error' => $e->getMessage(),
+                'exception' => $e,
             ]);
 
             return ApiResponse::error(
-                'Failed to connect to tenant database',
-                $e->getMessage(),
+                'حدثت مشكلة في الاتصال بقاعدة البيانات. يرجى مراجعة الدعم الفني.',
+                [],
                 HttpStatusCode::UNPROCESSABLE_ENTITY
             );
         }

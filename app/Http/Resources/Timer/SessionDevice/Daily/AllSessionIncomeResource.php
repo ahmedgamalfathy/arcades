@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Enums\BookedDevice\BookedDeviceEnum;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
+use App\Http\Resources\Timer\BookedDevice\BookedDeviceResource;
 
 class AllSessionIncomeResource extends JsonResource
 {

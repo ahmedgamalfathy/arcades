@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\UserRolePremission;
+namespace App\Services\UserRolePermission;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Spatie\Permission\Models\Permission;

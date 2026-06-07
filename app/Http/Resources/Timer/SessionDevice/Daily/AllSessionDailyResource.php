@@ -5,7 +5,7 @@ namespace App\Http\Resources\Timer\SessionDevice\Daily;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
-use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
+use App\Http\Resources\Timer\BookedDevice\BookedDeviceResource;
 
 class AllSessionDailyResource extends JsonResource
 {

@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Requests\Device\DevcieTime;
+namespace App\Http\Requests\Device\DeviceType;
 
 use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rule;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
@@ -11,7 +10,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 
 
-class CreateDeviceTimeRequest extends FormRequest
+class CreateDeviceTypeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,31 +28,19 @@ class CreateDeviceTimeRequest extends FormRequest
     public function rules(): array
     {//name , rate , device_type_id
         return [
-            'deviceTypeId' => [
-                'nullable',
-                'integer',
-                'exists:device_types,id',
-                'required_without:deviceId',
-            ],
-            'deviceId' => [
-                'nullable',
-                'integer',
-                'exists:devices,id',
-                'required_without:deviceTypeId',
-            ],
-
-            'name' =>[
-                'required',
-                'string',
-            Rule::unique('device_times', 'name')
-                ->when($this->deviceTypeId, fn($query) =>
-                    $query->where('device_type_id', $this->deviceTypeId)
-                )
-                ->when($this->deviceId, fn($query) =>
-                    $query->where('device_id', $this->deviceId)
-                ),
-           ],
-          'rate'=> ['required','numeric','min:1'],
+            'name' => ['string','required','unique:device_types,name'],
+            'times'=> ['required','array','min:1'],
+           'times.*.name' => [
+            'required',
+            'string',
+            function ($attribute, $value, $fail) {
+                $names = array_column($this->input('times'), 'name');
+                if (count(array_keys($names, $value)) > 1) {
+                    $fail("The name '$value' is duplicated within the request.");
+                }
+            }
+        ],
+            'times.*.rate'=>['required','numeric','min:1'],
         ];
     }
 
@@ -70,6 +57,7 @@ class CreateDeviceTimeRequest extends FormRequest
             //name , price , date , note ,type
         return [
             'name.required' => __('validation.custom.required'),
+            'name.unique' => __('validation.custom.unique'),
             'rate.required' => __('validation.custom.required'),
             'deviceTypeId.required' => __('validation.custom.required'),
         ];

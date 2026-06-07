@@ -7,28 +7,16 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Services\Timer\SessionDeviceService;
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
 use App\Http\Resources\Timer\SessionDevice\AllSessionResource;
 
-class SessionDeviceController extends Controller  implements HasMiddleware
+class SessionDeviceController extends Controller
 {
     public function __construct(
     protected SessionDeviceService $sessionDeviceService
     )
     {
-    }
-            public static function middleware(): array
-    {
-        return [
-            new Middleware('auth:api'),
-            new Middleware('permission:products', only:['index']),
-            new Middleware('permission:edit_product', only:['edit']),
-            new Middleware('permission:destroy_product', only:['destroy','restore','forceDelete']),
-            new Middleware('tenant'),
-        ];
     }
     /**
      * Display a listing of the resource.

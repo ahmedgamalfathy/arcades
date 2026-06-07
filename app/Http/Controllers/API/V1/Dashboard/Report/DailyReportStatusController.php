@@ -5,8 +5,6 @@ namespace App\Http\Controllers\API\V1\Dashboard\Report;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Report\DailyReportService;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -19,7 +17,7 @@ use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Models\Daily\Daily;
 use App\Enums\Expense\ExpenseTypeEnum;
 use Throwable;
-class DailyReportStatusController extends Controller implements HasMiddleware
+class DailyReportStatusController extends Controller
 {
        protected $dailyReportStatusService;
 
@@ -27,19 +25,6 @@ class DailyReportStatusController extends Controller implements HasMiddleware
     public function __construct(DailyReportStatusService $dailyReportStatusService)
     {
         $this->dailyReportStatusService = $dailyReportStatusService;
-    }
-
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('auth:api'),
-            new Middleware('permission:products', only:['index']),
-            new Middleware('permission:create_products', only:['create']),
-            new Middleware('permission:edit_product', only:['edit']),
-            new Middleware('permission:update_product', only:['update']),
-            new Middleware('permission:destroy_product', only:['destroy']),
-            new Middleware('tenant'),
-        ];
     }
     public function getStatusReport(CreateReportRequest $createReportRequest)
     {

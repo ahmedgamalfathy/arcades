@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Device\DevcieTime;
+namespace App\Http\Requests\Device\DeviceTime;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Validation\Rule;

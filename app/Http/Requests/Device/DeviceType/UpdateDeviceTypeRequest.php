@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Device\DevcieType;
+namespace App\Http\Requests\Device\DeviceType;
 
 use Illuminate\Support\Arr;
 use App\Helpers\ApiResponse;

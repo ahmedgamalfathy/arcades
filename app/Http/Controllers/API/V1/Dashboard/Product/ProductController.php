@@ -9,15 +9,13 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\Product\ProductService;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Resources\Product\ProductResource;
 use App\Http\Requests\Product\CreateProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\Product\AllProductResource;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-// implements HasMiddleware
-class ProductController extends Controller implements HasMiddleware
+//
+class ProductController extends Controller
 {
        protected $productService;
 
@@ -25,19 +23,6 @@ class ProductController extends Controller implements HasMiddleware
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
-    }
-
-    public static function middleware(): array
-    {
-        return [//products , create_products,edit_product,update_product ,destroy_product
-            new Middleware('auth:api'),
-            new Middleware('permission:products', only:['index']),
-            new Middleware('permission:create_products', only:['create']),
-            new Middleware('permission:edit_product', only:['edit']),
-            new Middleware('permission:update_product', only:['update']),
-            new Middleware('permission:destroy_product', only:['destroy']),
-            new Middleware('tenant'),
-        ];
     }
 
 

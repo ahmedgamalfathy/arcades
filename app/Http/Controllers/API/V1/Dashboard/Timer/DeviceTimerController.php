@@ -16,41 +16,34 @@ use App\Services\Timer\BookedDeviceService;
 use App\Services\Timer\SessionDeviceService;
 use App\Http\Resources\Device\DeviceResource;
 use App\Enums\SessionDevice\SessionDeviceEnum;
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\Timer\Group\CreateGroupRequest;
 use App\Notifications\BookedDeviceStatusNotification;
 use App\Http\Requests\Timer\FinishBookedDeviceRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Timer\Individual\CreateIndividualRequest;
-use App\Http\Resources\Timer\BookedDevice\BookedDevcieResource;
+use App\Http\Resources\Timer\BookedDevice\BookedDeviceResource;
 use App\Http\Resources\Timer\BookedDevice\BookedDeviceEditResource;
 use App\Http\Resources\ActivityLog\DeviceActivity\AllDeviceActivityResource;
 use Illuminate\Validation\ValidationData;
-use League\Config\Exception\ValidationException;
+use Illuminate\Validation\ValidationException;
 
-class DeviceTimerController extends Controller  implements HasMiddleware
+class DeviceTimerController extends Controller
 {
-    public function __construct(
-        protected SessionDeviceService $sessionDeviceService,
-        protected DeviceTimerService $timerService,
-        protected BookedDeviceService $bookedDeviceService
-        )
+    private function sessionDeviceService(): SessionDeviceService
     {
+        return app(SessionDeviceService::class);
     }
 
-        public static function middleware(): array
+    private function timerService(): DeviceTimerService
     {
-        return [//products , create_products,edit_product,update_product ,destroy_product
-            new Middleware('auth:api'),
-            new Middleware('permission:products', only:['index']),
-            new Middleware('permission:create_products', only:['create']),
-            new Middleware('permission:edit_product', only:['edit']),
-            new Middleware('permission:update_product', only:['update']),
-            new Middleware('permission:destroy_product', only:['destroy', 'restore', 'forceDelete']),
-            new Middleware('tenant'),
-        ];
+        return app(DeviceTimerService::class);
     }
+
+    private function bookedDeviceService(): BookedDeviceService
+    {
+        return app(BookedDeviceService::class);
+    }
+
     public function individualTime(CreateIndividualRequest $createIndividualRequest)
     {
         try {
@@ -89,7 +82,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         }
 
         // Create device without automatic logging
-        $device = $this->bookedDeviceService->createBookedDeviceWithoutLog($data);
+        $device = $this->bookedDeviceService()->createBookedDeviceWithoutLog($data);
 
         // Manual activity log for SessionDevice with BookedDevice as child
         $dailyId = $data['dailyId'];
@@ -157,7 +150,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             $data['sessionDeviceId']=$sessionDevice->id;
             $isNewSession = true;
         }elseIf($data['sessionDeviceId']){
-            $sessionDevice= $this->sessionDeviceService->editSessionDevice($data['sessionDeviceId']);
+            $sessionDevice= $this->sessionDeviceService()->editSessionDevice($data['sessionDeviceId']);
             $data['sessionDeviceId']=$sessionDevice->id;
             $isNewSession = false;
         }
@@ -181,7 +174,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         }
 
         // Create device without automatic logging
-        $device = $this->bookedDeviceService->createBookedDeviceWithoutLog($data);
+        $device = $this->bookedDeviceService()->createBookedDeviceWithoutLog($data);
 
         // Manual activity log for SessionDevice with BookedDevice as child
         $dailyId = $data['dailyId'];
@@ -273,8 +266,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     {
         try {
             DB::beginTransaction();
-                $device = $this->bookedDeviceService->editBookedDevice($id);
-                $this->timerService->pause($device->id);
+                $device = $this->bookedDeviceService()->editBookedDevice($id);
+                $this->timerService()->pause($device->id);
             DB::commit();
             return ApiResponse::success([],__('crud.created'));
         }catch (ModelNotFoundException $th) {
@@ -289,7 +282,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     {
         try {
             DB::beginTransaction();
-              $this->timerService->resume($id);
+              $this->timerService()->resume($id);
             DB::commit();
             return ApiResponse::success([],__('crud.created'));
         }catch (ModelNotFoundException $th) {
@@ -305,14 +298,14 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         try {
             DB::beginTransaction();
                 $data = $request->validated();
-                $finished = $this->timerService->finish($id,$data);
+                $finished = $this->timerService()->finish($id,$data);
                 // $data=[
                 //     'message' => 'Device finished',
                 //     'total_seconds' => $finished->total_used_seconds,
                 //     'price' => $finished->calculatePrice(),
                 // ];
             DB::commit();
-         return ApiResponse::success(new  BookedDevcieResource($finished));
+         return ApiResponse::success(new  BookedDeviceResource($finished));
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
@@ -327,8 +320,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
         try {
             DB::beginTransaction();
                 $request->validate(['deviceTimeId' => 'required|exists:device_times,id']);
-                $device = $this->bookedDeviceService->editBookedDevice($id);
-                $newDevice = $this->timerService->changeDeviceTime($device->id, $request->deviceTimeId);
+                $device = $this->bookedDeviceService()->editBookedDevice($id);
+                $newDevice = $this->timerService()->changeDeviceTime($device->id, $request->deviceTimeId);
             DB::commit();
             return ApiResponse::success([
                 "newBookedDeviceId"=>$newDevice->id ??0
@@ -343,7 +336,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     //show device timer
     public function show($id){
         try {
-            $device = $this->bookedDeviceService->editBookedDevice($id);
+            $device = $this->bookedDeviceService()->editBookedDevice($id);
             return ApiResponse::success(new BookedDeviceEditResource($device));
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
@@ -354,7 +347,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     public function getActitvityLogToDevice($bookedDeviceId){
         try {
             // Get grouped activities from service (already grouped)
-            $groupedActivities = $this->bookedDeviceService->getActivityLogToDevice($bookedDeviceId);
+            $groupedActivities = $this->bookedDeviceService()->getActivityLogToDevice($bookedDeviceId);
 
             // Get user names
             $userIds = $groupedActivities->pluck('causer_id')->unique()->filter();
@@ -636,7 +629,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     //delete device timer
     public function destroy(int $id){
         try {
-            $this->bookedDeviceService->deleteBookedDevice($id);
+            $this->bookedDeviceService()->deleteBookedDevice($id);
             return ApiResponse::success([],__('crud.deleted'));
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
@@ -648,7 +641,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     public function restore($id)
     {
         try {
-            $this->bookedDeviceService->restoreBookedDevice($id);
+            $this->bookedDeviceService()->restoreBookedDevice($id);
             return ApiResponse::success([], __('crud.restored'));
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
@@ -660,7 +653,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     public function forceDelete($id)
     {
         try {
-            $this->bookedDeviceService->forceDeleteBookedDevice($id);
+            $this->bookedDeviceService()->forceDeleteBookedDevice($id);
             return ApiResponse::success([], __('crud.deleted'));
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
@@ -677,7 +670,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                         'nullable',
                         'date_format:Y-m-d H:i:s',
                         function ($attribute, $value, $fail) use ($id) {
-                            $bookedDevice = $this->bookedDeviceService->editBookedDevice($id);
+                            $bookedDevice = $this->bookedDeviceService()->editBookedDevice($id);
                             $start = Carbon::parse($bookedDevice->start_date_time);
                             $end = Carbon::parse($value);
                             if ($end->lessThanOrEqualTo($start)) {
@@ -686,8 +679,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                         },
                     ],
                 ]);
-                $device = $this->bookedDeviceService->editBookedDevice($id);
-                $this->bookedDeviceService->updateEndDateTime($device->id, $request->all());
+                $device = $this->bookedDeviceService()->editBookedDevice($id);
+                $this->bookedDeviceService()->updateEndDateTime($device->id, $request->all());
             DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
@@ -704,8 +697,8 @@ class DeviceTimerController extends Controller  implements HasMiddleware
                     'name' => 'required_without:sessionDeviceId|nullable|string',
                     'sessionDeviceId' => 'required_without:name|nullable|exists:session_devices,id',
                 ]);
-                $device = $this->bookedDeviceService->editBookedDevice($id);
-                $this->bookedDeviceService->transferDeviceToGroup($device->id, $request->all());
+                $device = $this->bookedDeviceService()->editBookedDevice($id);
+                $this->bookedDeviceService()->transferDeviceToGroup($device->id, $request->all());
             DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
@@ -719,7 +712,7 @@ class DeviceTimerController extends Controller  implements HasMiddleware
             $data = $request->validate([
                 'dailyId' => 'required|exists:dailies,id',
             ]);
-            $this->bookedDeviceService->transferBookedDeviceToSessionDevice($id,$data['dailyId']);
+            $this->bookedDeviceService()->transferBookedDeviceToSessionDevice($id,$data['dailyId']);
             return ApiResponse::success([],__('crud.updated'));
         }catch (ValidationException $th) {
             return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
@@ -731,8 +724,4 @@ class DeviceTimerController extends Controller  implements HasMiddleware
     }
 
 }
-
-
-
-
 

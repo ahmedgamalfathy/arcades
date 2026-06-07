@@ -7,7 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use App\Http\Resources\Order\AllOrderResource;
-class BookedDevcieResource extends JsonResource
+class BookedDeviceResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

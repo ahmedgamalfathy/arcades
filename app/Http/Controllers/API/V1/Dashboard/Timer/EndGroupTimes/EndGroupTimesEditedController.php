@@ -5,17 +5,15 @@ namespace App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Services\Timer\DeviceTimerService;
 use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Controllers\Controller;
-use Illuminate\Routing\Controllers\Middleware;
 use App\Enums\BookedDevice\BookedDeviceEnum;
 
-class EndGroupTimesEditedController extends Controller  implements HasMiddleware
+class EndGroupTimesEditedController extends Controller
 {
     /**
      * Handle the incoming request.
@@ -23,14 +21,6 @@ class EndGroupTimesEditedController extends Controller  implements HasMiddleware
     public function __construct( protected DeviceTimerService $timerService)
     {
 
-    }
-        public static function middleware(): array
-    {
-        return [//products , create_products,edit_product,update_product ,destroy_product
-            new Middleware('auth:api'),
-            new Middleware('permission:products', only:['index']),
-            new Middleware('tenant'),
-        ];
     }
     public function __invoke(Request $request)
     {

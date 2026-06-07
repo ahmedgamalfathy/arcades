@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 
-class MaintenanceServcie {
+class MaintenanceService {
  public function allMaintenances(Request $request) {
     $deviceId =$request->query('deviceId');
    if (!$deviceId) {

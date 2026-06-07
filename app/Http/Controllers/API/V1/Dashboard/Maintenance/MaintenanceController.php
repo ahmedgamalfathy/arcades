@@ -9,36 +9,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Routing\Controllers\Middleware;
 
-use App\Services\Maintenance\MaintenanceServcie;
-use Illuminate\Routing\Controllers\HasMiddleware;
+use App\Services\Maintenance\MaintenanceService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\Maintenance\CreateMaintenanceRequest;
 use App\Http\Requests\Maintenance\UpdateMaintenanceRequest;
 use App\Http\Resources\Maintenance\AllMaintenanceResource;
 
-class MaintenanceController extends Controller implements HasMiddleware
+class MaintenanceController extends Controller
 {
        protected $maintenanceService;
 
 
-    public function __construct(MaintenanceServcie $maintenanceService)
+    public function __construct(MaintenanceService $maintenanceService)
     {
         $this->maintenanceService = $maintenanceService;
-    }
-
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('auth:api'),
-            new Middleware('permission:maintenaces', only:['index']),
-            new Middleware('permission:create_maintenaces', only:['create']),
-            new Middleware('permission:edit_maintenace', only:['edit']),
-            new Middleware('permission:update_maintenace', only:['update']),
-            new Middleware('permission:destroy_maintenace', only:['destroy']),
-            new Middleware('tenant'),
-        ];
     }
     /**
      * Display a listing of the resource.
