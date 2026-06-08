@@ -40,11 +40,11 @@ The platform implements an advanced **Multi-Database Tenant Isolation** strategy
 │  Tenant DB: Arcade A  │ │  Tenant DB: Arcade B  │ │  Tenant DB: Arcade C  │
 │ (Devices, Orders, DL) │ │ (Devices, Orders, DL) │ │ (Devices, Orders, DL) │
 └───────────────────────┘ └───────────────────────┘ └───────────────────────┘
-Authentication Phase: The client authenticates against the central mysql database where the global users and tokens reside.
+- Authentication Phase: The client authenticates against the central mysql database where the global users and tokens reside.
 
-Context Switching Phase: Upon successful authentication, the custom TenantMiddleware extracts the tenant's database credentials (database_name, database_username, database_password) from the logged-in user record.
+- Context Switching Phase: Upon successful - - authentication, the custom TenantMiddleware extracts the tenant's database credentials (database_name, database_username, database_password) from the logged-in user record.
 
-Connection Re-hydration: The middleware dynamically alters Laravel's runtime config, purges the existing tenant connection buffer, and forces the application to route subsequent operations into that tenant's dedicated isolated schema.
+- Connection Re-hydration: The middleware dynamically alters Laravel's runtime config, purges the existing tenant connection buffer, and forces the application to route subsequent operations into that tenant's dedicated isolated schema.
 
 ⚡ Key Architectural Challenges & Solutions (المشاكل التي تم حلها)
 1. Database Multitenancy & Schema Separation
@@ -65,7 +65,8 @@ The Solution: Utilized Laravel 12's MassPrunable traits on high-volume analytica
 4. Mathematical Precision in Concurrent Shifts & Billing
 The Problem: Tracking gaming timers with pauses, switches, multi-device groupings, and overlapping internal café orders frequently yields precision drift and billing rounding errors.
 
-The Solution: Implemented atomic transaction operations using saveOrFail() and specialized mathematical service layers (DeviceTimerService, DailyService). Active shifts (Dailies) strictly enforce single-open state policies: a daily shift cannot be closed if there are active or paused timers hanging in the database, protecting owner profit from employee gaps.
+-The Solution: Implemented atomic transaction operations using saveOrFail() and specialized mathematical service layers (DeviceTimerService, DailyService). Active shifts (Dailies) strictly enforce single-open state policies: a daily shift cannot be closed if there are active or paused timers hanging in the database, protecting owner profit from employee gaps.
+
 💻 Getting Started for Developers
 Clone the repository and install PHP dependencies:
 ```
@@ -74,10 +75,12 @@ composer install
 Setup your local Environment (.env) matching your central database, then run the primary migration:
 ```
 php artisan migrate --path=database/migrations/Main
-
+```
 Boot up the high-performance WebSocket broadcasting server:
 ```
 php artisan reverb:start --port=8080
+```
 Run the background queue worker for system tasks:
 ```
 php artisan queue:work
+```
