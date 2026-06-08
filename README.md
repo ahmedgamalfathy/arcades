@@ -1,61 +1,83 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🎮 Arcade & PlayStation Management System (Backend API)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Enterprise-grade, Multi-Tenant Backend API developed with **Laravel 12** and **PHP 8.2+**. This system is specifically architected to handle high-concurrency, real-time tracking, and multi-tenant isolation required for scaling PlayStation and Arcade lounge networks.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Tech Stack & Core Dependencies
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The system leverages a bleeding-edge backend ecosystem optimized for micro-latency, solid data auditing, and dynamic query filtering:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* **Core Framework:** `Laravel ^12.0` & `PHP ^8.2` (Utilizing the latest PHP 8+ Declarative Attributes, Enums, and Performance optimization).
+* **Authentication & Security:** `Laravel Sanctum ^4.0` (Stateless, token-based API authentication securely guarded via `auth:sanctum`).
+* **Real-time Infrastructure:** `Laravel/Reverb ^1.0` + `Laravel Echo` (High-performance, pure PHP WebSocket server for asynchronous bidirectional broadcasting).
+* **Access Control:** `Spatie Laravel Permission ^6.21` (Granular Role-Based Access Control - RBAC).
+* **Audit Trail:** `Spatie Laravel Activity Log ^4.10` (Automated tracking of critical application state changes like session updates, pause/resume lifecycles, and financial workflows).
+* **API Query Hydration:** `Spatie Laravel Query Builder ^6.3` (Declarative on-demand filtering, sorting, and relationship inclusion directly from frontend URI query strings).
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🛠️ System Architecture & Multi-Tenancy Flow
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+The platform implements an advanced **Multi-Database Tenant Isolation** strategy to guarantee 100% data safety, security, and effortless horizontal scaling.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```text
+                       ┌─────────────────────────┐
+                       │   Main Database (mysql) │
+                       │  (Users, Tenants, Auth) │
+                       └────────────┬────────────┘
+                                    │  Auth Success
+                                    ▼
+                     ┌─────────────────────────────┐
+                     │      Tenant Middleware      │
+                     │  Dynamically Purges & Alters│
+                     │    Default Connection       │
+                     └──────────────┬──────────────┘
+                                    │
+            ┌───────────────────────┼───────────────────────┐
+            ▼                       ▼                       ▼
+┌───────────────────────┐ ┌───────────────────────┐ ┌───────────────────────┐
+│  Tenant DB: Arcade A  │ │  Tenant DB: Arcade B  │ │  Tenant DB: Arcade C  │
+│ (Devices, Orders, DL) │ │ (Devices, Orders, DL) │ │ (Devices, Orders, DL) │
+└───────────────────────┘ └───────────────────────┘ └───────────────────────┘
+Authentication Phase: The client authenticates against the central mysql database where the global users and tokens reside.
 
-## Laravel Sponsors
+Context Switching Phase: Upon successful authentication, the custom TenantMiddleware extracts the tenant's database credentials (database_name, database_username, database_password) from the logged-in user record.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Connection Re-hydration: The middleware dynamically alters Laravel's runtime config, purges the existing tenant connection buffer, and forces the application to route subsequent operations into that tenant's dedicated isolated schema.
 
-### Premium Partners
+⚡ Key Architectural Challenges & Solutions (المشاكل التي تم حلها)
+1. Database Multitenancy & Schema Separation
+The Problem: Traditional single-database architectures risk data leakage between different arcade lounges and suffer major performance degradation as records scale into the millions.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+The Solution: Implemented strict structural separation via a dual-migration directory system (database/migrations/Main vs database/migrations/Tenant). The core engine shifts connections dynamically during the lifecycle of a single HTTP request, shielding tenant data in completely isolated databases.
 
-## Contributing
+2. High-Concurrency Real-Time Timer Monitoring
+The Problem: In arcade management, thousands of seconds pass across active gaming rooms. Relying on frontend polling (setInterval) triggers an avalanche of server requests, while long-polling lags critical countdown notifications.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+The Solution: Integrated Laravel Reverb WebSocket server to push state changes down to the frontend using native PHP generators via asynchronous events (ShouldBroadcastNow). The dashboard receives device-expire-time and booked-device-change-status notifications immediately with zero frontend polling overhead.
 
-## Code of Conduct
+3. Server Memory Exhaustion during Massive Audit Logs & Pruning
+The Problem: Game sessions generate huge volumes of logs, intervals, and notifications. Querying and deleting thousands of historical logs via standard Eloquent causes PHP memory exhaustion (Fatal error: Allowed memory size exhausted).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The Solution: Utilized Laravel 12's MassPrunable traits on high-volume analytical logging models. Pruning queries are compiled into singular, native database commands (DELETE FROM ... WHERE) executed directly by the DB engine, achieving near-zero RAM consumption and thousands-of-times faster execution.
 
-## Security Vulnerabilities
+4. Mathematical Precision in Concurrent Shifts & Billing
+The Problem: Tracking gaming timers with pauses, switches, multi-device groupings, and overlapping internal café orders frequently yields precision drift and billing rounding errors.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+The Solution: Implemented atomic transaction operations using saveOrFail() and specialized mathematical service layers (DeviceTimerService, DailyService). Active shifts (Dailies) strictly enforce single-open state policies: a daily shift cannot be closed if there are active or paused timers hanging in the database, protecting owner profit from employee gaps.
+💻 Getting Started for Developers
+Clone the repository and install PHP dependencies:
+```
+composer install
 
-## License
+Setup your local Environment (.env) matching your central database, then run the primary migration:
+```
+php artisan migrate --path=database/migrations/Main
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Boot up the high-performance WebSocket broadcasting server:
+```
+php artisan reverb:start --port=8080
+Run the background queue worker for system tasks:
+```
+php artisan queue:work
