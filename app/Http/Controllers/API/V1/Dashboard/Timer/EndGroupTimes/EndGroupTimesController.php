@@ -32,6 +32,7 @@ class EndGroupTimesController extends Controller
             DB::beginTransaction();
                $sessionDevice= SessionDevice::with('bookedDevices')->findOrFail($validated['sessionDeviceId']);
                if(!$sessionDevice){
+                DB::rollBack();
                 return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
                }
                $totalCost = 0;
@@ -58,6 +59,7 @@ class EndGroupTimesController extends Controller
             DB::commit();
             return ApiResponse::success(new SessionDeviceResource($sessionDevice));
         }catch (ModelNotFoundException $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             DB::rollBack();

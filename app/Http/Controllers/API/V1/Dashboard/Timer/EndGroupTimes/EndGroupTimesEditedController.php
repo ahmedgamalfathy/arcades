@@ -36,6 +36,7 @@ class EndGroupTimesEditedController extends Controller
 
 
             if (!$sessionDevice) {
+                DB::rollBack();
                 return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
             }
 

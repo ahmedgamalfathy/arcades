@@ -29,8 +29,8 @@ class DeviceTimeController extends Controller
      */
     public function index(Request $request)
     {
-        $devcieTimes=$this->deviceTimeService->allDeviceTimes($request);
-        return ApiResponse::success(DeviceTimeResource::Collection($devcieTimes));
+        $deviceTimes=$this->deviceTimeService->allDeviceTimes($request);
+        return ApiResponse::success(DeviceTimeResource::Collection($deviceTimes));
     }
 
     /**
@@ -39,8 +39,8 @@ class DeviceTimeController extends Controller
       public function show($id)
     {
         try {
-            $devcieTime=$this->deviceTimeService->editDeviceTime($id);
-            return ApiResponse::success(new DeviceTimeResource($devcieTime));
+            $deviceTime=$this->deviceTimeService->editDeviceTime($id);
+            return ApiResponse::success(new DeviceTimeResource($deviceTime));
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
@@ -56,6 +56,7 @@ class DeviceTimeController extends Controller
             DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
@@ -69,12 +70,16 @@ class DeviceTimeController extends Controller
             DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         } catch (ValidationException $e) {
+            DB::rollBack();
             return ApiResponse::error($e->getMessage(), $e->getMessage(), HttpStatusCode::NOT_FOUND);
         } catch (ModelNotFoundException $e) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (QueryException  $e) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.dont_delete_device_time'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 

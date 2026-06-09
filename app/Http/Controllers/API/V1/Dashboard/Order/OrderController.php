@@ -70,6 +70,7 @@ class OrderController extends Controller implements HasMiddleware
             DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
@@ -83,8 +84,10 @@ class OrderController extends Controller implements HasMiddleware
             DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         }catch(ModelNotFoundException $e){
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 

@@ -27,6 +27,7 @@ class SendCodeController extends Controller
             ]);
             $user =User::where("email", $data['email'])->first();
             if(!$user){
+                DB::rollBack();
                 return response()->json([
                     "message"=>__('crud.not_found')
                 ],404);
@@ -42,6 +43,9 @@ class SendCodeController extends Controller
             }catch(ValidationException $e){
                 DB::rollBack();
                 return ApiResponse::error($e->getMessage(), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
+            }catch(\Throwable $e){
+                DB::rollBack();
+                return ApiResponse::error($e->getMessage(), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
             }
     }
 }

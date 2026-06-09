@@ -5,7 +5,7 @@ namespace App\Http\Resources\Timer\pausedTime;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PasudeTimeResource extends JsonResource
+class PausedTimeResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

@@ -28,9 +28,11 @@ class ChangePasswordController extends Controller
         ]);
         $user=User::where('email',$data['email'])->where('code',$data['code'])->first();
         if(!$user){
+           DB::rollBack();
            return ApiResponse::error(__('crud.not_found'),[], HttpStatusCode::NOT_FOUND);
         }
         if($user->expired_at < now()){
+            DB::rollBack();
             return ApiResponse::error('Time of code is expired ,please resend code again!', [], HttpStatusCode::UNPROCESSABLE_ENTITY);
         }
         $user->update([

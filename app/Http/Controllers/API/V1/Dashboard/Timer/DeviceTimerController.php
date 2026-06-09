@@ -24,7 +24,6 @@ use App\Http\Requests\Timer\Individual\CreateIndividualRequest;
 use App\Http\Resources\Timer\BookedDevice\BookedDeviceResource;
 use App\Http\Resources\Timer\BookedDevice\BookedDeviceEditResource;
 use App\Http\Resources\ActivityLog\DeviceActivity\AllDeviceActivityResource;
-use Illuminate\Validation\ValidationData;
 use Illuminate\Validation\ValidationException;
 
 class DeviceTimerController extends Controller
@@ -66,6 +65,7 @@ class DeviceTimerController extends Controller
             : null;
 
         if ($end && $end->lessThanOrEqualTo($start)) {
+            DB::rollBack();
             return ApiResponse::error("The end time must be after the start time.");
         }
 
@@ -124,7 +124,8 @@ class DeviceTimerController extends Controller
 
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
-        } catch (\Illuminate\Validation\ValidationException $th) {
+        } catch (ValidationException $th) {
+            DB::rollBack();
             return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -160,6 +161,7 @@ class DeviceTimerController extends Controller
             : null;
 
         if ($end && $end->lessThanOrEqualTo($start)) {
+        DB::rollBack();
         return ApiResponse::error("The end time must be after the start time.");
         }
         $data['startDateTime'] = $start;
@@ -254,7 +256,8 @@ class DeviceTimerController extends Controller
 
         DB::commit();
         return ApiResponse::success([],__('crud.created'));
-        } catch (\Illuminate\Validation\ValidationException $th) {
+        } catch (ValidationException $th) {
+            DB::rollBack();
             return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch (\Throwable $th) {
             DB::rollBack();
@@ -271,8 +274,10 @@ class DeviceTimerController extends Controller
             DB::commit();
             return ApiResponse::success([],__('crud.created'));
         }catch (ModelNotFoundException $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
@@ -286,8 +291,10 @@ class DeviceTimerController extends Controller
             DB::commit();
             return ApiResponse::success([],__('crud.created'));
         }catch (ModelNotFoundException $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
@@ -307,6 +314,7 @@ class DeviceTimerController extends Controller
             DB::commit();
          return ApiResponse::success(new  BookedDeviceResource($finished));
         }catch (ModelNotFoundException $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             DB::rollBack();
@@ -327,6 +335,7 @@ class DeviceTimerController extends Controller
                 "newBookedDeviceId"=>$newDevice->id ??0
             ],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             DB::rollBack();
@@ -684,8 +693,10 @@ class DeviceTimerController extends Controller
             DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
@@ -702,8 +713,10 @@ class DeviceTimerController extends Controller
             DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),$th->getMessage(),HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
+            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
@@ -724,4 +737,3 @@ class DeviceTimerController extends Controller
     }
 
 }
-

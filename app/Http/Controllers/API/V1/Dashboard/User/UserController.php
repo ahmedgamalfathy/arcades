@@ -129,6 +129,7 @@ class UserController extends Controller implements HasMiddleware
             DB::commit();
             return ApiResponse::success([], __('crud.deleted'));
         } catch(ModelNotFoundException $e){
+            DB::rollBack();
             return  ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Exception $e) {
             DB::rollBack();

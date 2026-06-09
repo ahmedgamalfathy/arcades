@@ -24,9 +24,11 @@ class VerifyCodeController extends Controller
             ]);
            $user = User::where('email',$data['email'])->first();
            if($user->code != $data['code']){
+                DB::rollBack();
                 return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
            }
            if($user->expired_at < now()){
+                DB::rollBack();
                 return ApiResponse::error('Time of code is expired ,please resend code again!', [], HttpStatusCode::UNPROCESSABLE_ENTITY);
             }
             DB::commit();
