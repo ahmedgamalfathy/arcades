@@ -11,7 +11,7 @@ use App\Services\Media\MediaService;
 use Illuminate\Support\Facades\Auth;
 use App\Services\Upload\UploadService;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Resources\User\PorfileResource;
+use App\Http\Resources\User\ProfileResource;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\User\UpdateUserProfileRequest;
@@ -42,7 +42,7 @@ class UserProfileController extends Controller implements HasMiddleware
     public function show(Request $request)
     {
 
-        return ApiResponse::success(new PorfileResource($request->user()));
+        return ApiResponse::success(new ProfileResource($request->user()));
     }
 
     /**

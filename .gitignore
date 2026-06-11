@@ -1,5 +1,4 @@
 *.log
-.DS_Store
 .env
 .env.backup
 .env.production
@@ -21,4 +20,12 @@
 /vendor
 Homestead.json
 Homestead.yaml
+
+# Backup and Archives
+*.zip
+*.rar
+*.tar.gz
+
+# Local IDE & OS files
+.DS_Store
 Thumbs.db
