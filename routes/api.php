@@ -32,7 +32,7 @@ use App\Http\Controllers\API\V2\Dashboard\Report\AllDailyRangeOfDateController;
 
 Route::prefix('v1/admin')->middleware('set_locale')->group(function () {
     Route::prefix('auth')->group(function () {
-        Route::post('login', LoginController::class);
+        Route::post('login', LoginController::class)->middleware('throttle:login');
     });
 
     Route::prefix('forgot-password')->group(function () {
@@ -43,7 +43,7 @@ Route::prefix('v1/admin')->middleware('set_locale')->group(function () {
 });
 
 Route::prefix('v1/admin')
-    ->middleware(['set_locale', 'auth:sanctum', 'tenant'])
+    ->middleware(['set_locale', 'auth:sanctum', 'tenant', 'throttle:api'])
     ->group(function () {
         Route::prefix('auth')->group(function () {
             Route::post('logout', LogoutController::class);

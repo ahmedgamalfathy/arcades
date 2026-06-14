@@ -21,11 +21,11 @@
 Homestead.json
 Homestead.yaml
 
+# Local IDE & OS files
+.DS_Store
+Thumbs.db
+
 # Backup and Archives
 *.zip
 *.rar
 *.tar.gz
-
-# Local IDE & OS files
-.DS_Store
-Thumbs.db
