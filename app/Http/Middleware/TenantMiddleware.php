@@ -28,6 +28,15 @@ class TenantMiddleware
         }
 
         try {
+            if (app()->environment('testing') && config('database.connections.tenant.driver') === 'sqlite') {
+                Config::set('database.connections.tenant.database', $user->database_name);
+                DB::purge('tenant');
+                DB::reconnect('tenant');
+                DB::setDefaultConnection('tenant');
+
+                return $next($request);
+            }
+
             // إعداد اتصال الـ tenant
             Config::set('database.connections.tenant', [
                 'driver' => 'mysql',
