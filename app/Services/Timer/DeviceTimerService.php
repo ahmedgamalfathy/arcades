@@ -2,9 +2,11 @@
 namespace App\Services\Timer;
 
 use App\Enums\BookedDevice\BookedDeviceEnum;
+use App\Enums\Device\DeviceStatusEnum;
 use Carbon\Carbon;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Events\BookedDeviceChangeStatus;
+use Illuminate\Support\Facades\DB;
 
 class DeviceTimerService
 {
@@ -80,25 +82,39 @@ class DeviceTimerService
 
     public function finish(int $id ,array $data = [])
     {
-        $bookedDevice=BookedDevice::findOrFail($id);
-        if($bookedDevice->status== BookedDeviceEnum::PAUSED->value){
-            $this->resume($id);
-            $bookedDevice->refresh();
-        }
-        if($bookedDevice->status== BookedDeviceEnum::FINISHED->value){
-             return $bookedDevice;
-        }
+        return DB::transaction(function () use ($id, $data) {
+            $bookedDevice = BookedDevice::findOrFail($id);
 
-        $oldStatus = $bookedDevice->status;
+            if ($bookedDevice->status == BookedDeviceEnum::PAUSED->value) {
+                $this->resume($id);
+                $bookedDevice->refresh();
+            }
 
-        // Finish without automatic logging
-        $finished = $this->finishBookedDeviceWithoutLog($bookedDevice, $data);
+            if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
+                return $bookedDevice;
+            }
 
-        // Manual activity log for SessionDevice with BookedDevice as child
-        $this->logSessionDeviceAction($finished, $oldStatus);
+            $oldStatus = $bookedDevice->status;
 
-        // broadcast(new BookedDeviceChangeStatus($finished))->toOthers();
-        return $finished;
+            // Finish without automatic logging
+            $finished = $this->finishBookedDeviceWithoutLog($bookedDevice, $data);
+
+            // Manual activity log for SessionDevice with BookedDevice as child
+            $this->logSessionDeviceAction($finished, $oldStatus);
+
+            DB::afterCommit(function () use ($finished) {
+                try {
+                    broadcast(new BookedDeviceChangeStatus($finished))->toOthers();
+                } catch (\Throwable $e) {
+                    logger()->warning('Booked device finish broadcast failed.', [
+                        'booked_device_id' => $finished->id,
+                        'exception' => $e,
+                    ]);
+                }
+            });
+
+            return $finished;
+        });
     }
 
     private function finishBookedDeviceWithoutLog(BookedDevice $bookedDevice, array $data = [])
@@ -126,6 +142,12 @@ class DeviceTimerService
                 $order->update(['is_paid' => 1]);
             });
         });
+
+        if ($bookedDevice->device) {
+            $bookedDevice->device->update([
+                'status' => DeviceStatusEnum::AVAILABLE->value,
+            ]);
+        }
 
         return $bookedDevice->fresh();
     }
