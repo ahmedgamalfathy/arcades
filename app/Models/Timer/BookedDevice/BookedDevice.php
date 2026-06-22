@@ -19,7 +19,21 @@ class BookedDevice extends Model
 {
      use UsesTenantConnection , LogsActivity, SoftDeletes;
 
-      protected $guarded =[];
+      protected $fillable = [
+        'session_device_id',
+        'device_type_id',
+        'device_id',
+        'device_time_id',
+        'start_date_time',
+        'end_date_time',
+        'status',
+        'total_paused_seconds',
+        'total_used_seconds',
+        'end_date_static',
+        'period_cost',
+        'actual_paid_amount',
+        'is_notification_sent',
+    ];
      public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

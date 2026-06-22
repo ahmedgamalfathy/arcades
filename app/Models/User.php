@@ -27,7 +27,24 @@ class User extends Authenticatable
      * @var list<string>
      */
      protected $connection = 'mysql';
-     protected $guarded =[];
+     protected $fillable = [
+        'name',
+        'email',
+        'media_id',
+        'is_active',
+        'email_verified_at',
+        'password',
+        'code',
+        'expired_at',
+        'user_id',
+        // Tenant connection fields must only be assigned by trusted service/seed code.
+        // Never pass unfiltered request payloads directly into User::create() or update().
+        'database_name',
+        'database_username',
+        'database_password',
+        'app_key',
+        'remember_token',
+    ];
     // public function getActivitylogOptions(): LogOptions
     // {
     //     return LogOptions::defaults()

@@ -16,7 +16,13 @@ use App\Enums\BookedDevice\BookedDeviceEnum;
 class Device extends Model
 {
     use UsesTenantConnection , LogsActivity, SoftDeletes;
-    protected $guarded = [];
+
+    protected $fillable = [
+        'name',
+        'status',
+        'device_type_id',
+        'media_id',
+    ];
 
     public static function boot()
     {
