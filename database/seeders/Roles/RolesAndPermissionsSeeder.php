@@ -22,6 +22,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit_user',
             'update_user',
             'destroy_user',
+            'restore-users',
+            'force-delete-users',
             'change_user_status',
 
 
@@ -56,6 +58,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit_order',
             'update_order',
             'destroy_order',
+            'restore-orders',
+            'force-delete-orders',
  // medias ,create_medias,edit_meida ,update_meida ,destroy_meida
              'medias',
             'create_medias',
