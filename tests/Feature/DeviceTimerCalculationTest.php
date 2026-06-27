@@ -11,37 +11,25 @@ use App\Models\Device\DeviceTime\DeviceTime;
 use App\Models\Device\DeviceType\DeviceType;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Timer\SessionDevice\SessionDevice;
-use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Laravel\Sanctum\Sanctum;
-use Spatie\Permission\Models\Permission;
+use Tests\Concerns\InteractsWithTenants;
 use Tests\TestCase;
 
 class DeviceTimerCalculationTest extends TestCase
 {
-    private array $tenantConnections = [];
+    use InteractsWithTenants;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->prepareMainDatabase();
-        Config::set('activitylog.enabled', false);
+        $this->setUpTenantTesting();
     }
 
     protected function tearDown(): void
     {
         Carbon::setTestNow();
-        DB::setDefaultConnection('mysql');
-        DB::purge('tenant');
-        $this->tenantConnections = [];
-
+        $this->tearDownTenantTesting();
         parent::tearDown();
     }
 
@@ -81,7 +69,7 @@ class DeviceTimerCalculationTest extends TestCase
 
         DB::setDefaultConnection('mysql');
         Carbon::setTestNow($now);
-        Sanctum::actingAs($user);
+        $this->actingAsUser($user);
 
         $this->postJson("/api/v1/admin/device-timer/{$bookedDevice->id}/finish")
             ->assertOk()
@@ -95,82 +83,5 @@ class DeviceTimerCalculationTest extends TestCase
         $this->assertSame(7200, (int) $finished->total_used_seconds);
         $this->assertEquals(100.00, (float) $finished->period_cost);
         $this->assertSame(DeviceStatusEnum::AVAILABLE->value, $device->status);
-    }
-
-    private function prepareMainDatabase(): void
-    {
-        Config::set('database.default', 'mysql');
-        Config::set('database.connections.mysql', [
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => '',
-            'foreign_key_constraints' => true,
-        ]);
-
-        DB::purge('mysql');
-        DB::setDefaultConnection('mysql');
-
-        Artisan::call('migrate:fresh', [
-            '--database' => 'mysql',
-            '--path' => 'database/migrations/Main',
-            '--force' => true,
-        ]);
-    }
-
-    private function createTenantDatabase(): string
-    {
-        $database = 'file:tenant_'.Str::uuid().'?mode=memory&cache=shared';
-        $this->tenantConnections[] = new \PDO('sqlite:'.$database);
-
-        $this->useTenantDatabase($database);
-
-        collect(File::files(database_path('migrations/Tenant')))
-            ->reject(fn ($migration) => str_contains($migration->getFilename(), 'optimize_activity_log_for_batch'))
-            ->each(function ($migration): void {
-                Artisan::call('migrate', [
-                    '--database' => 'tenant',
-                    '--path' => 'database/migrations/Tenant/'.$migration->getFilename(),
-                    '--force' => true,
-                ]);
-            });
-
-        return $database;
-    }
-
-    private function useTenantDatabase(string $database): void
-    {
-        Config::set('database.connections.tenant', [
-            'driver' => 'sqlite',
-            'database' => $database,
-            'prefix' => '',
-            'foreign_key_constraints' => true,
-        ]);
-
-        DB::purge('tenant');
-        DB::reconnect('tenant');
-        DB::setDefaultConnection('tenant');
-    }
-
-    private function createUser(string $tenantDatabase, array $permissions): User
-    {
-        DB::setDefaultConnection('mysql');
-
-        $permissionModels = [];
-        foreach ($permissions as $permission) {
-            Permission::findOrCreate($permission, 'api');
-            $permissionModels[] = Permission::findOrCreate($permission, 'web');
-        }
-
-        $user = User::create([
-            'name' => 'Timer Tester',
-            'email' => 'timer-tester@example.com',
-            'password' => Hash::make('password'),
-            'is_active' => 1,
-            'database_name' => $tenantDatabase,
-        ]);
-
-        $user->givePermissionTo($permissionModels);
-
-        return $user;
     }
 }
