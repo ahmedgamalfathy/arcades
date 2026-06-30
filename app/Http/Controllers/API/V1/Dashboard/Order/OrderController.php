@@ -19,6 +19,7 @@ use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Http\Resources\Order\AllOrderCollection;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller implements HasMiddleware
 {
@@ -98,6 +99,8 @@ class OrderController extends Controller implements HasMiddleware
         try {
             $this->orderService->deleteOrder($id);
             return ApiResponse::success([],__('crud.deleted'));
+        } catch (ValidationException $e) {
+            return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
@@ -137,6 +140,8 @@ class OrderController extends Controller implements HasMiddleware
             ]);
             $this->orderService->changeOrderStatus($id, $request->all());
             return ApiResponse::success([],__('crud.updated'));
+        } catch (ValidationException $e) {
+            return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
@@ -151,6 +156,8 @@ class OrderController extends Controller implements HasMiddleware
             ]);
             $this->orderService->changeOrderPaymentStatus($id, $request->all());
             return ApiResponse::success([],__('crud.updated'));
+        } catch (ValidationException $e) {
+            return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {

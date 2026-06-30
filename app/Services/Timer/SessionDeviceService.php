@@ -85,7 +85,7 @@ class SessionDeviceService
             ->useLog('SessionDevice')
             ->event('deleted')
             ->performedOn($sessionDevice)
-            ->causedBy(auth('api')->user())
+            ->causedBy(auth()->user())
             ->withProperties([
                 'old' => [
                     'id' => $sessionDevice->id,
@@ -114,5 +114,4 @@ class SessionDeviceService
         return $sessionDevice;
     }
 }
-
 

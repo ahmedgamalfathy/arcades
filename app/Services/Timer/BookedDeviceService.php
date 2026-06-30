@@ -176,7 +176,7 @@ class BookedDeviceService
             ->useLog('SessionDevice')
             ->event('deleted')
             ->performedOn($sessionDevice)
-            ->causedBy(auth('api')->user())
+            ->causedBy(auth()->user())
             ->withProperties([
                 'old' => [
                     'id' => $sessionDevice->id,
@@ -341,7 +341,7 @@ class BookedDeviceService
                 ->useLog('SessionDevice')
                 ->event('transfer')
                 ->performedOn($targetSession)
-                ->causedBy(auth('api')->user())
+                ->causedBy(auth()->user())
                 ->withProperties([
                     'attributes' => [
                         'id' => $targetSession->id,
@@ -423,7 +423,7 @@ class BookedDeviceService
             ->useLog('SessionDevice')
             ->event('transfer')
             ->performedOn($newSessionDevice)
-            ->causedBy(auth('api')->user())
+            ->causedBy(auth()->user())
             ->withProperties([
                 'attributes' => [
                     'id' => $newSessionDevice->id,

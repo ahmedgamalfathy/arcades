@@ -32,7 +32,7 @@ class NotificationController extends Controller implements HasMiddleware
     }
     public function notifications()
     {
-        $user=auth('api')->user();
+        $user=auth()->user();
         $notifications = DB::connection('tenant')->table('notifications')
         ->where('notifiable_id', $user->id) 
         ->whereNull('read_at')
@@ -47,7 +47,7 @@ class NotificationController extends Controller implements HasMiddleware
     }
     public function auth_unread_notifications()
     {
-       $user=auth('api')->user();
+       $user=auth()->user();
        $notifications= DB::connection('tenant')->table('notifications')->where('notifiable_id',$user->id)
        ->orderByDesc('id')
        ->whereNull('read_at')->cursorPaginate();
@@ -59,7 +59,7 @@ class NotificationController extends Controller implements HasMiddleware
     }
     public function auth_read_notifications()
     {
-        $user=auth('api')->user();
+        $user=auth()->user();
         if(count($user->unreadNotifications)>0){
             $user->unreadNotifications->markAsRead();
             return ApiResponse::success([],'All Notification marked as read successfully!');
@@ -85,7 +85,7 @@ class NotificationController extends Controller implements HasMiddleware
     }
     public function auth_delete_notifications()
     {
-       $user=User::find(auth('api')->user()->id);
+       $user=User::find(auth()->user()->id);
        if(count($user->notifications)>0){
         $user->notifications()->delete();
        }else {

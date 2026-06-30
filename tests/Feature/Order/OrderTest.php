@@ -101,4 +101,96 @@ class OrderTest extends TestCase
         $response->assertOk();
         $response->assertJsonMissing(['name' => 'Tenant B Order']);
     }
+
+    public function test_change_order_status_rejects_invalid_status(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $user = $this->createUser($tenant, []);
+        $this->useTenantDatabase($tenant);
+
+        $daily = Daily::create(['start_date_time' => Carbon::now()]);
+        $order = Order::create([
+            'name' => 'Invalid Status Order',
+            'daily_id' => $daily->id,
+            'price' => 10,
+            'status' => OrderStatus::PENDING->value,
+        ]);
+
+        $this->actingAsUser($user);
+
+        $this->putJson("/api/v1/admin/orders/{$order->id}/changeStatus", [
+            'status' => 999,
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => OrderStatus::PENDING->value,
+        ], 'tenant');
+    }
+
+    public function test_change_order_payment_status_rejects_non_boolean_value(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $user = $this->createUser($tenant, []);
+        $this->useTenantDatabase($tenant);
+
+        $daily = Daily::create(['start_date_time' => Carbon::now()]);
+        $order = Order::create([
+            'name' => 'Invalid Payment Order',
+            'daily_id' => $daily->id,
+            'price' => 10,
+            'is_paid' => false,
+            'status' => OrderStatus::PENDING->value,
+        ]);
+
+        $this->actingAsUser($user);
+
+        $this->putJson("/api/v1/admin/orders/{$order->id}/changeTypePay", [
+            'isPaid' => 'not-a-boolean',
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'is_paid' => false,
+        ], 'tenant');
+    }
+
+    public function test_can_restore_and_force_delete_order(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $user = $this->createUser($tenant, [
+            'destroy_order',
+            'restore-orders',
+            'force-delete-orders',
+        ]);
+        $this->useTenantDatabase($tenant);
+
+        $daily = Daily::create(['start_date_time' => Carbon::now()]);
+        $order = Order::create([
+            'name' => 'Deleted Order',
+            'daily_id' => $daily->id,
+            'price' => 10,
+            'status' => OrderStatus::PENDING->value,
+        ]);
+
+        $this->actingAsUser($user);
+
+        $this->deleteJson("/api/v1/admin/orders/{$order->id}")
+            ->assertOk();
+
+        $this->assertSoftDeleted('orders', ['id' => $order->id], 'tenant');
+
+        $this->postJson("/api/v1/admin/orders/{$order->id}/restore")
+            ->assertOk();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'deleted_at' => null,
+        ], 'tenant');
+
+        $this->deleteJson("/api/v1/admin/orders/{$order->id}/force")
+            ->assertOk();
+
+        $this->assertDatabaseMissing('orders', ['id' => $order->id], 'tenant');
+    }
 }

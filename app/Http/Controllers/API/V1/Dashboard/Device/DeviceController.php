@@ -141,7 +141,7 @@ class DeviceController extends Controller
            ]);
             $device=$this->deviceService->changeDeviceStatus($id,$data );
             if($device){
-            activity()->performedOn($device)->causedBy(auth('api')->user())->withProperties($device->toArray())->log('change device status');
+            activity()->performedOn($device)->causedBy(auth()->user())->withProperties($device->toArray())->log('change device status');
             }
             return ApiResponse::success([],__('crud.updated'));
         }catch(ModelNotFoundException $e){

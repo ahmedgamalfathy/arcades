@@ -9,7 +9,7 @@ class UserSelectService
 {
     public function getAllUsers()
     {
-        $user = User::find(auth('api')->user()->id);
+        $user = User::find(auth()->user()->id);
         if($user->user_id == null && $user->database_name != null && $user->database_password != null ){
             $users = User::where('user_id', $user->id)->get(['id as value','name as label']);
         }else{

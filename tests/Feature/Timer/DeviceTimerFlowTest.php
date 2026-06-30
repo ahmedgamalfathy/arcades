@@ -109,6 +109,91 @@ class DeviceTimerFlowTest extends TestCase
             ->assertStatus(500);
     }
 
+    public function test_cannot_start_individual_timer_with_end_time_before_start_time(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $user = $this->createUser($tenant, ['create_devices']);
+        $now = Carbon::parse('2026-06-15 10:00:00');
+
+        $this->useTenantDatabase($tenant);
+        $deviceType = DeviceType::create(['name' => 'PS']);
+        $device = Device::create([
+            'name' => 'PS1',
+            'device_type_id' => $deviceType->id,
+            'status' => DeviceStatusEnum::AVAILABLE->value,
+        ]);
+        $deviceTime = DeviceTime::create([
+            'name' => 'Hour',
+            'rate' => 50,
+            'device_type_id' => $deviceType->id,
+        ]);
+        $daily = Daily::create(['start_date_time' => $now]);
+
+        $this->actingAsUser($user);
+
+        $this->postJson('/api/v1/admin/device-timer/individual-time', [
+            'deviceId' => $device->id,
+            'deviceTypeId' => $deviceType->id,
+            'deviceTimeId' => $deviceTime->id,
+            'startDateTime' => $now->toDateTimeString(),
+            'endDateTime' => $now->copy()->subMinute()->toDateTimeString(),
+            'dailyId' => $daily->id,
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseCount('booked_devices', 0, 'tenant');
+    }
+
+    public function test_cannot_start_timer_for_already_active_device(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $user = $this->createUser($tenant, ['create_devices']);
+        $now = Carbon::parse('2026-06-15 12:00:00');
+
+        $bookedDevice = $this->seedActiveTimer($tenant, $now);
+
+        $this->actingAsUser($user);
+
+        $this->postJson('/api/v1/admin/device-timer/individual-time', [
+            'deviceId' => $bookedDevice->device_id,
+            'deviceTypeId' => $bookedDevice->device_type_id,
+            'deviceTimeId' => $bookedDevice->device_time_id,
+            'startDateTime' => $now->toDateTimeString(),
+            'endDateTime' => $now->copy()->addHour()->toDateTimeString(),
+            'dailyId' => $bookedDevice->sessionDevice->daily_id,
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseCount('booked_devices', 1, 'tenant');
+    }
+
+    public function test_can_restore_and_force_delete_timer(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $user = $this->createUser($tenant, ['destroy_device']);
+        $now = Carbon::parse('2026-06-15 12:00:00');
+
+        $bookedDevice = $this->seedActiveTimer($tenant, $now);
+
+        $this->actingAsUser($user);
+
+        $this->deleteJson("/api/v1/admin/device-timer/{$bookedDevice->id}/delete")
+            ->assertOk();
+
+        $this->assertSoftDeleted('booked_devices', ['id' => $bookedDevice->id], 'tenant');
+
+        $this->postJson("/api/v1/admin/device-timer/{$bookedDevice->id}/restore")
+            ->assertOk();
+
+        $this->assertDatabaseHas('booked_devices', [
+            'id' => $bookedDevice->id,
+            'deleted_at' => null,
+        ], 'tenant');
+
+        $this->deleteJson("/api/v1/admin/device-timer/{$bookedDevice->id}/force")
+            ->assertOk();
+
+        $this->assertDatabaseMissing('booked_devices', ['id' => $bookedDevice->id], 'tenant');
+    }
+
     private function seedActiveTimer(string $tenant, Carbon $now): BookedDevice
     {
         $this->useTenantDatabase($tenant);
