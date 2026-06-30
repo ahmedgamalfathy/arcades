@@ -46,7 +46,11 @@ class LoginController extends Controller
             ]);
 
         } catch (\Throwable $th) {
-          return ApiResponse::error($th->getMessage(), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
+          logger()->error('Login failed unexpectedly.', [
+              'exception' => $th,
+          ]);
+
+          return ApiResponse::error(__('crud.server_error'), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
 }

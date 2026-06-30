@@ -20,6 +20,11 @@ class ApiResponse
 
     public static function error(string $message = '', mixed $errors = [], HttpStatusCode $status = HttpStatusCode::BAD_REQUEST): JsonResponse
     {
+        if ($status->value >= HttpStatusCode::INTERNAL_SERVER_ERROR->value) {
+            $message = __('crud.server_error');
+            $errors = [];
+        }
+
         return response()->json([
             'success' => false,
             'message' => $message,
