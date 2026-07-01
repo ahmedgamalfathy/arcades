@@ -69,11 +69,11 @@ class UserController extends Controller implements HasMiddleware
 
         }catch(ValidationException $e){
             DB::rollBack();
-            return  ApiResponse::error("هذا الايميل موجود من قبل",$e->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return  ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         }
         catch (\Exception $e) {
             DB::rollBack();
-           return  ApiResponse::error(__('crud.server_error'),$e->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+           return ApiResponse::exception($e);
         }
 
 
@@ -91,7 +91,7 @@ class UserController extends Controller implements HasMiddleware
         }catch(ModelNotFoundException $e){
             return  ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Exception $e) {
-          return ApiResponse::error(__('crud.server_error'),$e->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+          return ApiResponse::exception($e);
         }
 
 
@@ -111,7 +111,7 @@ class UserController extends Controller implements HasMiddleware
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$e->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($e);
         }
 
 
@@ -146,7 +146,7 @@ class UserController extends Controller implements HasMiddleware
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -158,7 +158,7 @@ class UserController extends Controller implements HasMiddleware
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -183,8 +183,12 @@ class UserController extends Controller implements HasMiddleware
         }catch(ModelNotFoundException $e){
             return  ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Exception $e) {
-          return ApiResponse::error(__('crud.server_error'),$e->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+          return ApiResponse::exception($e);
         }
     }
 
 }
+
+
+
+

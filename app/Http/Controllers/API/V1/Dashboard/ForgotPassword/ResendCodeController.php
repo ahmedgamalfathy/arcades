@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\ForgotPasswordSendCode;
 use Illuminate\Support\Facades\Mail;
 use App\Enums\ResponseCode\HttpStatusCode;
+use Illuminate\Validation\ValidationException;
 
 class ResendCodeController extends Controller
 {
@@ -33,8 +34,12 @@ class ResendCodeController extends Controller
             }else{
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
             }
-            }catch(\Exception $ex){
-                return ApiResponse::error($ex->getMessage(), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
+            }catch(ValidationException $ex){
+                return ApiResponse::error(__('validation.validation_error'), $ex->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
+            }catch(\Throwable $ex){
+                return ApiResponse::exception($ex);
             }
     }
 }
+
+

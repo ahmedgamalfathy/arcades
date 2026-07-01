@@ -63,7 +63,7 @@ class DailyController extends Controller implements HasMiddleware
             return ApiResponse::success([],__('crud.created'));
         } catch (Throwable $th) {
             DB::rollBack( );
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function show(int $id)
@@ -74,7 +74,7 @@ class DailyController extends Controller implements HasMiddleware
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function update(int $id,UpdateDailyRequest $updateDailyRequest)
@@ -89,7 +89,7 @@ class DailyController extends Controller implements HasMiddleware
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function destroy(int $id)
@@ -119,9 +119,9 @@ class DailyController extends Controller implements HasMiddleware
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (ValidationException $th) {
-            return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return ApiResponse::error(__('validation.validation_error'), $th->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function dailyReport(ReportDailyRequestSearch $reportDailyRequestSearch)
@@ -133,7 +133,7 @@ class DailyController extends Controller implements HasMiddleware
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function monthlyChartData(Request $request)
@@ -145,7 +145,7 @@ class DailyController extends Controller implements HasMiddleware
             $monthlyChartData= $this->dailyReportService->getMonthlyChartData($data['dailyId']);
             return ApiResponse::success($monthlyChartData);
         }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function activityLog(Request $request)
@@ -156,7 +156,7 @@ class DailyController extends Controller implements HasMiddleware
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function checkBookedDeviceOpen(Request $request)
@@ -170,7 +170,11 @@ class DailyController extends Controller implements HasMiddleware
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 }
+
+
+
+

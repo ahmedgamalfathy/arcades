@@ -66,7 +66,7 @@ class ExpenseController extends Controller implements HasMiddleware
             return ApiResponse::success([],__('crud.created'));
         } catch (Throwable $th) {
             DB::rollBack( );
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -81,7 +81,7 @@ class ExpenseController extends Controller implements HasMiddleware
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -100,7 +100,7 @@ class ExpenseController extends Controller implements HasMiddleware
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -125,7 +125,7 @@ class ExpenseController extends Controller implements HasMiddleware
         }catch(ModelNotFoundException $e){
             return apiResponse::error(__('crud.not_found'),[], HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function forceDelete($id)
@@ -136,7 +136,9 @@ class ExpenseController extends Controller implements HasMiddleware
         } catch(ModelNotFoundException $e){
             return apiResponse::error(__('crud.not_found'),[], HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 }
+
+

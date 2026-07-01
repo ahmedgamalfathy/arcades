@@ -28,7 +28,7 @@ class ReportController extends Controller
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function getStatusReport(CreateReportRequest $createReportRequest)
@@ -40,7 +40,7 @@ class ReportController extends Controller
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -54,8 +54,10 @@ class ReportController extends Controller
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
 }
+
+

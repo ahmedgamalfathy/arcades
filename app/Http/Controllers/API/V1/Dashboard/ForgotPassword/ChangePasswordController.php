@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use App\Enums\ResponseCode\HttpStatusCode;
+use Illuminate\Validation\ValidationException;
 
 class ChangePasswordController extends Controller
 {
@@ -43,10 +44,15 @@ class ChangePasswordController extends Controller
         $user->tokens()->delete();
         DB::commit();
         return ApiResponse::success([], __('auth.change_password'));
-        }catch(\Exception $ex){
+        }catch(ValidationException $ex){
             DB::rollBack();
-            return ApiResponse::error($ex->getMessage(), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return ApiResponse::error(__('validation.validation_error'), $ex->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
+        }catch(\Throwable $ex){
+            DB::rollBack();
+            return ApiResponse::exception($ex);
         }
     }
 
 }
+
+

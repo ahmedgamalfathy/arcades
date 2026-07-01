@@ -27,9 +27,9 @@ class SessionDeviceController extends Controller
             $sessionDevices = $this->sessionDeviceService->getSessionDevices($request);
             return ApiResponse::success(new AllSessionResource($sessionDevices));
         } catch (ModelNotFoundException $e) {
-            return ApiResponse::error(__('crud.not_found'),$e->getMessage(), HttpStatusCode::NOT_FOUND);
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $e ) {
-            return ApiResponse::error(__('crud.server_error'),$e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($e);
         }
     }
 
@@ -42,9 +42,9 @@ class SessionDeviceController extends Controller
             $sessionDevice = $this->sessionDeviceService->editSessionDevice($id);
             return ApiResponse::success(new SessionDeviceResource($sessionDevice));
         } catch (ModelNotFoundException $e) {
-            return ApiResponse::error(__('crud.not_found'),$e->getMessage(), HttpStatusCode::NOT_FOUND);
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $e ) {
-            return ApiResponse::error(__('crud.server_error'),$e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($e);
         }
     }
 
@@ -57,9 +57,9 @@ class SessionDeviceController extends Controller
             $this->sessionDeviceService->deleteSessionDevice($id);
             return ApiResponse::success([],__('crud.deleted'));
         } catch (ModelNotFoundException $e) {
-            return ApiResponse::error(__('crud.not_found'),$e->getMessage(), HttpStatusCode::NOT_FOUND);
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $e ) {
-            return ApiResponse::error(__('crud.server_error'),$e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($e);
         }
     }
     public function restore(int $id)
@@ -70,7 +70,7 @@ class SessionDeviceController extends Controller
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function forceDelete(int $id)
@@ -81,7 +81,7 @@ class SessionDeviceController extends Controller
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function update(Request $request, string $id)
@@ -96,10 +96,13 @@ class SessionDeviceController extends Controller
             return ApiResponse::success([], __('crud.updated'));
         } catch (ModelNotFoundException $e) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.not_found'),$e->getMessage(), HttpStatusCode::NOT_FOUND);
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $e ) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($e);
         }
     }
 }
+
+
+

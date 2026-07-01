@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Enums\ResponseCode\HttpStatusCode;
+use Illuminate\Validation\ValidationException;
 
 class VerifyCodeController extends Controller
 {
@@ -33,9 +34,14 @@ class VerifyCodeController extends Controller
             }
             DB::commit();
             return ApiResponse::success([],    __('auth.verify_code'));
+        } catch (ValidationException $th) {
+           DB::rollBack();
+            return ApiResponse::error(__('validation.validation_error'), $th->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
            DB::rollBack();
-            return ApiResponse::error($th->getMessage(), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return ApiResponse::exception($th);
         }
     }
 }
+
+

@@ -42,10 +42,14 @@ class SendCodeController extends Controller
             return ApiResponse::success([],__('auth.send_code'));
             }catch(ValidationException $e){
                 DB::rollBack();
-                return ApiResponse::error($e->getMessage(), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
+                return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
             }catch(\Throwable $e){
                 DB::rollBack();
-                return ApiResponse::error($e->getMessage(), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
+                return ApiResponse::exception($e);
             }
     }
 }
+
+
+
+

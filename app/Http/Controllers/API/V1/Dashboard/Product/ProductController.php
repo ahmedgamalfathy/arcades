@@ -44,7 +44,7 @@ class ProductController extends Controller
             return ApiResponse::success([],__('crud.created'));
         } catch (Throwable $th) {
             DB::rollBack( );
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
 
     }
@@ -81,7 +81,7 @@ class ProductController extends Controller
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
 
     }
@@ -110,7 +110,7 @@ class ProductController extends Controller
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -122,7 +122,9 @@ class ProductController extends Controller
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 }
+
+

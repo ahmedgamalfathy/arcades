@@ -44,7 +44,7 @@ class DeviceTimeController extends Controller
         }catch(ModelNotFoundException $e){
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -57,7 +57,7 @@ class DeviceTimeController extends Controller
             return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
 
     }
@@ -71,7 +71,7 @@ class DeviceTimeController extends Controller
             return ApiResponse::success([],__('crud.updated'));
         } catch (ValidationException $e) {
             DB::rollBack();
-            return ApiResponse::error($e->getMessage(), $e->getMessage(), HttpStatusCode::NOT_FOUND);
+            return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (ModelNotFoundException $e) {
             DB::rollBack();
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
@@ -80,7 +80,7 @@ class DeviceTimeController extends Controller
             return ApiResponse::error(__('crud.dont_delete_device_time'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
 
     }
@@ -91,13 +91,13 @@ class DeviceTimeController extends Controller
             $this->deviceTimeService->deleteDeviceTime($id);
             return ApiResponse::success([], __('crud.deleted'));
         } catch (ValidationException $e) {
-            return ApiResponse::error($e->getMessage(), $e->getMessage(), HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (QueryException  $e) {
             return ApiResponse::error(__('crud.dont_delete_device_time'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
 
     }
@@ -109,7 +109,7 @@ class DeviceTimeController extends Controller
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function forceDelete(int $id)
@@ -122,7 +122,11 @@ class DeviceTimeController extends Controller
         } catch (QueryException  $e) {
             return ApiResponse::error(__('crud.dont_delete_device_time'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 }
+
+
+
+

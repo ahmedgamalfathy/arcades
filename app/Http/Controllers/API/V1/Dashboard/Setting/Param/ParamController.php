@@ -64,7 +64,7 @@ class ParamController extends Controller implements HasMiddleware
         } catch (ModelNotFoundException $th) {
         return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         }catch (\Exception $e) {
-        return ApiResponse::error($e->getMessage(), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
+        return ApiResponse::exception($e);
         }
     }
 
@@ -79,7 +79,7 @@ class ParamController extends Controller implements HasMiddleware
         } catch (ModelNotFoundException $th) {
         return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         }catch (\Exception $e) {
-        return ApiResponse::error($e->getMessage(), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
+        return ApiResponse::exception($e);
         }
 
     }
@@ -96,7 +96,9 @@ class ParamController extends Controller implements HasMiddleware
         } catch (ModelNotFoundException $th) {
         return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         }catch (\Exception $e) {
-        return ApiResponse::error($e->getMessage(), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
+        return ApiResponse::exception($e);
         }
     }
 }
+
+

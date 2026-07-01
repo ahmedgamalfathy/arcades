@@ -43,7 +43,7 @@ class EndGroupTimesEditedController extends Controller
             $totalCost = 0;
             $finishedDevices = [];
 
-            // الخطوة 1: إنهاء جميع الأجهزة وحساب التكلفة الإجمالية
+            // ط§ظ„ط®ط·ظˆط© 1: ط¥ظ†ظ‡ط§ط، ط¬ظ…ظٹط¹ ط§ظ„ط£ط¬ظ‡ط²ط© ظˆط­ط³ط§ط¨ ط§ظ„طھظƒظ„ظپط© ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹط©
             foreach ($sessionDevice->bookedDevices as $device) {
                 if ($device->status != BookedDeviceEnum::FINISHED->value) {
                     $finished = $this->timerService->finish($device->id);
@@ -55,19 +55,19 @@ class EndGroupTimesEditedController extends Controller
                 }
             }
 
-            // الخطوة 2: حساب المبلغ الفعلي المدفوع
+            // ط§ظ„ط®ط·ظˆط© 2: ط­ط³ط§ط¨ ط§ظ„ظ…ط¨ظ„ط؛ ط§ظ„ظپط¹ظ„ظٹ ط§ظ„ظ…ط¯ظپظˆط¹
             $actualPaidTotal = $validated['actualPaidAmount'] ?? $totalCost;
 
-            // الخطوة 3: توزيع المبلغ على الأجهزة
+            // ط§ظ„ط®ط·ظˆط© 3: طھظˆط²ظٹط¹ ط§ظ„ظ…ط¨ظ„ط؛ ط¹ظ„ظ‰ ط§ظ„ط£ط¬ظ‡ط²ط©
             if ($totalCost > 0 && count($finishedDevices) > 0) {
                 $distributedTotal = 0;
                 $devicesCount = count($finishedDevices);
 
                 foreach ($finishedDevices as $index => $device) {
-                    // حساب نسبة كل جهاز من التكلفة الإجمالية
+                    // ط­ط³ط§ط¨ ظ†ط³ط¨ط© ظƒظ„ ط¬ظ‡ط§ط² ظ…ظ† ط§ظ„طھظƒظ„ظپط© ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹط©
                     $ratio = $device->period_cost / $totalCost;
 
-                    // للجهاز الأخير: نعطيه الباقي لتجنب مشاكل التقريب
+                    // ظ„ظ„ط¬ظ‡ط§ط² ط§ظ„ط£ط®ظٹط±: ظ†ط¹ط·ظٹظ‡ ط§ظ„ط¨ط§ظ‚ظٹ ظ„طھط¬ظ†ط¨ ظ…ط´ط§ظƒظ„ ط§ظ„طھظ‚ط±ظٹط¨
                     if ($index === $devicesCount - 1) {
                         $devicePaidAmount = $actualPaidTotal - $distributedTotal;
                     } else {
@@ -75,13 +75,13 @@ class EndGroupTimesEditedController extends Controller
                         $distributedTotal += $devicePaidAmount;
                     }
 
-                    // تحديث المبلغ المدفوع فقط
+                    // طھط­ط¯ظٹط« ط§ظ„ظ…ط¨ظ„ط؛ ط§ظ„ظ…ط¯ظپظˆط¹ ظپظ‚ط·
                     $device->update([
                         'actual_paid_amount' => $devicePaidAmount
                     ]);
                 }
             } else {
-                // في حالة التكلفة = 0، نوزع المبلغ بالتساوي
+                // ظپظٹ ط­ط§ظ„ط© ط§ظ„طھظƒظ„ظپط© = 0طŒ ظ†ظˆط²ط¹ ط§ظ„ظ…ط¨ظ„ط؛ ط¨ط§ظ„طھط³ط§ظˆظٹ
                 $equalAmount = count($finishedDevices) > 0
                     ? round($actualPaidTotal / count($finishedDevices), 2)
                     : 0;
@@ -97,13 +97,13 @@ class EndGroupTimesEditedController extends Controller
             });
             foreach ($groupedDevices as $devices) {
 
-                // ترتيب حسب آخر سجل
+                // طھط±طھظٹط¨ ط­ط³ط¨ ط¢ط®ط± ط³ط¬ظ„
                 $devices = $devices->sortBy('id')->values();
 
-                // إجمالي مبلغ الجهاز (مثلاً 100)
+                // ط¥ط¬ظ…ط§ظ„ظٹ ظ…ط¨ظ„ط؛ ط§ظ„ط¬ظ‡ط§ط² (ظ…ط«ظ„ط§ظ‹ 100)
                 $deviceTotalAmount = $devices->sum('actual_paid_amount');
 
-                // آخر record فقط
+                // ط¢ط®ط± record ظپظ‚ط·
                 $lastDevice = $devices->last();
 
                 foreach ($devices as $device) {
@@ -132,7 +132,9 @@ class EndGroupTimesEditedController extends Controller
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 }
+
+

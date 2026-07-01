@@ -126,10 +126,10 @@ class DeviceTimerController extends Controller
         return ApiResponse::success([],__('crud.created'));
         } catch (ValidationException $th) {
             DB::rollBack();
-            return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return ApiResponse::error(__('validation.validation_error'), $th->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
 
     }
@@ -258,10 +258,10 @@ class DeviceTimerController extends Controller
         return ApiResponse::success([],__('crud.created'));
         } catch (ValidationException $th) {
             DB::rollBack();
-            return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return ApiResponse::error(__('validation.validation_error'), $th->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -278,7 +278,7 @@ class DeviceTimerController extends Controller
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
 
     }
@@ -295,7 +295,7 @@ class DeviceTimerController extends Controller
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
 
     }
@@ -318,7 +318,7 @@ class DeviceTimerController extends Controller
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
 
     }
@@ -339,7 +339,7 @@ class DeviceTimerController extends Controller
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     //show device timer
@@ -350,7 +350,7 @@ class DeviceTimerController extends Controller
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function getActitvityLogToDevice($bookedDeviceId){
@@ -378,7 +378,7 @@ class DeviceTimerController extends Controller
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -643,7 +643,7 @@ class DeviceTimerController extends Controller
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -655,7 +655,7 @@ class DeviceTimerController extends Controller
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
@@ -667,7 +667,7 @@ class DeviceTimerController extends Controller
         } catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'), $th->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     //update device end date time
@@ -697,7 +697,7 @@ class DeviceTimerController extends Controller
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     //transfer device to group
@@ -714,10 +714,10 @@ class DeviceTimerController extends Controller
             return ApiResponse::success([],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.not_found'),$th->getMessage(),HttpStatusCode::NOT_FOUND);
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
             DB::rollBack();
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
     public function transferBookedDeviceToSessionDevice($id, Request $request){
@@ -728,12 +728,16 @@ class DeviceTimerController extends Controller
             $this->bookedDeviceService()->transferBookedDeviceToSessionDevice($id,$data['dailyId']);
             return ApiResponse::success([],__('crud.updated'));
         }catch (ValidationException $th) {
-            return ApiResponse::error(__('validation.validation_error'),$th->getMessage(),HttpStatusCode::UNPROCESSABLE_ENTITY);
+            return ApiResponse::error(__('validation.validation_error'), $th->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         }catch (ModelNotFoundException $th) {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),$th->getMessage(),HttpStatusCode::INTERNAL_SERVER_ERROR);
+            return ApiResponse::exception($th);
         }
     }
 
 }
+
+
+
+

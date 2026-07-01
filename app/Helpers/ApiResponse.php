@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use Illuminate\Http\JsonResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
+use Throwable;
 
 class ApiResponse
 {
@@ -32,5 +33,12 @@ class ApiResponse
         ], $status->value)->withHeaders([
             'Accept'=>'application/json'
         ]);
+    }
+
+    public static function exception(Throwable $exception, string $message = '', HttpStatusCode $status = HttpStatusCode::INTERNAL_SERVER_ERROR): JsonResponse
+    {
+        report($exception);
+
+        return self::error($message ?: __('crud.server_error'), [], $status);
     }
 }
