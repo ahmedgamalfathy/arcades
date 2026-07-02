@@ -18,18 +18,20 @@ class NotificationResource extends JsonResource
     {
         //id,read_at,deviceTypeName,deviceTimeName,deviceName,bookedDeviceId,userId,createdAt,updatedAt
         $data_decode =json_decode($this->data,true);
+        $bookedDevice = BookedDevice::find($data_decode['bookedDeviceId'] ?? null);
+
         return [
             'notificationId' => $this->id,
             'data' => [
-                'deviceTypeName' => $data_decode['deviceTypeName'],
-                'deviceTimeName' => $data_decode['deviceTimeName'],
-                'deviceName' => $data_decode['deviceName'],
-                'bookedDeviceId' => $data_decode['bookedDeviceId'],
-                'userId' => $data_decode['userId'],
+                'deviceTypeName' => $data_decode['deviceTypeName'] ?? '',
+                'deviceTimeName' => $data_decode['deviceTimeName'] ?? '',
+                'deviceName' => $data_decode['deviceName'] ?? '',
+                'bookedDeviceId' => $data_decode['bookedDeviceId'] ?? null,
+                'userId' => $data_decode['userId'] ?? null,
                 'message' => $data_decode['message']??"",
                 'createdAt' =>Carbon::parse($this->created_at)->diffForHumans(),
                 'readAt' => $this->read_at??"",
-                'path'=>BookedDevice::find($data_decode['bookedDeviceId'])->device->media->path??"",
+                'path'=>$bookedDevice?->device?->media?->path ?? "",
             ],
         ];
     }

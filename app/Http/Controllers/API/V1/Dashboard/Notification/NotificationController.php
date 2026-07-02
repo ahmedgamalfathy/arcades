@@ -60,8 +60,12 @@ class NotificationController extends Controller implements HasMiddleware
     public function auth_read_notifications()
     {
         $user=auth()->user();
-        if(count($user->unreadNotifications)>0){
-            $user->unreadNotifications->markAsRead();
+        $unreadNotifications = DB::connection('tenant')->table('notifications')
+            ->where('notifiable_id', $user->id)
+            ->whereNull('read_at');
+
+        if($unreadNotifications->count() > 0){
+            $unreadNotifications->update(['read_at' => now()]);
             return ApiResponse::success([],'All Notification marked as read successfully!');
         }else {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
@@ -69,15 +73,19 @@ class NotificationController extends Controller implements HasMiddleware
     }
     public function auth_read_notification($id)
     {
-        $notification = DB::table('notifications')->where('id', $id)->first();
+        $notification = DB::connection('tenant')->table('notifications')
+            ->where('id', $id)
+            ->where('notifiable_id', auth()->id())
+            ->first();
         if (isset($notification)) {
             if ($notification->read_at != null) {
                 return ApiResponse::success([],'notification has been marked as read already');
             }
-            DB::table('notifications')
+            DB::connection('tenant')->table('notifications')
                 ->where('id', $id)
+                ->where('notifiable_id', auth()->id())
                 ->update(['read_at' => now()]); 
-            $notificationfind = DB::table('notifications')->where('id', $id)->first();
+            $notificationfind = DB::connection('tenant')->table('notifications')->where('id', $id)->first();
             return ApiResponse::success(new NotificationResource($notificationfind));
         } else {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
@@ -85,9 +93,12 @@ class NotificationController extends Controller implements HasMiddleware
     }
     public function auth_delete_notifications()
     {
-       $user=User::find(auth()->user()->id);
-       if(count($user->notifications)>0){
-        $user->notifications()->delete();
+       $user = auth()->user();
+       $notifications = DB::connection('tenant')->table('notifications')
+           ->where('notifiable_id', $user->id);
+
+       if($notifications->count() > 0){
+        $notifications->delete();
        }else {
         return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
        }
@@ -95,9 +106,15 @@ class NotificationController extends Controller implements HasMiddleware
     }
     public function auth_delete_notification($id)
     {
-        $notification = DB::table('notifications')->where('id', $id)->first();
+        $notification = DB::connection('tenant')->table('notifications')
+            ->where('id', $id)
+            ->where('notifiable_id', auth()->id())
+            ->first();
         if (isset($notification)) {
-            $notification->delete();
+            DB::connection('tenant')->table('notifications')
+                ->where('id', $id)
+                ->where('notifiable_id', auth()->id())
+                ->delete();
             return ApiResponse::success([],__('crud.deleted'));
         } else {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
