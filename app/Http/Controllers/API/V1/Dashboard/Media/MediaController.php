@@ -25,8 +25,8 @@ class MediaController extends Controller  implements HasMiddleware
         return [// medias ,create_medias,edit_meida ,update_meida ,destroy_meida
             new Middleware('auth:api'),
             new Middleware('permission:medias', only:['index']),
-            new Middleware('permission:create_medias', only:['create']),
-            new Middleware('permission:edit_meida', only:['edit']),
+            new Middleware('permission:create_medias', only:['store']),
+            new Middleware('permission:edit_meida', only:['show']),
             new Middleware('permission:update_meida', only:['update']),
             new Middleware('permission:destroy_meida', only:['destroy']),
             new Middleware('tenant'),

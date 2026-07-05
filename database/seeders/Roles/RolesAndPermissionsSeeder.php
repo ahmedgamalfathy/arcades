@@ -40,6 +40,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'destroy_product',
 //expenses ,create_expenses ,edit_expense ,update_expense,destroy_expense
             'all_expenses',
+            'create_expenses',
             'forceDelete',
             'destroy_restore',
             'destroy_forceDelete',
@@ -106,6 +107,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'auth_read_notification',
             'auth_delete_notifications',
             'auth_delete_notification',
+            'view_reports',
         ];
 
         foreach ($permissions as $permission) {

@@ -79,6 +79,28 @@ class OrderTest extends TestCase
         $this->getJson('/api/v1/admin/orders')->assertForbidden();
     }
 
+    public function test_user_without_create_permission_cannot_create_order(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $user = $this->createUser($tenant, ['orders']);
+        $this->useTenantDatabase($tenant);
+
+        $daily = Daily::create(['start_date_time' => Carbon::now()]);
+        $product = Product::create(['name' => 'Cola', 'price' => 15.00]);
+
+        $this->actingAsUser($user);
+
+        $this->postJson('/api/v1/admin/orders', [
+            'name' => 'Forbidden Order',
+            'dailyId' => $daily->id,
+            'isPaid' => true,
+            'status' => OrderStatus::CONFIRMED->value,
+            'orderItems' => [
+                ['productId' => $product->id, 'qty' => 1],
+            ],
+        ])->assertForbidden();
+    }
+
     public function test_orders_are_isolated_per_tenant(): void
     {
         $tenantA = $this->createTenantDatabase();

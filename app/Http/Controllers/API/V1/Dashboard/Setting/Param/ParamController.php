@@ -25,8 +25,8 @@ class ParamController extends Controller implements HasMiddleware
         return [
             new Middleware('auth:api'),
             new Middleware('permission:all_params', only:['index']),
-            new Middleware('permission:create_param', only:['create']),
-            new Middleware('permission:edit_param', only:['edit']),
+            new Middleware('permission:create_param', only:['store']),
+            new Middleware('permission:edit_param', only:['show']),
             new Middleware('permission:update_param', only:['update']),
             new Middleware('permission:destroy_param', only:['destroy']),
            new Middleware('tenant'),

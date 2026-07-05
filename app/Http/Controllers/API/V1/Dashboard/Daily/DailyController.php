@@ -40,7 +40,7 @@ class DailyController extends Controller implements HasMiddleware
             new Middleware('auth:api'),
             new Middleware('permission:daily', only:['index']),
             new Middleware('permission:create_daily', only:['create']),
-            new Middleware('permission:edit_daily', only:['edit']),
+            new Middleware('permission:edit_daily', only:['show']),
             new Middleware('permission:update_daily', only:['update']),
             new Middleware('permission:destroy_daily', only:['destroy']),
             new Middleware('permission:close_daily', only:['closeDaily']),
