@@ -98,7 +98,7 @@ class DeviceTypeController extends Controller
 
                             case ActionStatusEnum::DEFAULT->value:
                             default:
-                                // طھط¬ط§ظ‡ظ„ ط§ظ„ط¹ظ†طµط±
+                                // تجاهل العنصر
                             break;
                         }
                 }
@@ -156,7 +156,3 @@ class DeviceTypeController extends Controller
         }
     }
 }
-
-
-
-

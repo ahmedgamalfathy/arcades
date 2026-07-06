@@ -15,7 +15,7 @@ class DeviceTimerService
         protected BookedDevicePauseService $pauseService
     ) {}
 
-    // ✅ start أو إدخال وقت محدد
+    // بدء التايمر أو إدخال وقت محدد
     public function startOrSetTime(array $data)
     {//sessionDeviceId,deviceTypeId,deviceId,deviceTimeId,startDateTime,endDateTime
         if (!empty($data['startDateTime']) && !empty($data['endDateTime'])) {

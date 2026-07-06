@@ -37,7 +37,7 @@ class TenantMiddleware
                 return $next($request);
             }
 
-            // إعداد اتصال الـ tenant
+            // إعداد اتصال tenant
             Config::set('database.connections.tenant', [
                 'driver' => 'mysql',
                 'host' => $user->database_host ?? env('TENANT_DB_HOST', '127.0.0.1'),
