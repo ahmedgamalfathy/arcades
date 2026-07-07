@@ -32,8 +32,8 @@ class CreatePermissionTest extends TestCase
             'devices',
             'deviceTimes',
             'deviceTypes',
-            'maintenaces',
-            'medias',
+            'maintenances',
+            'media',
             'orders',
             'products',
         ]);

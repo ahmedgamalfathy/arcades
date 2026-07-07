@@ -27,7 +27,7 @@ class MediaUploadTest extends TestCase
     public function test_user_can_upload_media_file(): void
     {
         $tenant = $this->createTenantDatabase();
-        $user = $this->createUser($tenant, ['create_medias']);
+        $user = $this->createUser($tenant, ['create_media']);
 
         $this->actingAsUser($user);
 
@@ -47,7 +47,7 @@ class MediaUploadTest extends TestCase
     public function test_upload_media_rejects_non_image_file(): void
     {
         $tenant = $this->createTenantDatabase();
-        $user = $this->createUser($tenant, ['create_medias']);
+        $user = $this->createUser($tenant, ['create_media']);
 
         $this->actingAsUser($user);
 
