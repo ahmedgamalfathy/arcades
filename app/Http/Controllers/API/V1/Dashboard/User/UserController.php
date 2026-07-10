@@ -32,7 +32,6 @@ class UserController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:api'),
             new Middleware('permission:all_users', only:['index']),
             new Middleware('permission:create_user', only:['store']),
             new Middleware('permission:edit_user', only:['show']),

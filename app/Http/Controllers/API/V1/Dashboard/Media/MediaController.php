@@ -23,13 +23,11 @@ class MediaController extends Controller  implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:api'),
-            new Middleware('permission:media|medias', only:['index']),
-            new Middleware('permission:create_media|create_medias', only:['store']),
-            new Middleware('permission:edit_media|edit_meida', only:['show']),
-            new Middleware('permission:update_media|update_meida', only:['update']),
-            new Middleware('permission:destroy_media|destroy_meida', only:['destroy']),
-            new Middleware('tenant'),
+            new Middleware('permission:media', only:['index']),
+            new Middleware('permission:create_media', only:['store']),
+            new Middleware('permission:edit_media', only:['show']),
+            new Middleware('permission:update_media', only:['update']),
+            new Middleware('permission:destroy_media', only:['destroy']),
         ];
     }
     public function index(Request $request)

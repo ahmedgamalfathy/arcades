@@ -23,13 +23,11 @@ class ParamController extends Controller implements HasMiddleware
         public static function middleware(): array
     {
         return [
-            new Middleware('auth:api'),
             new Middleware('permission:all_params', only:['index']),
             new Middleware('permission:create_param', only:['store']),
             new Middleware('permission:edit_param', only:['show']),
             new Middleware('permission:update_param', only:['update']),
             new Middleware('permission:destroy_param', only:['destroy']),
-           new Middleware('tenant'),
         ];
     }
     /**

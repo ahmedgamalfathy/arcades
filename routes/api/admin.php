@@ -94,12 +94,12 @@ Route::delete('products/{product}', [ProductController::class, 'destroy'])->midd
 Route::post('products/{id}/restore', [ProductController::class, 'restore'])->middleware('permission:destroy_product');
 Route::delete('products/{id}/force', [ProductController::class, 'forceDelete'])->middleware('permission:destroy_product');
 
-Route::get('maintenances', [MaintenanceController::class, 'index'])->middleware('permission:maintenances|maintenaces');
-Route::post('maintenances', [MaintenanceController::class, 'store'])->middleware('permission:create_maintenance|create_maintenaces');
-Route::get('maintenances/{maintenance}', [MaintenanceController::class, 'show'])->middleware('permission:edit_maintenance|edit_maintenace');
-Route::put('maintenances/{maintenance}', [MaintenanceController::class, 'update'])->middleware('permission:update_maintenance|update_maintenace');
-Route::patch('maintenances/{maintenance}', [MaintenanceController::class, 'update'])->middleware('permission:update_maintenance|update_maintenace');
-Route::delete('maintenances/{maintenance}', [MaintenanceController::class, 'destroy'])->middleware('permission:destroy_maintenance|destroy_maintenace');
+Route::get('maintenances', [MaintenanceController::class, 'index'])->middleware('permission:maintenances');
+Route::post('maintenances', [MaintenanceController::class, 'store'])->middleware('permission:create_maintenance');
+Route::get('maintenances/{maintenance}', [MaintenanceController::class, 'show'])->middleware('permission:edit_maintenance');
+Route::put('maintenances/{maintenance}', [MaintenanceController::class, 'update'])->middleware('permission:update_maintenance');
+Route::patch('maintenances/{maintenance}', [MaintenanceController::class, 'update'])->middleware('permission:update_maintenance');
+Route::delete('maintenances/{maintenance}', [MaintenanceController::class, 'destroy'])->middleware('permission:destroy_maintenance');
 
 Route::prefix('reports')->middleware('permission:view_reports')->group(function () {
     Route::get('', [ReportController::class, 'getReport']);

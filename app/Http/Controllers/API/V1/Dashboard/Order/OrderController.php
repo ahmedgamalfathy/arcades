@@ -31,13 +31,11 @@ class OrderController extends Controller implements HasMiddleware
     public static function middleware(): array
     {//orders ,create_orders , edit_order ,update_order ,destroy_order
         return [
-            new Middleware('auth:api'),
             new Middleware('permission:orders', only:['index']),
             new Middleware('permission:create_orders', only:['store']),
             new Middleware('permission:edit_order', only:['show']),
             new Middleware('permission:update_order', only:['update']),
             new Middleware('permission:destroy_order', only:['destroy']),
-            new Middleware('tenant'),
         ];
     }
     public function index(Request $request)

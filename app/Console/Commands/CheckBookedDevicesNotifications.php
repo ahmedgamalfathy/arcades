@@ -61,13 +61,15 @@ class CheckBookedDevicesNotifications extends Command
     private function connectToTenant($user): void
     {
         // نفس منطق الـ TenantMiddleware
+        $tenantConnection = config('database.connections.tenant');
+
         Config::set('database.connections.tenant', [
             'driver' => 'mysql',
-            'host' => env('TENANT_DB_HOST', '127.0.0.1'),
-            'port' => env('TENANT_DB_PORT', '3306'),
-            'database' => $user->database_name ?? env('TENANT_DB_DATABASE'),
-            'username' => $user->database_username ?? env('TENANT_DB_USERNAME', 'root'),
-            'password' => $user->database_password ?? env('TENANT_DB_PASSWORD', ''),
+            'host' => $tenantConnection['host'],
+            'port' => $tenantConnection['port'],
+            'database' => $user->database_name ?? $tenantConnection['database'],
+            'username' => $user->database_username ?? $tenantConnection['username'],
+            'password' => $user->database_password ?? $tenantConnection['password'],
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',

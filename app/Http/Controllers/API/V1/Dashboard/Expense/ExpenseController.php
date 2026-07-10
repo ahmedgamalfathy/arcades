@@ -33,7 +33,6 @@ class ExpenseController extends Controller implements HasMiddleware
     public static function middleware(): array
     {//internalExpenses,externalExpenses, forceDelete,restore,create_expenses ,edit_expense ,update_expense,destroy_expense
         return [
-            new Middleware('auth:api'),
             new Middleware('permission:all_expenses', only:['index']),
             new Middleware('permission:create_expenses', only:['store']),
             new Middleware('permission:edit_expense', only:['show']),
@@ -41,7 +40,6 @@ class ExpenseController extends Controller implements HasMiddleware
             new Middleware('permission:destroy_expense', only:['destroy']),
             new Middleware('permission:destroy_restore', only:['restore']),
             new Middleware('permission:destroy_forceDelete', only:['forceDelete']),
-            new Middleware('tenant'),
         ];
     }
     /**

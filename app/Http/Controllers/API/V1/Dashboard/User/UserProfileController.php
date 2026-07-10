@@ -29,8 +29,6 @@ class UserProfileController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [// profile ,profileUpdate
-            new Middleware('auth:api'),
-            new Middleware('tenant'),
         ];
     }
 

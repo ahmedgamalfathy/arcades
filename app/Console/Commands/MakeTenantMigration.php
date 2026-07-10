@@ -95,10 +95,12 @@ class MakeTenantMigration extends Command
         // Configure tenant database connection
         $connectionName = "tenant_{$tenant->id}";
 
+        $tenantConnection = config('database.connections.tenant');
+
         Config::set("database.connections.{$connectionName}", [
             'driver' => 'mysql',
-            'host' => $tenant->db_host ?? env('DB_HOST', '127.0.0.1'),
-            'port' => $tenant->db_port ?? env('DB_PORT', '3306'),
+            'host' => $tenant->db_host ?? $tenantConnection['host'],
+            'port' => $tenant->db_port ?? $tenantConnection['port'],
             'database' => $tenant->database_name,
             'username' => $tenant->database_username,
             'password' => $tenant->database_password,
@@ -143,7 +145,7 @@ class MakeTenantMigration extends Command
                 \Database\Seeders\ParamSeeder::class,
             ];
             foreach ($seeders as $seederClass) {
-                $this->line(" → Running {$seederClass}");
+                $this->line("Running {$seederClass}");
                 Artisan::call('db:seed', [
                     '--database' => $connectionName,
                     '--force' => true,
@@ -152,19 +154,9 @@ class MakeTenantMigration extends Command
                 $this->info(Artisan::output());
             }
         }
-        // if ($this->option('seed')) {
-        //     $this->line("Seeding tenant {$tenant->id}...");
-        //     Artisan::call('db:seed', [
-        //         '--database' => $connectionName,
-        //         '--force' => true,
-        //         '--class' => 'Database\\Seeders\\MediaSeeder', // ← هنا تحط اسم الـ seeder اللي عايز تشغله
-        //     ]);
-        // }
-
-
         // Purge connection
         DB::purge($connectionName);
 
-        $this->info("✓ Tenant {$tenant->id} migrated successfully");
+        $this->info("Tenant {$tenant->id} migrated successfully");
     }
 }

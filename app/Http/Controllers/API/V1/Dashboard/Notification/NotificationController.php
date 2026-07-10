@@ -20,14 +20,12 @@ class NotificationController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:api'),
             new Middleware('permission:notifications', only:['notifications']),
             new Middleware('permission:auth_unread_notifications', only:['auth_unread_notifications']),
             new Middleware('permission:auth_read_notifications', only:['auth_read_notifications']),
             new Middleware('permission:auth_read_notification', only:['auth_read_notification']),
             new Middleware('permission:auth_delete_notifications', only:['auth_delete_notifications']),
             new Middleware('permission:auth_delete_notification', only:['auth_delete_notification']),
-            new Middleware('tenant'),
         ];
     }
     public function notifications()

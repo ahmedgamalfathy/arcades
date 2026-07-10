@@ -16,7 +16,7 @@ class AllMaintenanceResource extends JsonResource
     {
     //    $total = Expense::count();
         return [
-            'maintenaces' => MaintenanceResource::collection($this->resource->items()),
+            'maintenances' => MaintenanceResource::collection($this->resource->items()),
             // 'count'=>$total,
             // 'perPage' => $this->resource->count(),
             // 'nextPageUrl'  => $this->resource->nextPageUrl(),

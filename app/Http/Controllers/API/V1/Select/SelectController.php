@@ -18,9 +18,7 @@ class SelectController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:api'),
             new Middleware('permission:products', only:['getSelects']),
-            new Middleware('tenant'),
         ];
     }
     public function getSelects(Request $request)

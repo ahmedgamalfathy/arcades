@@ -37,7 +37,6 @@ class DailyController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:api'),
             new Middleware('permission:daily', only:['index']),
             new Middleware('permission:create_daily', only:['create']),
             new Middleware('permission:edit_daily', only:['show']),
@@ -45,7 +44,6 @@ class DailyController extends Controller implements HasMiddleware
             new Middleware('permission:destroy_daily', only:['destroy']),
             new Middleware('permission:close_daily', only:['closeDaily']),
             new Middleware('permission:daily_report', only:['dailyReport']),
-            new Middleware('tenant'),
         ];
     }
 

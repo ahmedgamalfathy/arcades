@@ -47,17 +47,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit_expense',
             'update_expense',
             'destroy_expense',
-//maintenance permissions. Keep legacy misspelled permissions for backward compatibility.
+//maintenance permissions
             'maintenances',
             'create_maintenance',
             'edit_maintenance',
             'update_maintenance',
             'destroy_maintenance',
-            'maintenaces',
-            'create_maintenaces',
-            'edit_maintenace',
-            'update_maintenace',
-            'destroy_maintenace',
 //orders ,create_orders , edit_order ,update_order ,destroy_order
             'orders',
             'create_orders',
@@ -66,17 +61,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'destroy_order',
             'restore-orders',
             'force-delete-orders',
-//media permissions. Keep legacy misspelled permissions for backward compatibility.
+//media permissions
             'media',
             'create_media',
             'edit_media',
             'update_media',
             'destroy_media',
-            'medias',
-            'create_medias',
-            'edit_meida',
-            'update_meida',
-            'destroy_meida',
 //devices ,create_devices, edit_device,update_device ,destroy_device
             'devices',
             'create_devices',
