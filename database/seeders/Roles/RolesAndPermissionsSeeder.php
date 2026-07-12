@@ -42,8 +42,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'all_expenses',
             'create_expenses',
             'forceDelete',
-            'destroy_restore',
-            'destroy_forceDelete',
+            'restore_expense',
+            'force_delete_expense',
             'edit_expense',
             'update_expense',
             'destroy_expense',
@@ -61,6 +61,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'destroy_order',
             'restore-orders',
             'force-delete-orders',
+            'change_order_status',
+            'change_order_payment_status',
 //media permissions
             'media',
             'create_media',
@@ -73,7 +75,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit_device',
             'update_device',
             'destroy_device',
-            'devices_changeStatus',
+            'change_device_status',
 //deviceTimes ,create_deviceTimes,edit_deviceTime,update_deviceTime,destroy_deviceTime
             'deviceTimes',
             'create_deviceTimes',

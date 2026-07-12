@@ -38,8 +38,8 @@ class ExpenseController extends Controller implements HasMiddleware
             new Middleware('permission:edit_expense', only:['show']),
             new Middleware('permission:update_expense', only:['update']),
             new Middleware('permission:destroy_expense', only:['destroy']),
-            new Middleware('permission:destroy_restore', only:['restore']),
-            new Middleware('permission:destroy_forceDelete', only:['forceDelete']),
+            new Middleware('permission:restore_expense', only:['restore']),
+            new Middleware('permission:force_delete_expense', only:['forceDelete']),
         ];
     }
     /**

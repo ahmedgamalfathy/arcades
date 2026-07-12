@@ -127,7 +127,7 @@ class OrderTest extends TestCase
     public function test_change_order_status_rejects_invalid_status(): void
     {
         $tenant = $this->createTenantDatabase();
-        $user = $this->createUser($tenant, []);
+        $user = $this->createUser($tenant, ['change_order_status']);
         $this->useTenantDatabase($tenant);
 
         $daily = Daily::create(['start_date_time' => Carbon::now()]);
@@ -153,7 +153,7 @@ class OrderTest extends TestCase
     public function test_change_order_payment_status_rejects_non_boolean_value(): void
     {
         $tenant = $this->createTenantDatabase();
-        $user = $this->createUser($tenant, []);
+        $user = $this->createUser($tenant, ['change_order_payment_status']);
         $this->useTenantDatabase($tenant);
 
         $daily = Daily::create(['start_date_time' => Carbon::now()]);

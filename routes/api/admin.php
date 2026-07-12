@@ -23,8 +23,10 @@ Route::prefix('auth')->group(function () {
     Route::post('logout', LogoutController::class);
 });
 
-Route::put('orders/{id}/changeStatus', [OrderController::class, 'changeOrderStatus']);
-Route::put('orders/{id}/changeTypePay', [OrderController::class, 'changeOrderPaymentStatus']);
+Route::put('orders/{id}/changeStatus', [OrderController::class, 'changeOrderStatus'])
+    ->middleware('permission:change_order_status');
+Route::put('orders/{id}/changeTypePay', [OrderController::class, 'changeOrderPaymentStatus'])
+    ->middleware('permission:change_order_payment_status');
 Route::post('orders/{id}/restore', [OrderController::class, 'restore'])
     ->middleware('permission:restore-orders');
 Route::delete('orders/{id}/force', [OrderController::class, 'forceDelete'])
@@ -45,9 +47,9 @@ Route::apiResource('users', UserController::class);
 Route::apiResource('media', MediaController::class);
 
 Route::post('expenses/{id}/restore', [ExpenseController::class, 'restore'])
-    ->middleware('permission:destroy_restore');
+    ->middleware('permission:restore_expense');
 Route::delete('expenses/{id}/force', [ExpenseController::class, 'forceDelete'])
-    ->middleware('permission:destroy_forceDelete');
+    ->middleware('permission:force_delete_expense');
 Route::apiResource('expenses', ExpenseController::class);
 
 Route::put('profile/change-password', ChangeCurrentPasswordController::class);

@@ -3,20 +3,20 @@
 namespace App\Http\Controllers\API\V1\Dashboard\Notification;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Resources\Notification\AllNotificationResource;
 use App\Http\Resources\Notification\NotificationResource;
-use App\Models\Timer\BookedDevice\BookedDevice;
-use App\Enums\BookedDevice\BookedDeviceEnum;
-use App\Models\Setting\Param\Param;
-use App\Models\User;
+use App\Services\Notification\NotificationService;
+
 class NotificationController extends Controller implements HasMiddleware
 {
+    public function __construct(private NotificationService $notificationService)
+    {
+    }
+
     public static function middleware(): array
     {
         return [
@@ -31,11 +31,8 @@ class NotificationController extends Controller implements HasMiddleware
     public function notifications()
     {
         $user=auth()->user();
-        $notifications = DB::connection('tenant')->table('notifications')
-        ->where('notifiable_id', $user->id) 
-        ->whereNull('read_at')
-        ->orderByDesc('id')
-        ->cursorPaginate(10);
+        $notifications = $this->notificationService->unreadForUser($user->id);
+
         if($notifications){
            return ApiResponse::success(new AllNotificationResource($notifications));
         }else
@@ -46,9 +43,8 @@ class NotificationController extends Controller implements HasMiddleware
     public function auth_unread_notifications()
     {
        $user=auth()->user();
-       $notifications= DB::connection('tenant')->table('notifications')->where('notifiable_id',$user->id)
-       ->orderByDesc('id')
-       ->whereNull('read_at')->cursorPaginate();
+       $notifications= $this->notificationService->allUnreadForUser($user->id);
+
         if ($notifications) {
                 return ApiResponse::success(new AllNotificationResource($notifications));
         }else{
@@ -58,12 +54,8 @@ class NotificationController extends Controller implements HasMiddleware
     public function auth_read_notifications()
     {
         $user=auth()->user();
-        $unreadNotifications = DB::connection('tenant')->table('notifications')
-            ->where('notifiable_id', $user->id)
-            ->whereNull('read_at');
 
-        if($unreadNotifications->count() > 0){
-            $unreadNotifications->update(['read_at' => now()]);
+        if($this->notificationService->markAllAsReadForUser($user->id)){
             return ApiResponse::success([],'All Notification marked as read successfully!');
         }else {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
@@ -71,48 +63,33 @@ class NotificationController extends Controller implements HasMiddleware
     }
     public function auth_read_notification($id)
     {
-        $notification = DB::connection('tenant')->table('notifications')
-            ->where('id', $id)
-            ->where('notifiable_id', auth()->id())
-            ->first();
-        if (isset($notification)) {
-            if ($notification->read_at != null) {
-                return ApiResponse::success([],'notification has been marked as read already');
-            }
-            DB::connection('tenant')->table('notifications')
-                ->where('id', $id)
-                ->where('notifiable_id', auth()->id())
-                ->update(['read_at' => now()]); 
-            $notificationfind = DB::connection('tenant')->table('notifications')->where('id', $id)->first();
-            return ApiResponse::success(new NotificationResource($notificationfind));
-        } else {
+        $result = $this->notificationService->markAsReadForUser(auth()->id(), $id);
+
+        if ($result['status'] === 'not_found') {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }
+
+        if ($result['status'] === 'already_read') {
+            return ApiResponse::success([],'notification has been marked as read already');
+        }
+
+        return ApiResponse::success(new NotificationResource($result['notification']));
     }
+
     public function auth_delete_notifications()
     {
        $user = auth()->user();
-       $notifications = DB::connection('tenant')->table('notifications')
-           ->where('notifiable_id', $user->id);
 
-       if($notifications->count() > 0){
-        $notifications->delete();
+       if($this->notificationService->deleteAllForUser($user->id)){
+           return ApiResponse::success([],'delete notifications');
        }else {
-        return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+           return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
        }
-       return ApiResponse::success([],'delete notifications');
     }
+
     public function auth_delete_notification($id)
     {
-        $notification = DB::connection('tenant')->table('notifications')
-            ->where('id', $id)
-            ->where('notifiable_id', auth()->id())
-            ->first();
-        if (isset($notification)) {
-            DB::connection('tenant')->table('notifications')
-                ->where('id', $id)
-                ->where('notifiable_id', auth()->id())
-                ->delete();
+        if ($this->notificationService->deleteForUser(auth()->id(), $id)) {
             return ApiResponse::success([],__('crud.deleted'));
         } else {
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('timers', [DeviceController::class, 'index'])->middleware('permission:devices');
 Route::post('timers', [DeviceController::class, 'store'])->middleware('permission:create_devices');
-Route::post('timers/{timer}/change-status', [DeviceController::class, 'changeStatus'])->middleware('permission:devices_changeStatus');
+Route::post('timers/{timer}/change-status', [DeviceController::class, 'changeStatus'])->middleware('permission:change_device_status');
 Route::put('timers/{timer}', [DeviceController::class, 'update'])->middleware('permission:edit_device');
 Route::patch('timers/{timer}', [DeviceController::class, 'update'])->middleware('permission:edit_device');
 Route::delete('timers/{timer}', [DeviceController::class, 'destroy'])->middleware('permission:destroy_device');
@@ -19,7 +19,7 @@ Route::post('timers/{timer}/restore', [DeviceController::class, 'restore'])->mid
 Route::delete('timers/{timer}/force', [DeviceController::class, 'forceDelete'])->middleware('permission:destroy_device');
 
 Route::post('devices/create-order-device', [DeviceController::class, 'createOrderDevice'])->middleware('permission:create_devices');
-Route::put('devices/{id}/changeStatus', [DeviceController::class, 'changeStatus'])->middleware('permission:devices_changeStatus');
+Route::put('devices/{id}/changeStatus', [DeviceController::class, 'changeStatus'])->middleware('permission:change_device_status');
 Route::post('devices/{id}/restore', [DeviceController::class, 'restore'])->middleware('permission:destroy_device');
 Route::delete('devices/{id}/force', [DeviceController::class, 'forceDelete'])->middleware('permission:destroy_device');
 Route::get('devices', [DeviceController::class, 'index'])->middleware('permission:devices');
