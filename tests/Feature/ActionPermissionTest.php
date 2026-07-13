@@ -152,6 +152,7 @@ class ActionPermissionTest extends TestCase
             ['POST', "/api/v1/admin/products/{$productId}/restore", []],
             ['DELETE', "/api/v1/admin/products/{$productId}/force", []],
             ['PUT', "/api/v1/admin/devices/{$deviceId}", []],
+            ['PUT', "/api/v1/admin/timers/{$deviceId}", []],
             ['DELETE', "/api/v1/admin/devices/{$deviceId}", []],
             ['POST', "/api/v1/admin/devices/{$deviceId}/restore", []],
             ['DELETE', "/api/v1/admin/devices/{$deviceId}/force", []],

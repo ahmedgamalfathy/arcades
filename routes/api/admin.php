@@ -28,20 +28,20 @@ Route::put('orders/{id}/changeStatus', [OrderController::class, 'changeOrderStat
 Route::put('orders/{id}/changeTypePay', [OrderController::class, 'changeOrderPaymentStatus'])
     ->middleware('permission:change_order_payment_status');
 Route::post('orders/{id}/restore', [OrderController::class, 'restore'])
-    ->middleware('permission:restore-orders');
+    ->middleware('permission:restore_order');
 Route::delete('orders/{id}/force', [OrderController::class, 'forceDelete'])
-    ->middleware('permission:force-delete-orders');
+    ->middleware('permission:force_delete_order');
 Route::delete('orders/{id}/force-delete', [OrderController::class, 'forceDelete'])
-    ->middleware('permission:force-delete-orders');
+    ->middleware('permission:force_delete_order');
 Route::apiResource('orders', OrderController::class);
 
 Route::put('users/changePassword', [UserController::class, 'userChangePassword']);
 Route::post('users/{id}/restore', [UserController::class, 'restore'])
-    ->middleware('permission:restore-users');
+    ->middleware('permission:restore_user');
 Route::delete('users/{id}/force', [UserController::class, 'forceDelete'])
-    ->middleware('permission:force-delete-users');
+    ->middleware('permission:force_delete_user');
 Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete'])
-    ->middleware('permission:force-delete-users');
+    ->middleware('permission:force_delete_user');
 Route::apiResource('users', UserController::class);
 
 Route::apiResource('media', MediaController::class);
@@ -85,7 +85,7 @@ Route::prefix('dailies')->controller(DailyController::class)->group(function () 
     Route::post('close', 'closeDaily');
 });
 
-Route::get('dailyActivity', DailyActivityController::class);
+Route::get('dailyActivity', DailyActivityController::class)->middleware('permission:view_daily_activity');
 
 Route::get('products', [ProductController::class, 'index'])->middleware('permission:products');
 Route::post('products', [ProductController::class, 'store'])->middleware('permission:create_products');

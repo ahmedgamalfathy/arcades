@@ -64,4 +64,15 @@ class TenantAndPermissionSecurityTest extends TestCase
         $this->getJson('/api/v1/admin/reports/dailyStatusData')
             ->assertForbidden();
     }
+
+    public function test_user_without_view_daily_activity_permission_cannot_access_daily_activity(): void
+    {
+        $tenantDatabase = $this->createTenantDatabase();
+        $user = $this->createUser($tenantDatabase, ['daily']);
+
+        $this->actingAsUser($user);
+
+        $this->getJson('/api/v1/admin/dailyActivity?dailyId=1')
+            ->assertForbidden();
+    }
 }

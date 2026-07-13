@@ -182,8 +182,8 @@ class OrderTest extends TestCase
         $tenant = $this->createTenantDatabase();
         $user = $this->createUser($tenant, [
             'destroy_order',
-            'restore-orders',
-            'force-delete-orders',
+            'restore_order',
+            'force_delete_order',
         ]);
         $this->useTenantDatabase($tenant);
 

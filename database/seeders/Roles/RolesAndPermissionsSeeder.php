@@ -22,8 +22,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit_user',
             'update_user',
             'destroy_user',
-            'restore-users',
-            'force-delete-users',
+            'restore_user',
+            'force_delete_user',
             'change_user_status',
 
 
@@ -41,7 +41,6 @@ class RolesAndPermissionsSeeder extends Seeder
 //expenses ,create_expenses ,edit_expense ,update_expense,destroy_expense
             'all_expenses',
             'create_expenses',
-            'forceDelete',
             'restore_expense',
             'force_delete_expense',
             'edit_expense',
@@ -59,8 +58,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit_order',
             'update_order',
             'destroy_order',
-            'restore-orders',
-            'force-delete-orders',
+            'restore_order',
+            'force_delete_order',
             'change_order_status',
             'change_order_payment_status',
 //media permissions
@@ -96,6 +95,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'destroy_daily',
             'close_daily',
             'daily_report',
+            'view_daily_activity',
 //all_params , create_param , edit_param ,update_param ,destroy_param
             'all_params',
             'create_param',
