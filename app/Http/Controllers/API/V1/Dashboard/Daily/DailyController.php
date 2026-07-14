@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API\V1\Dashboard\Daily;
 use Throwable;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\Daily\DailyService;
 use App\Enums\ResponseCode\HttpStatusCode;
@@ -55,12 +54,9 @@ class DailyController extends Controller implements HasMiddleware
     public function create(CreateDailyRequest $createDailyRequest)
     {
         try {
-            DB::beginTransaction();
             $this->dailyService->createDaily($createDailyRequest->validated());
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (Throwable $th) {
-            DB::rollBack( );
             return ApiResponse::exception($th);
         }
     }
@@ -78,15 +74,11 @@ class DailyController extends Controller implements HasMiddleware
     public function update(int $id,UpdateDailyRequest $updateDailyRequest)
     {
         try {
-            DB::beginTransaction();
             $this->dailyService->updateDaily($id,$updateDailyRequest->validated());
-            DB::commit();
             return ApiResponse::success([], __('crud.updated'));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
     }

@@ -1,7 +1,10 @@
 <?php
 namespace App\Services\Device\DeviceType;
 
+use App\Enums\ActionStatusEnum;
+use App\Services\Device\DeviceTime\DeviceTimeService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use App\Filters\DeviceType\FilterDeviceType;
@@ -11,6 +14,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DeviceTypeService
 {
+    public function __construct(private DeviceTimeService $deviceTimeService)
+    {
+    }
+
     public function allDeviceTypes(Request $request)
     {
         $perPage = $request->query('perPage', 10);
@@ -36,20 +43,58 @@ class DeviceTypeService
     }
     public function createDeviceType(array $data)
     {
-        $deviceType = DeviceType::create([
-            'name'=>$data['name'],
-        ]);
-        return $deviceType;
+        return DB::transaction(function () use ($data) {
+            $deviceType = DeviceType::create([
+                'name'=>$data['name'],
+            ]);
+
+            if (!empty($data['times'])) {
+                foreach ($data['times'] as $time) {
+                    $time['deviceTypeId'] = $deviceType->id;
+                    $this->deviceTimeService->createDeviceTime($time);
+                }
+            }
+
+            return $deviceType;
+        });
     }
     public function updateDeviceType(int $id,array $data)
     {
-        $deviceType = DeviceType::find($id);
-        if(!$deviceType){
-        throw new ModelNotFoundException("Device Type with id {$id} not found");
-        }
-        $deviceType->name = $data['name'];
-        $deviceType->save();
-        return $deviceType;
+        return DB::transaction(function () use ($id, $data) {
+            $deviceType = DeviceType::find($id);
+            if(!$deviceType){
+            throw new ModelNotFoundException("Device Type with id {$id} not found");
+            }
+            $deviceType->name = $data['name'];
+            $deviceType->save();
+
+            if (!empty($data['times'])) {
+                foreach ($data['times'] as $time) {
+                    $time['deviceTypeId'] = $deviceType->id;
+                    $status = isset($time['actionStatus']) ? (int) $time['actionStatus'] : ActionStatusEnum::DEFAULT->value;
+
+                    switch ($status) {
+                        case ActionStatusEnum::CREATE->value:
+                            $this->deviceTimeService->createDeviceTime($time);
+                            break;
+
+                        case ActionStatusEnum::UPDATE->value:
+                            $this->deviceTimeService->updateDeviceTime($time['timeTypeId'], $time);
+                            break;
+
+                        case ActionStatusEnum::DELETE->value:
+                            $this->deviceTimeService->deleteDeviceTime($time['timeTypeId']);
+                            break;
+
+                        case ActionStatusEnum::DEFAULT->value:
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            return $deviceType;
+        });
     }
     public function deleteDeviceType(int $id)
     {

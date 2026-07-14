@@ -2,136 +2,37 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Enums\ResponseCode\HttpStatusCode;
-use App\Services\Timer\DeviceTimerService;
-use App\Models\Timer\SessionDevice\SessionDevice;
-use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Enums\BookedDevice\BookedDeviceEnum;
+use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
+use App\Services\Timer\DeviceTimerService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 
 class EndGroupTimesEditedController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
-    public function __construct( protected DeviceTimerService $timerService)
+    public function __construct(protected DeviceTimerService $timerService)
     {
-
     }
+
     public function __invoke(Request $request)
     {
         $validated = $request->validate([
             'sessionDeviceId' => 'required|exists:session_devices,id',
-            'actualPaidAmount' => 'nullable|numeric|min:0'
+            'actualPaidAmount' => 'nullable|numeric|min:0',
         ]);
 
         try {
-            DB::beginTransaction();
-
-            $sessionDevice = SessionDevice::with('bookedDevices')->findOrFail($validated['sessionDeviceId']);
-
-
-            if (!$sessionDevice) {
-                DB::rollBack();
-                return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
-            }
-
-            $totalCost = 0;
-            $finishedDevices = [];
-
-            // الخطوة 1: إنهاء جميع الأجهزة وحساب التكلفة الإجمالية
-            foreach ($sessionDevice->bookedDevices as $device) {
-                if ($device->status != BookedDeviceEnum::FINISHED->value) {
-                    $finished = $this->timerService->finish($device->id);
-                    $finishedDevices[] = $finished;
-                    $totalCost += $finished->period_cost;
-                } else {
-                    $finishedDevices[] = $device;
-                    $totalCost += $device->period_cost;
-                }
-            }
-
-            // الخطوة 2: حساب المبلغ الفعلي المدفوع
-            $actualPaidTotal = $validated['actualPaidAmount'] ?? $totalCost;
-
-            // الخطوة 3: توزيع المبلغ على الأجهزة
-            if ($totalCost > 0 && count($finishedDevices) > 0) {
-                $distributedTotal = 0;
-                $devicesCount = count($finishedDevices);
-
-                foreach ($finishedDevices as $index => $device) {
-                    // حساب نسبة كل جهاز من التكلفة الإجمالية
-                    $ratio = $device->period_cost / $totalCost;
-
-                    // الجهاز الأخير يأخذ الباقي لتجنب مشاكل التقريب
-                    if ($index === $devicesCount - 1) {
-                        $devicePaidAmount = $actualPaidTotal - $distributedTotal;
-                    } else {
-                        $devicePaidAmount = round($actualPaidTotal * $ratio, 2);
-                        $distributedTotal += $devicePaidAmount;
-                    }
-
-                    // تحديث المبلغ المدفوع فقط
-                    $device->update([
-                        'actual_paid_amount' => $devicePaidAmount
-                    ]);
-                }
-            } else {
-                // في حالة التكلفة = 0، نوزع المبلغ بالتساوي
-                $equalAmount = count($finishedDevices) > 0
-                    ? round($actualPaidTotal / count($finishedDevices), 2)
-                    : 0;
-
-                foreach ($finishedDevices as $device) {
-                    $device->update([
-                        'actual_paid_amount' => $equalAmount
-                    ]);
-                }
-            }
-            $groupedDevices = collect($finishedDevices)->groupBy(function ($device) {
-                return $device->device_id . '-' . $device->device_type_id;
-            });
-            foreach ($groupedDevices as $devices) {
-
-                // ترتيب حسب آخر سجل
-                $devices = $devices->sortBy('id')->values();
-
-                // إجمالي مبلغ الجهاز
-                $deviceTotalAmount = $devices->sum('actual_paid_amount');
-
-                // آخر record فقط
-                $lastDevice = $devices->last();
-
-                foreach ($devices as $device) {
-                    $device->update([
-                        'actual_paid_amount' =>
-                            $device->id === $lastDevice->id
-                                ? $deviceTotalAmount
-                                : 0
-                    ]);
-                }
-            }
-
-            $sessionDevice = $sessionDevice->fresh([
-                'bookedDevices.device',
-                'bookedDevices.deviceType',
-                'bookedDevices.deviceTime',
-                'bookedDevices.device.media',
-            ]);
-
-            DB::commit();
+            $sessionDevice = $this->timerService->finishGroupSessionWithDistributedPayment(
+                $validated['sessionDeviceId'],
+                $validated['actualPaidAmount'] ?? null
+            );
 
             return ApiResponse::success(new SessionDeviceResource($sessionDevice));
-
         } catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
     }

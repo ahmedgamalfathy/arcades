@@ -8,7 +8,6 @@ use Exception;
 use Throwable;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\Expense\ExpenseService;
 use App\Enums\ResponseCode\HttpStatusCode;
@@ -58,12 +57,9 @@ class ExpenseController extends Controller implements HasMiddleware
     public function store(CreateExpenseRequest $createExpenseRequest)
     {
         try {
-            DB::beginTransaction();
                $this->expenseService->createExpense($createExpenseRequest->validated());
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (Throwable $th) {
-            DB::rollBack( );
             return ApiResponse::exception($th);
         }
     }
@@ -89,15 +85,11 @@ class ExpenseController extends Controller implements HasMiddleware
     public function update(UpdateExpenseRequest $updateExpenseRequest, int $id)
     {
         try {
-            DB::beginTransaction();
             $this->expenseService->updateExpense($id,$updateExpenseRequest->validated());
-            DB::commit();
             return ApiResponse::success([], __('crud.updated'));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
     }

@@ -2,46 +2,42 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\ForgotPassword;
 
-use App\Models\User;
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use App\Enums\ResponseCode\HttpStatusCode;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
+use App\Services\Auth\ForgotPasswordService;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class VerifyCodeController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
+    public function __construct(private ForgotPasswordService $forgotPasswordService)
+    {
+    }
+
     public function __invoke(Request $request)
     {
-         DB::beginTransaction();
         try {
-            $data= $request->validate([
+            $data = $request->validate([
                 'code' => 'required',
                 'email' => 'required|email|exists:users,email',
             ]);
-           $user = User::where('email',$data['email'])->first();
-           if($user->code != $data['code']){
-                DB::rollBack();
+
+            $result = $this->forgotPasswordService->verifyCode($data['email'], $data['code']);
+
+            if ($result === 'invalid') {
                 return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
-           }
-           if($user->expired_at < now()){
-                DB::rollBack();
+            }
+
+            if ($result === 'expired') {
                 return ApiResponse::error('Time of code is expired ,please resend code again!', [], HttpStatusCode::UNPROCESSABLE_ENTITY);
             }
-            DB::commit();
-            return ApiResponse::success([],    __('auth.verify_code'));
+
+            return ApiResponse::success([], __('auth.verify_code'));
         } catch (ValidationException $th) {
-           DB::rollBack();
             return ApiResponse::error(__('validation.validation_error'), $th->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
-           DB::rollBack();
             return ApiResponse::exception($th);
         }
     }
 }
-
-

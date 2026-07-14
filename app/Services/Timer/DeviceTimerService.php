@@ -5,6 +5,7 @@ use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Enums\Device\DeviceStatusEnum;
 use Carbon\Carbon;
 use App\Models\Timer\BookedDevice\BookedDevice;
+use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Events\BookedDeviceChangeStatus;
 use Illuminate\Support\Facades\DB;
 
@@ -32,6 +33,7 @@ class DeviceTimerService
 
     public function pause(int $id)
     {
+        return DB::transaction(function () use ($id) {
          $bookedDevice=BookedDevice::findOrFail($id);
         if($bookedDevice->status== BookedDeviceEnum::FINISHED->value){
             throw new \Exception('Device is already finished.');
@@ -55,10 +57,12 @@ class DeviceTimerService
         $this->logSessionDeviceAction($bookedDevice, $oldStatus);
 
         //  broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
+        });
     }
 
     public function resume(int $id)
     {
+        return DB::transaction(function () use ($id) {
         $bookedDevice=BookedDevice::findOrFail($id);
         if ( $bookedDevice->status !== BookedDeviceEnum::PAUSED->value) {
             throw new \Exception('Device is not paused.');
@@ -78,6 +82,7 @@ class DeviceTimerService
         $this->logSessionDeviceAction($bookedDevice, $oldStatus);
 
         // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
+        });
     }
 
     public function finish(int $id ,array $data = [])
@@ -216,6 +221,7 @@ class DeviceTimerService
 
     public function changeDeviceTime($id, int $newTimeId)
         {
+            return DB::transaction(function () use ($id, $newTimeId) {
             $oldBookedDevice = BookedDevice::findOrFail($id);
             $newEndDateTime = null;
 
@@ -300,5 +306,110 @@ class DeviceTimerService
 
             // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
             return $BookedDeviceChange;
+            });
         }
+
+    public function finishGroupSession(int $sessionDeviceId, ?float $actualPaidAmount = null): SessionDevice
+    {
+        return DB::transaction(function () use ($sessionDeviceId, $actualPaidAmount) {
+            $sessionDevice = SessionDevice::with('bookedDevices')->findOrFail($sessionDeviceId);
+            $totalCost = 0;
+
+            foreach ($sessionDevice->bookedDevices as $device) {
+                if ($device->status != BookedDeviceEnum::FINISHED->value) {
+                    $finished = $this->finish($device->id);
+                    $totalCost += $finished->period_cost;
+                } else {
+                    $totalCost += $device->period_cost;
+                }
+            }
+
+            $sessionDevice->update([
+                'total_period_cost' => $totalCost,
+                'actual_paid_amount' => $actualPaidAmount ?? $totalCost,
+            ]);
+
+            return $sessionDevice->fresh([
+                'bookedDevices.device',
+                'bookedDevices.deviceType',
+                'bookedDevices.deviceTime',
+                'bookedDevices.device.media',
+            ]);
+        });
+    }
+
+    public function finishGroupSessionWithDistributedPayment(int $sessionDeviceId, ?float $actualPaidAmount = null): SessionDevice
+    {
+        return DB::transaction(function () use ($sessionDeviceId, $actualPaidAmount) {
+            $sessionDevice = SessionDevice::with('bookedDevices')->findOrFail($sessionDeviceId);
+            $totalCost = 0;
+            $finishedDevices = [];
+
+            foreach ($sessionDevice->bookedDevices as $device) {
+                if ($device->status != BookedDeviceEnum::FINISHED->value) {
+                    $finished = $this->finish($device->id);
+                    $finishedDevices[] = $finished;
+                    $totalCost += $finished->period_cost;
+                } else {
+                    $finishedDevices[] = $device;
+                    $totalCost += $device->period_cost;
+                }
+            }
+
+            $actualPaidTotal = $actualPaidAmount ?? $totalCost;
+
+            if ($totalCost > 0 && count($finishedDevices) > 0) {
+                $distributedTotal = 0;
+                $devicesCount = count($finishedDevices);
+
+                foreach ($finishedDevices as $index => $device) {
+                    $ratio = $device->period_cost / $totalCost;
+
+                    if ($index === $devicesCount - 1) {
+                        $devicePaidAmount = $actualPaidTotal - $distributedTotal;
+                    } else {
+                        $devicePaidAmount = round($actualPaidTotal * $ratio, 2);
+                        $distributedTotal += $devicePaidAmount;
+                    }
+
+                    $device->update([
+                        'actual_paid_amount' => $devicePaidAmount,
+                    ]);
+                }
+            } else {
+                $equalAmount = count($finishedDevices) > 0
+                    ? round($actualPaidTotal / count($finishedDevices), 2)
+                    : 0;
+
+                foreach ($finishedDevices as $device) {
+                    $device->update([
+                        'actual_paid_amount' => $equalAmount,
+                    ]);
+                }
+            }
+
+            collect($finishedDevices)
+                ->groupBy(fn ($device) => $device->device_id.'-'.$device->device_type_id)
+                ->each(function ($devices): void {
+                    $devices = $devices->sortBy('id')->values();
+                    $deviceTotalAmount = $devices->sum('actual_paid_amount');
+                    $lastDevice = $devices->last();
+
+                    foreach ($devices as $device) {
+                        $device->update([
+                            'actual_paid_amount' => $device->id === $lastDevice->id
+                                ? $deviceTotalAmount
+                                : 0,
+                        ]);
+                    }
+                });
+
+            return $sessionDevice->fresh([
+                'bookedDevices.device',
+                'bookedDevices.deviceType',
+                'bookedDevices.deviceTime',
+                'bookedDevices.device.media',
+            ]);
+        });
+    }
 }

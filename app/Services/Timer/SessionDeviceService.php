@@ -7,6 +7,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use App\Filters\Timer\FilterSessionDevice;
 use App\Filters\Timer\FilterTypeSessionDevice;
+use Illuminate\Support\Facades\DB;
 
 class SessionDeviceService
 {
@@ -49,10 +50,12 @@ class SessionDeviceService
 
     public function updateSessionDevice(int $id, array $data)
     {
+        return DB::transaction(function () use ($id, $data) {
         $sessionDevice=SessionDevice::findOrFail($id);
         $sessionDevice->name = $data['name'];
         $sessionDevice->save();
         return $sessionDevice;
+        });
     }
 
     public function deleteSessionDevice(int $id): void
@@ -114,4 +117,3 @@ class SessionDeviceService
         return $sessionDevice;
     }
 }
-

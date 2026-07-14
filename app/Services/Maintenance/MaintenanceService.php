@@ -4,6 +4,7 @@ namespace App\Services\Maintenance;
 use App\Models\Maintenance\Maintenance;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 
 class MaintenanceService {
@@ -24,6 +25,7 @@ class MaintenanceService {
     return $maintenance;
  }
  public function createMaintenance(array $data){
+    return DB::transaction(function () use ($data) {
     $maintenance = Maintenance::create([
         'user_id'=>auth('api')->id()??null,
         'device_id'=>$data['deviceId'],
@@ -34,8 +36,10 @@ class MaintenanceService {
         'note'=>$data['note']??null
     ]);
     return $maintenance;
+    });
  }
  public function updateMaintenance(int $id , array $data){
+    return DB::transaction(function () use ($id, $data) {
     $maintenance = Maintenance::find($id);
     if(!$maintenance){
       throw new ModelNotFoundException("maintenance with id {$id} not found");
@@ -49,6 +53,7 @@ class MaintenanceService {
     $maintenance->note = $data['note']??null;
     $maintenance->save();
     return $maintenance;
+    });
  }
  public  function deleteMaintenance(int $id){
     $maintenance = Maintenance::find($id);

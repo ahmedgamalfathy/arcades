@@ -217,6 +217,7 @@ class BookedDeviceService
     }
     public function updateEndDateTime(int $id, array $data)
         {
+            return DB::transaction(function () use ($id, $data) {
             $bookedDevice = BookedDevice::findOrFail($id);
 
             if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
@@ -289,10 +290,12 @@ class BookedDeviceService
             // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
 
             return $bookedDevice;
+            });
         }
 
     public function transferDeviceToGroup(int $id, array $data)
     {
+        return DB::transaction(function () use ($id, $data) {
         $bookedDevice = BookedDevice::findOrFail($id);
         $oldSessionDevice = $bookedDevice->sessionDevice()->withTrashed()->first();
 
@@ -384,6 +387,7 @@ class BookedDeviceService
 
         // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
         return $updated;
+        });
     }
     public function transferBookedDeviceToSessionDevice(int $bookedDeviceId ,$dailyId)
     {

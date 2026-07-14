@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API\V1\Dashboard\Product;
 use Throwable;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\Product\ProductService;
 use App\Enums\ResponseCode\HttpStatusCode;
@@ -38,12 +37,9 @@ class ProductController extends Controller
     public function store(CreateProductRequest $createProductRequest)
     {
         try {
-            DB::beginTransaction();
             $this->productService->createProduct($createProductRequest->validated());
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (Throwable $th) {
-            DB::rollBack( );
             return ApiResponse::exception($th);
         }
 
@@ -72,15 +68,11 @@ class ProductController extends Controller
     public function update(int $id,UpdateProductRequest $updateProductRequest)
     {
         try {
-            DB::beginTransaction();
             $this->productService->updateProduct($id,$updateProductRequest->validated());
-            DB::commit();
             return ApiResponse::success([], __('crud.updated'));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 

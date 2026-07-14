@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Enums\Order\OrderStatus;
 use App\Utils\PaginateCollection;
 use App\Enums\Order\OrderTypeEnum;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\Order\OrderService;
 use Illuminate\Validation\Rules\Enum;
@@ -62,14 +61,11 @@ class OrderController extends Controller implements HasMiddleware
     public function store(CreateOrderRequest $createOrderRequest)
     {
         try {
-            DB::beginTransaction();
             $data=$createOrderRequest->validated();
             $data['type']=OrderTypeEnum::EXTERNAL->value;
             $order=$this->orderService->createOrder($data);
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 
@@ -78,15 +74,11 @@ class OrderController extends Controller implements HasMiddleware
     public function update(UpdateOrderRequest $updateOrderRequest, $id)
     {
         try {
-            DB::beginTransaction();
                $this->orderService->updateOrder($id, $updateOrderRequest->validated());
-            DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         }catch(ModelNotFoundException $e){
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 

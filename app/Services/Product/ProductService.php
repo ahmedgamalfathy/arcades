@@ -11,6 +11,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 use App\Filters\Product\FilterProduct;
 use App\Services\Upload\UploadService;
 use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -40,23 +41,26 @@ class ProductService {
   }
     public function createProduct(array $data)
   {
-    if(isset($data['path']) && $data['path'] instanceof UploadedFile){
+    return DB::transaction(function () use ($data) {
+      if(isset($data['path']) && $data['path'] instanceof UploadedFile){
             $media = $this->mediaService->createMedia([
                 'path'     => $data['path'],
                 'type'     => MediaTypeEnum::PHOTO->value,
                 'category' => null,
             ]);
-    }
-     $product =Product::create([
-      'name'=>$data['name'],
-      'price'=>$data['price'],
-      'status'=>$data['status']??StatusEnum::ACTIVE->value,
-      'media_id'=>$media->id??null,
-     ]);
-     return $product;
+      }
+       $product =Product::create([
+        'name'=>$data['name'],
+        'price'=>$data['price'],
+        'status'=>$data['status']??StatusEnum::ACTIVE->value,
+        'media_id'=>$media->id??null,
+       ]);
+       return $product;
+    });
   }
     public function updateProduct(int $id,array $data)
   {
+      return DB::transaction(function () use ($id, $data) {
         $product =Product::find($id);
         if(!$product){
             throw new ModelNotFoundException();
@@ -82,7 +86,8 @@ class ProductService {
         $product->price =$data['price'];
         $product->status =$data['status']??$product->status;
         $product->save();
-     return $product;
+       return $product;
+      });
   }
     public function deleteProduct(int $id)
   {

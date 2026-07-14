@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API\V1\Dashboard\Timer\SessionDevice;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Services\Timer\SessionDeviceService;
@@ -87,18 +86,14 @@ class SessionDeviceController extends Controller
     public function update(Request $request, string $id)
     {
         try {
-            DB::beginTransaction();
             $data=$request->validate([
                 'name'=>'required|string|max:255',
             ]);
             $this->sessionDeviceService->updateSessionDevice($id, $data);
-            DB::commit();
             return ApiResponse::success([], __('crud.updated'));
         } catch (ModelNotFoundException $e) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $e ) {
-            DB::rollBack();
             return ApiResponse::exception($e);
         }
     }

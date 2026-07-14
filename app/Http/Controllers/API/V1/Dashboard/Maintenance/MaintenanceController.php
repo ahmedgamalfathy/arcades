@@ -6,7 +6,6 @@ use App\Http\Resources\Maintenance\MaintenanceResource;
 use Throwable;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Enums\ResponseCode\HttpStatusCode;
 
@@ -41,12 +40,9 @@ class MaintenanceController extends Controller
     public function store(CreateMaintenanceRequest $createMaintenanceRequest)
     {
         try {
-            DB::beginTransaction();
                $this->maintenanceService->createMaintenance($createMaintenanceRequest->validated());
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (Throwable $th) {
-            DB::rollBack( );
             return ApiResponse::exception($th);
         }
     }
@@ -72,15 +68,11 @@ class MaintenanceController extends Controller
     public function update(UpdateMaintenanceRequest $updateMaintenanceRequest, int $id)
     {
         try {
-            DB::beginTransaction();
             $this->maintenanceService->updateMaintenance($id,$updateMaintenanceRequest->validated());
-            DB::commit();
             return ApiResponse::success([], __('crud.updated'));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
     }

@@ -4,14 +4,11 @@ namespace App\Http\Controllers\API\V1\Dashboard\Timer\EndGroupTimes;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Services\Timer\DeviceTimerService;
-use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Controllers\Controller;
-use App\Enums\BookedDevice\BookedDeviceEnum;
 
 class EndGroupTimesController extends Controller
 {
@@ -29,40 +26,14 @@ class EndGroupTimesController extends Controller
                  'actualPaidAmount'=>'nullable|numeric|min:0'
             ]);
         try {
-            DB::beginTransaction();
-               $sessionDevice= SessionDevice::with('bookedDevices')->findOrFail($validated['sessionDeviceId']);
-               if(!$sessionDevice){
-                DB::rollBack();
-                return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-               }
-               $totalCost = 0;
-               foreach($sessionDevice->bookedDevices as $device){
-                    if ($device->status != BookedDeviceEnum::FINISHED->value) {
-                        $finished = $this->timerService->finish($device->id);
-                        $totalCost += $finished->period_cost;
-                    } else {
-                        $totalCost += $device->period_cost;
-                    }
-                }
-                $sessionDevice->update([
-                    'total_period_cost' => $totalCost,
-                    'actual_paid_amount' => $validated['actualPaidAmount'] ?? $totalCost,
-                ]);
-               //, 'bookedDevices.device.media'
-               //sessionDevice,deviceType,deviceTime,device
-                $sessionDevice = $sessionDevice->fresh([
-                    'bookedDevices.device',
-                    'bookedDevices.deviceType',
-                    'bookedDevices.deviceTime',
-                    'bookedDevices.device.media',
-                ]);
-            DB::commit();
+            $sessionDevice = $this->timerService->finishGroupSession(
+                $validated['sessionDeviceId'],
+                $validated['actualPaidAmount'] ?? null
+            );
             return ApiResponse::success(new SessionDeviceResource($sessionDevice));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
     }

@@ -2,54 +2,37 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\ForgotPassword;
 
-use App\Models\User;
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-use App\Mail\ForgotPasswordSendCode;
-use Illuminate\Support\Facades\Mail;
 use App\Enums\ResponseCode\HttpStatusCode;
-use App\Http\Resources\User\ForgetPassword\SendCodeResource;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
+use App\Services\Auth\ForgotPasswordService;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class SendCodeController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
+    public function __construct(private ForgotPasswordService $forgotPasswordService)
+    {
+    }
+
     public function __invoke(Request $request)
     {
-        DB::beginTransaction();
-        try{
-            $data=$request->validate([
+        try {
+            $data = $request->validate([
                 'email' => 'required|email|exists:users,email',
             ]);
-            $user =User::where("email", $data['email'])->first();
-            if(!$user){
-                DB::rollBack();
+
+            if (!$this->forgotPasswordService->sendCode($data['email'])) {
                 return response()->json([
-                    "message"=>__('crud.not_found')
-                ],404);
+                    'message' => __('crud.not_found'),
+                ], 404);
             }
-            $user->update([
-                "code"=>rand(100000,999999),
-                'expired_at' => now()->addMinutes(5),
-            ]);
-            Mail::to($data['email'])->send(new ForgotPasswordSendCode($user, $user->code));
-            DB::commit();
-            // return ApiResponse::success(new SendCodeResource($user) );
-            return ApiResponse::success([],__('auth.send_code'));
-            }catch(ValidationException $e){
-                DB::rollBack();
-                return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
-            }catch(\Throwable $e){
-                DB::rollBack();
-                return ApiResponse::exception($e);
-            }
+
+            return ApiResponse::success([], __('auth.send_code'));
+        } catch (ValidationException $e) {
+            return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
+        } catch (\Throwable $e) {
+            return ApiResponse::exception($e);
+        }
     }
 }
-
-
-
-

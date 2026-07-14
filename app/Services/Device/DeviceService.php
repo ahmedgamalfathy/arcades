@@ -44,8 +44,7 @@ class DeviceService
     }
     public function createDevice(array $data)
     {
-     DB::beginTransaction();
-        try {
+        return DB::transaction(function () use ($data) {
             $mediaId = null;
             if (isset($data['mediaFile']) && $data['mediaFile'] instanceof UploadedFile) {
                 $media = $this->mediaService->createMedia([
@@ -82,15 +81,12 @@ class DeviceService
                     $this->deviceTimeService->createDeviceTime($deviceTimeSpecial);
                 }
             }
-            DB::commit();
             return $device;
-        } catch (Exception $e) {
-            DB::rollback();
-            throw $e;
-        }
+        });
     }
     public function updateDevice(int $id, array $data)
     {
+        return DB::transaction(function () use ($id, $data) {
         $device = Device::find($id);
         if(!$device){
         throw new ModelNotFoundException("Device  with id {$id} not found");
@@ -143,6 +139,7 @@ class DeviceService
         }
     }
     return $device;
+        });
     }
     public function deleteDevice(int $id)
     {
@@ -202,4 +199,3 @@ class DeviceService
         ->values();
     }
 }
-

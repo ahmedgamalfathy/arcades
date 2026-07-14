@@ -58,6 +58,7 @@ class UserService{
 
     public function createUser(array $userData): User
     {
+        return DB::transaction(function () use ($userData) {
         $superAdmin =Auth::user();
         // User::whereHas('roles', function ($query) {
         //     $query->where('name', 'super admin');
@@ -96,6 +97,7 @@ class UserService{
         $user->assignRole($role->id);
 
         return $user;
+        });
 
     }
 
@@ -110,6 +112,7 @@ class UserService{
 
     public function updateUser(int $userId, array $userData)
     {
+        return DB::transaction(function () use ($userId, $userData) {
         $superAdmin =Auth::user();
         //  User::whereHas('roles', function ($query) {
         //     $query->where('name', 'super admin');
@@ -159,12 +162,14 @@ class UserService{
         $user->syncRoles($role->id);
 
         return $user;
+        });
 
     }
 
 
     public function deleteUser(int $userId)
     {
+        return DB::transaction(function () use ($userId) {
         $user = User::find($userId);
         if(!$user){
           throw new ModelNotFoundException();
@@ -176,6 +181,8 @@ class UserService{
         //     }
         // }
         $user->delete();
+        return $user;
+        });
 
     }
 
@@ -200,7 +207,9 @@ class UserService{
 
     public function changeUserStatus(int $userId, int $isActive): void
     {
-        User::where('id', $userId)->update(['is_active' => StatusEnum::from($isActive)->value]);
+        DB::transaction(function () use ($userId, $isActive): void {
+            User::where('id', $userId)->update(['is_active' => StatusEnum::from($isActive)->value]);
+        });
     }
     public function changePassword(array $data){
         $user = user::where('email',$data['email'])->first();

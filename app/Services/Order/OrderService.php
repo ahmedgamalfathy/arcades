@@ -47,6 +47,7 @@ class OrderService
     }
 
     public function createOrder(array $data){
+        return DB::transaction(function () use ($data) {
         LogBatch::startBatch();
 
         $totalPrice = 0;
@@ -149,10 +150,12 @@ class OrderService
         LogBatch::endBatch();
 
         return $order;
+        });
 
     }
     public function updateOrder(int $id, array $data)
     {
+        return DB::transaction(function () use ($id, $data) {
         LogBatch::startBatch();
 
         $order = Order::find($id);
@@ -276,6 +279,7 @@ class OrderService
         LogBatch::endBatch();
 
         return $order;
+        });
     }
 
     public function deleteOrder(int $id){

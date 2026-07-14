@@ -6,7 +6,6 @@ use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Utils\PaginateCollection;
 use App\Services\User\UserService;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\User\UserResource;
 use App\Enums\ResponseCode\HttpStatusCode;
@@ -57,21 +56,15 @@ class UserController extends Controller implements HasMiddleware
     public function store(CreateUserRequest $createUserRequest)
     {
         try {
-            DB::beginTransaction();
-
             $this->userService->createUser($createUserRequest->validated());
-
-            DB::commit();
 
             return ApiResponse::success([], __('crud.created'));
 
 
         }catch(ValidationException $e){
-            DB::rollBack();
             return  ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         }
         catch (\Exception $e) {
-            DB::rollBack();
            return ApiResponse::exception($e);
         }
 
@@ -103,13 +96,10 @@ class UserController extends Controller implements HasMiddleware
     public function update(int $id,UpdateUserRequest $updateUserRequest)
     {
         try {
-            DB::beginTransaction();
             $this->userService->updateUser($id, $updateUserRequest->validated());
-            DB::commit();
             return ApiResponse::success([], __('crud.updated'));
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return ApiResponse::exception($e);
         }
 
@@ -123,15 +113,11 @@ class UserController extends Controller implements HasMiddleware
     {
 
         try {
-            DB::beginTransaction();
             $this->userService->deleteUser($userId);
-            DB::commit();
             return ApiResponse::success([], __('crud.deleted'));
         } catch(ModelNotFoundException $e){
-            DB::rollBack();
             return  ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         } catch (\Exception $e) {
-            DB::rollBack();
           return ApiResponse::error(__('crud.server_error'),[],HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 
@@ -165,12 +151,9 @@ class UserController extends Controller implements HasMiddleware
     {
 
         try {
-            DB::beginTransaction();
             $this->userService->changeUserStatus($request->userId, $request->status);
-            DB::commit();
             return ApiResponse::success([],__('messages.success.updated'));
         } catch (\Exception $e) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.server_error'),[],HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
 

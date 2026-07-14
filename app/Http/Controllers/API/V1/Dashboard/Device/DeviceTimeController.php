@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API\V1\Dashboard\Device;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
 use App\Enums\ResponseCode\HttpStatusCode;
@@ -51,12 +50,9 @@ class DeviceTimeController extends Controller
     public function store(CreateDeviceTimeRequest $createDeviceTimeRequest)
     {
         try {
-            DB::beginTransaction();
              $this->deviceTimeService->createDeviceTime($createDeviceTimeRequest->validated());
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 
@@ -65,21 +61,15 @@ class DeviceTimeController extends Controller
     public function update(UpdateDeviceTimeRequest $updateDeviceTimeRequest, $id)
     {
         try {
-            DB::beginTransaction();
               $this->deviceTimeService->updateDeviceTime($id, $updateDeviceTimeRequest->validated());
-            DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         } catch (ValidationException $e) {
-            DB::rollBack();
             return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (ModelNotFoundException $e) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (QueryException  $e) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.dont_delete_device_time'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 

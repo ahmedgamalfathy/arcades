@@ -135,6 +135,7 @@ class DailyService
      }
      public function createDaily($data)
      {
+      return DB::transaction(function () use ($data) {
       $daily =Daily::where('end_date_time',null)->first();
       if($daily){
         throw new ModelNotFoundException('Daily is already open');
@@ -149,9 +150,11 @@ class DailyService
             'total_expense' => $data['totalExpense'] ?? null,
             'total_profit' => $data['totalProfit'] ?? null,
         ]);
+      });
      }
      public function updateDaily($id, $data)
      {
+        return DB::transaction(function () use ($id, $data) {
         return Daily::findOrFail($id)->update([
             'start_date_time' => $data['startDateTime'],
             'end_date_time' => $data['endDateTime'] ?? null,
@@ -159,6 +162,7 @@ class DailyService
             'total_expense' => $data['totalExpense'] ?? null,
             'total_profit' => $data['totalProfit'] ?? null,
         ]);
+        });
      }
      public function deleteDaily($id)
      {

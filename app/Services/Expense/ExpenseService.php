@@ -5,6 +5,7 @@ use App\Models\Expense\Expense;
 use Spatie\QueryBuilder\QueryBuilder;
 use App\Filters\Expense\FilterExpense;
 use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ExpenseService {
@@ -30,6 +31,7 @@ class ExpenseService {
     return $expense;
  }
  public function createExpense(array $data){
+    return DB::transaction(function () use ($data) {
     $expense = Expense::create([
         'user_id'=>auth('api')->id(),
         'name'=>$data['name'],
@@ -40,8 +42,10 @@ class ExpenseService {
         'daily_id'=>$data['dailyId']??null,
     ]);
     return $expense;
+    });
  }
  public function updateExpense(int $id , array $data){
+    return DB::transaction(function () use ($id, $data) {
     $expense = Expense::find($id);
     if(!$expense){
       throw new ModelNotFoundException("Expense with id {$id} not found");
@@ -54,6 +58,7 @@ class ExpenseService {
     $expense->note = $data['note']??null;
     $expense->save();
     return $expense;
+    });
  }
  public  function deleteExpense(int $id){
     $expense = Expense::find($id);

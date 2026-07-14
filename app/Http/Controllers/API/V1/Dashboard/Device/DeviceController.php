@@ -4,9 +4,7 @@ namespace App\Http\Controllers\API\V1\Dashboard\Device;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
-use App\Enums\ActionStatusEnum;
 use App\Enums\Order\OrderTypeEnum;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\Order\OrderService;
 use Illuminate\Validation\Rules\Enum;
@@ -63,13 +61,10 @@ class DeviceController extends Controller
     public function store(CreateDeviceRequest $createDeviceRequest)
     {
         try {
-            DB::beginTransaction();
             $data =$createDeviceRequest->validated();
             $this->deviceService->createDevice($data);
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 
@@ -78,16 +73,12 @@ class DeviceController extends Controller
     public function update(UpdateDeviceRequest $updateDeviceRequest, $id)
     {
         try {
-            DB::beginTransaction();
             $data =$updateDeviceRequest->validated();
             $this->deviceService->updateDevice($id,$data );
-            DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         }catch(ModelNotFoundException $e){
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 
@@ -153,14 +144,11 @@ class DeviceController extends Controller
     }
     public function createOrderDevice(CreateOrderDeviceRequest $createOrderDeviceRequest){
         try {
-            DB::beginTransaction();
             $data =$createOrderDeviceRequest->validated();
             $data['type']=OrderTypeEnum::INTERNAL->value;
             $this->orderService->createOrder($data);
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         } catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
     }

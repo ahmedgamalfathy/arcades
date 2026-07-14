@@ -63,16 +63,12 @@ class DeviceTimerController extends Controller
     public function pause($id)
     {
         try {
-            DB::beginTransaction();
                 $device = $this->bookedDeviceService()->editBookedDevice($id);
                 $this->timerService()->pause($device->id);
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 
@@ -81,15 +77,11 @@ class DeviceTimerController extends Controller
     public function resume($id)
     {
         try {
-            DB::beginTransaction();
               $this->timerService()->resume($id);
-            DB::commit();
             return ApiResponse::success([],__('crud.created'));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 
@@ -98,7 +90,6 @@ class DeviceTimerController extends Controller
     public function finish(FinishBookedDeviceRequest $request, $id)
     {
         try {
-            DB::beginTransaction();
                 $data = $request->validated();
                 $finished = $this->timerService()->finish($id,$data);
                 // $data=[
@@ -106,13 +97,10 @@ class DeviceTimerController extends Controller
                 //     'total_seconds' => $finished->total_used_seconds,
                 //     'price' => $finished->calculatePrice(),
                 // ];
-            DB::commit();
          return ApiResponse::success(new  BookedDeviceResource($finished));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
 
@@ -121,19 +109,15 @@ class DeviceTimerController extends Controller
     public function changeTime($id, Request $request)
     {
         try {
-            DB::beginTransaction();
                 $request->validate(['deviceTimeId' => 'required|exists:device_times,id']);
                 $device = $this->bookedDeviceService()->editBookedDevice($id);
                 $newDevice = $this->timerService()->changeDeviceTime($device->id, $request->deviceTimeId);
-            DB::commit();
             return ApiResponse::success([
                 "newBookedDeviceId"=>$newDevice->id ??0
             ],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
     }
@@ -215,7 +199,6 @@ class DeviceTimerController extends Controller
     //update device end date time
     public function updateEndDateTime($id, Request $request){
         try {
-            DB::beginTransaction();
                 $request->validate([
                     'endDateTime' => [
                         'nullable',
@@ -232,33 +215,26 @@ class DeviceTimerController extends Controller
                 ]);
                 $device = $this->bookedDeviceService()->editBookedDevice($id);
                 $this->bookedDeviceService()->updateEndDateTime($device->id, $request->all());
-            DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
     }
     //transfer device to group
     public function transferDeviceToGroup($id, Request $request){
         try {
-            DB::beginTransaction();
                 $request->validate([
                     'name' => 'required_without:sessionDeviceId|nullable|string',
                     'sessionDeviceId' => 'required_without:name|nullable|exists:session_devices,id',
                 ]);
                 $device = $this->bookedDeviceService()->editBookedDevice($id);
                 $this->bookedDeviceService()->transferDeviceToGroup($device->id, $request->all());
-            DB::commit();
             return ApiResponse::success([],__('crud.updated'));
         }catch (ModelNotFoundException $th) {
-            DB::rollBack();
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         }catch (\Throwable $th) {
-            DB::rollBack();
             return ApiResponse::exception($th);
         }
     }
