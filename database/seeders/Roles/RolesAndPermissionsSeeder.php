@@ -75,18 +75,18 @@ class RolesAndPermissionsSeeder extends Seeder
             'update_device',
             'destroy_device',
             'change_device_status',
-//deviceTimes ,create_deviceTimes,edit_deviceTime,update_deviceTime,destroy_deviceTime
-            'deviceTimes',
-            'create_deviceTimes',
-            'edit_deviceTime',
-            'update_deviceTime',
-            'destroy_deviceTime',
-//deviceTypes , create_deviceTypes ,edit_deviceType ,update_deviceType ,destroy_deviceType
-            'deviceTypes',
-            'create_deviceTypes',
-            'edit_deviceType',
-            'update_deviceType',
-            'destroy_deviceType',
+//device_times, create_device_times, edit_device_time, update_device_time, destroy_device_time
+            'device_times',
+            'create_device_times',
+            'edit_device_time',
+            'update_device_time',
+            'destroy_device_time',
+//device_types, create_device_types, edit_device_type, update_device_type, destroy_device_type
+            'device_types',
+            'create_device_types',
+            'edit_device_type',
+            'update_device_type',
+            'destroy_device_type',
 //daily ,create_daily , edit_daily ,update_daily ,destroy_daily ,close_daily ,daily_report
             'daily',
             'create_daily',
@@ -134,11 +134,11 @@ class RolesAndPermissionsSeeder extends Seeder
         //     'devices',
         //     'edit_device',
 
-        //     'deviceTimes',
-        //     'edit_deviceTime',
+        //     'device_times',
+        //     'edit_device_time',
 
-        //     'deviceTypes',
-        //     'edit_deviceType',
+        //     'device_types',
+        //     'edit_device_type',
 
         //     'internalOrders',
         //     'externalOrders',

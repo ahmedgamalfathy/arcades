@@ -29,23 +29,23 @@ Route::put('devices/{device}', [DeviceController::class, 'update'])->middleware(
 Route::patch('devices/{device}', [DeviceController::class, 'update'])->middleware('permission:update_device');
 Route::delete('devices/{device}', [DeviceController::class, 'destroy'])->middleware('permission:destroy_device');
 
-Route::post('device-types/{id}/restore', [DeviceTypeController::class, 'restore'])->middleware('permission:destroy_deviceType');
-Route::delete('device-types/{id}/force', [DeviceTypeController::class, 'forceDelete'])->middleware('permission:destroy_deviceType');
-Route::get('device-types', [DeviceTypeController::class, 'index'])->middleware('permission:deviceTypes');
-Route::post('device-types', [DeviceTypeController::class, 'store'])->middleware('permission:create_deviceTypes');
-Route::get('device-types/{device_type}', [DeviceTypeController::class, 'show'])->middleware('permission:edit_deviceType');
-Route::put('device-types/{device_type}', [DeviceTypeController::class, 'update'])->middleware('permission:update_deviceType');
-Route::patch('device-types/{device_type}', [DeviceTypeController::class, 'update'])->middleware('permission:update_deviceType');
-Route::delete('device-types/{device_type}', [DeviceTypeController::class, 'destroy'])->middleware('permission:destroy_deviceType');
+Route::post('device-types/{id}/restore', [DeviceTypeController::class, 'restore'])->middleware('permission:destroy_device_type');
+Route::delete('device-types/{id}/force', [DeviceTypeController::class, 'forceDelete'])->middleware('permission:destroy_device_type');
+Route::get('device-types', [DeviceTypeController::class, 'index'])->middleware('permission:device_types');
+Route::post('device-types', [DeviceTypeController::class, 'store'])->middleware('permission:create_device_types');
+Route::get('device-types/{device_type}', [DeviceTypeController::class, 'show'])->middleware('permission:edit_device_type');
+Route::put('device-types/{device_type}', [DeviceTypeController::class, 'update'])->middleware('permission:update_device_type');
+Route::patch('device-types/{device_type}', [DeviceTypeController::class, 'update'])->middleware('permission:update_device_type');
+Route::delete('device-types/{device_type}', [DeviceTypeController::class, 'destroy'])->middleware('permission:destroy_device_type');
 
-Route::post('device-times/{id}/restore', [DeviceTimeController::class, 'restore'])->middleware('permission:destroy_deviceTime');
-Route::delete('device-times/{id}/force', [DeviceTimeController::class, 'forceDelete'])->middleware('permission:destroy_deviceTime');
-Route::get('device-times', [DeviceTimeController::class, 'index'])->middleware('permission:deviceTimes');
-Route::post('device-times', [DeviceTimeController::class, 'store'])->middleware('permission:create_deviceTimes');
-Route::get('device-times/{device_time}', [DeviceTimeController::class, 'show'])->middleware('permission:edit_deviceTime');
-Route::put('device-times/{device_time}', [DeviceTimeController::class, 'update'])->middleware('permission:update_deviceTime');
-Route::patch('device-times/{device_time}', [DeviceTimeController::class, 'update'])->middleware('permission:update_deviceTime');
-Route::delete('device-times/{device_time}', [DeviceTimeController::class, 'destroy'])->middleware('permission:destroy_deviceTime');
+Route::post('device-times/{id}/restore', [DeviceTimeController::class, 'restore'])->middleware('permission:destroy_device_time');
+Route::delete('device-times/{id}/force', [DeviceTimeController::class, 'forceDelete'])->middleware('permission:destroy_device_time');
+Route::get('device-times', [DeviceTimeController::class, 'index'])->middleware('permission:device_times');
+Route::post('device-times', [DeviceTimeController::class, 'store'])->middleware('permission:create_device_times');
+Route::get('device-times/{device_time}', [DeviceTimeController::class, 'show'])->middleware('permission:edit_device_time');
+Route::put('device-times/{device_time}', [DeviceTimeController::class, 'update'])->middleware('permission:update_device_time');
+Route::patch('device-times/{device_time}', [DeviceTimeController::class, 'update'])->middleware('permission:update_device_time');
+Route::delete('device-times/{device_time}', [DeviceTimeController::class, 'destroy'])->middleware('permission:destroy_device_time');
 
 Route::get('get-device-times', [DeviceController::class, 'getTimesByDeviceId'])->middleware('permission:devices');
 
