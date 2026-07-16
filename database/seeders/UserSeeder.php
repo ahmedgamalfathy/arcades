@@ -4,10 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
@@ -15,38 +13,45 @@ class UserSeeder extends Seeder
      * Run the database seeds.
      */
     public function run(): void
-    {//subarcades ,root,''
-        $superAdminUser = User::create([
-            'name' => 'elmo',
-            'email' => 'elmo@gmail.com',
-            'password' => Hash::make('elmo123456'),
-            // 'database_name'=> 'arcades',
-            // 'database_username'=>'root',
-            // 'database_password'=>'',
-            'database_name'=> 'u824100506_user1',
-            'database_username'=>'u824100506_user1',
-            'database_password'=>'M@Ns123456',
-            'app_key'=>'_h123456'
-        ]);
-        $superAdminRole = Role::where('name', 'super admin')->first();
+    {
+        $superAdminRole = Role::where('name', 'super admin')->firstOrFail();
+        $adminRole = Role::where('name', 'admin')->firstOrFail();
+
+        $superAdminUser = User::updateOrCreate(
+            ['email' => env('SEED_SUPER_ADMIN_EMAIL', 'super-admin@example.com')],
+            [
+                'name' => env('SEED_SUPER_ADMIN_NAME', 'Super Admin'),
+                'password' => Hash::make($this->requiredEnv('SEED_SUPER_ADMIN_PASSWORD')),
+                'database_name' => env('SEED_SUPER_ADMIN_DB_NAME'),
+                'database_username' => env('SEED_SUPER_ADMIN_DB_USERNAME'),
+                'database_password' => env('SEED_SUPER_ADMIN_DB_PASSWORD'),
+                'app_key' => env('SEED_SUPER_ADMIN_APP_KEY', '_super_admin'),
+            ]
+        );
         $superAdminUser->assignRole($superAdminRole);
-//arcades
-        $adminUser = User::create([
-            'name' => 'admin',
-            'email' => 'ashraf.qopiah@gmail.com',
-            'password' => Hash::make('elmo123456'),
-            'app_key'=>'_h1234567',
-            // 'database_name'=> 'subarcades',
-            // 'database_username'=>'root',
-            // 'database_password'=>'',
-            'database_name'=> 'u824100506_user2',
-            'database_username'=>'u824100506_user2',
-            'database_password'=>'M@Ns123456',
-        ]);
-        $adminRole = Role::where('name', 'admin')->first();
-        $adminUser->assignRole($superAdminRole);
 
+        $adminUser = User::updateOrCreate(
+            ['email' => env('SEED_ADMIN_EMAIL', 'admin@example.com')],
+            [
+                'name' => env('SEED_ADMIN_NAME', 'Admin'),
+                'password' => Hash::make($this->requiredEnv('SEED_ADMIN_PASSWORD')),
+                'database_name' => env('SEED_ADMIN_DB_NAME'),
+                'database_username' => env('SEED_ADMIN_DB_USERNAME'),
+                'database_password' => env('SEED_ADMIN_DB_PASSWORD'),
+                'app_key' => env('SEED_ADMIN_APP_KEY', '_admin'),
+            ]
+        );
+        $adminUser->assignRole($adminRole);
+    }
 
-   }
+    private function requiredEnv(string $key): string
+    {
+        $value = env($key);
 
+        if (blank($value)) {
+            throw new \RuntimeException("Missing required seed environment value: {$key}");
+        }
+
+        return $value;
+    }
 }
