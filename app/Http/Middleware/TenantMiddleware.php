@@ -2,12 +2,12 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Config;
 use App\Enums\ResponseCode\HttpStatusCode;
+use App\Helpers\ApiResponse;
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class TenantMiddleware
 {
@@ -15,16 +15,16 @@ class TenantMiddleware
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return ApiResponse::error(__('auth.not_authenticated'), [], HttpStatusCode::UNAUTHORIZED);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return ApiResponse::error(__('auth.inactive_account'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
         }
 
-        if (!$user->database_name) {
-            return ApiResponse::error("No tenant database assigned", [], HttpStatusCode::FORBIDDEN);
+        if (! $user->database_name) {
+            return ApiResponse::error('No tenant database assigned', [], HttpStatusCode::FORBIDDEN);
         }
 
         try {
@@ -53,16 +53,16 @@ class TenantMiddleware
                 'strict' => true,
                 'engine' => null,
             ]);
+
             // تنظيف وإعادة الاتصال
             DB::purge('tenant');
             DB::reconnect('tenant');
             DB::setDefaultConnection('tenant');
-            // DB::connection('tenant')->getPdo();
+
             logger()->info('Tenant connected successfully.', [
                 'user_id' => $user->id,
                 'database' => $user->database_name,
             ]);
-
         } catch (\Throwable $e) {
             logger()->error('Tenant database connection failed.', [
                 'user_id' => $user->id,
@@ -79,5 +79,4 @@ class TenantMiddleware
 
         return $next($request);
     }
-
 }
