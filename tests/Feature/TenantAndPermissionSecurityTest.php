@@ -5,6 +5,10 @@ namespace Tests\Feature;
 use App\Enums\Device\DeviceStatusEnum;
 use App\Models\Device\Device;
 use App\Models\Device\DeviceType\DeviceType;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 use Tests\Concerns\InteractsWithTenants;
 use Tests\TestCase;
 
@@ -74,5 +78,101 @@ class TenantAndPermissionSecurityTest extends TestCase
 
         $this->getJson('/api/v1/admin/dailyActivity?dailyId=1')
             ->assertForbidden();
+    }
+
+    public function test_user_management_cannot_access_users_from_another_account(): void
+    {
+        $tenantA = $this->createTenantDatabase();
+        $tenantB = $this->createTenantDatabase();
+        $actor = $this->createUser($tenantA, [
+            'all_users',
+            'edit_user',
+            'update_user',
+            'destroy_user',
+            'restore_user',
+            'force_delete_user',
+        ]);
+        $foreignOwner = $this->createUser($tenantB, [], 'tenant-b-owner@example.com');
+        $foreignUser = $this->createManagedUser($foreignOwner, 'tenant-b-staff@example.com');
+        $role = Role::findOrCreate('Operator', 'web');
+
+        $this->actingAsUser($actor);
+
+        $this->getJson("/api/v1/admin/users/{$foreignUser->id}")
+            ->assertNotFound();
+
+        $this->putJson("/api/v1/admin/users/{$foreignUser->id}", [
+            'name' => 'Compromised Name',
+            'email' => 'compromised@example.com',
+            'isActive' => 1,
+            'roleId' => $role->id,
+        ])->assertNotFound();
+
+        $this->deleteJson("/api/v1/admin/users/{$foreignUser->id}")
+            ->assertNotFound();
+
+        $foreignUser->delete();
+
+        $this->postJson("/api/v1/admin/users/{$foreignUser->id}/restore")
+            ->assertNotFound();
+        $this->deleteJson("/api/v1/admin/users/{$foreignUser->id}/force")
+            ->assertNotFound();
+        $this->deleteJson("/api/v1/admin/users/{$foreignUser->id}/force-delete")
+            ->assertNotFound();
+
+        $foreignUser->refresh();
+        $this->assertTrue($foreignUser->trashed());
+        $this->assertSame('Tenant Staff', $foreignUser->name);
+        $this->assertSame('tenant-b-staff@example.com', $foreignUser->email);
+    }
+
+    public function test_user_management_still_manages_users_in_the_same_account(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $actor = $this->createUser($tenant, [
+            'all_users',
+            'edit_user',
+            'update_user',
+            'destroy_user',
+            'restore_user',
+            'force_delete_user',
+        ]);
+        $managedUser = $this->createManagedUser($actor, 'staff@example.com');
+        $role = Role::findOrCreate('Operator', 'web');
+
+        $this->actingAsUser($actor);
+
+        $this->getJson("/api/v1/admin/users/{$managedUser->id}")
+            ->assertOk();
+
+        $this->putJson("/api/v1/admin/users/{$managedUser->id}", [
+            'name' => 'Updated Staff',
+            'email' => 'updated-staff@example.com',
+            'isActive' => 1,
+            'roleId' => $role->id,
+        ])->assertOk();
+
+        $this->deleteJson("/api/v1/admin/users/{$managedUser->id}")
+            ->assertOk();
+        $this->postJson("/api/v1/admin/users/{$managedUser->id}/restore")
+            ->assertOk();
+        $this->deleteJson("/api/v1/admin/users/{$managedUser->id}/force")
+            ->assertOk();
+
+        $this->assertNull(User::withTrashed()->find($managedUser->id));
+    }
+
+    private function createManagedUser(User $owner, string $email): User
+    {
+        DB::setDefaultConnection('mysql');
+
+        return User::create([
+            'name' => 'Tenant Staff',
+            'email' => $email,
+            'password' => Hash::make('password'),
+            'is_active' => 1,
+            'user_id' => $owner->id,
+            'database_name' => $owner->database_name,
+        ]);
     }
 }

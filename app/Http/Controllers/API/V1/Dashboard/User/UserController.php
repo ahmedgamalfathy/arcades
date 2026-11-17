@@ -99,6 +99,8 @@ class UserController extends Controller implements HasMiddleware
             $this->userService->updateUser($id, $updateUserRequest->validated());
             return ApiResponse::success([], __('crud.updated'));
 
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Exception $e) {
             return ApiResponse::exception($e);
         }

@@ -11,6 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -76,6 +77,13 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => StatusEnum::class
         ];
+    }
+
+    public function scopeManagedBy(Builder $query, User $actor): Builder
+    {
+        $accountOwnerId = $actor->user_id ?? $actor->id;
+
+        return $query->where('user_id', $accountOwnerId);
     }
 
     public function media()

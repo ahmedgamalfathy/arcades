@@ -4,6 +4,7 @@ namespace App\Http\Requests\User;
 
 use App\Enums\StatusEnum;
 use App\Helpers\ApiResponse;
+use App\Models\User;
 use App\Enums\User\UserStatus;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -20,7 +21,17 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return User::query()
+            ->managedBy($this->user())
+            ->whereKey($this->route('user'))
+            ->exists();
+    }
+
+    protected function failedAuthorization(): void
+    {
+        throw new HttpResponseException(
+            ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND)
+        );
     }
 
     /**
@@ -38,7 +49,7 @@ class UpdateUserRequest extends FormRequest
                 'string', 
                 'min:3',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($this->route('user')), 
+                Rule::unique('mysql.users', 'email')->ignore($this->route('user')),
             ],
           'mediaId' => ['nullable', 'integer'],
           'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],

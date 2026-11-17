@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Enums\ResponseCode\HttpStatusCode;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserService{
     protected $uploadService;
@@ -37,6 +38,7 @@ class UserService{
     public function allUsers(Request $request)
     {
         $auth = Auth::user();
+        $accountOwnerId = $auth->user_id ?? $auth->id;
         $perPage= $request->query('perPage',10);
         /*$currentUserRole = $auth->getRoleNames()[0];*/
         $user = QueryBuilder::for(User::class)
@@ -47,7 +49,7 @@ class UserService{
                 // AllowedFilter::custom('role', new FilterUserRole()),
             ])
             ->whereNot('id', $auth->id)
-            ->where('user_id',$auth->id)
+            ->where('user_id', $accountOwnerId)
             // ->whereNull('database_name')
             ->orderBy('created_at', 'desc')
             ->cursorPaginate($perPage);
@@ -103,11 +105,9 @@ class UserService{
 
     public function editUser(int $userId)
     {
-        $user= User::with('roles')->find($userId);
-        if(!$user){
-          throw new ModelNotFoundException();
-        }
-        return $user;
+        return $this->managedUsersQuery()
+            ->with('roles')
+            ->findOrFail($userId);
     }
 
     public function updateUser(int $userId, array $userData)
@@ -117,7 +117,7 @@ class UserService{
         //  User::whereHas('roles', function ($query) {
         //     $query->where('name', 'super admin');
         // })->first();
-        $user = User::find($userId);
+        $user = $this->managedUsersQuery()->findOrFail($userId);
         //  $finalEmail = $userData['email'] . $superAdmin->app_key;
         //     if (User::where('email', $finalEmail)->exists()) {
         //         throw ValidationException::withMessages([
@@ -170,10 +170,7 @@ class UserService{
     public function deleteUser(int $userId)
     {
         return DB::transaction(function () use ($userId) {
-        $user = User::find($userId);
-        if(!$user){
-          throw new ModelNotFoundException();
-        }
+        $user = $this->managedUsersQuery()->findOrFail($userId);
         // if ($user->media_id) {
         //     $media = Media::on('tenant')->find($user->media_id);
         //     if ($media) {
@@ -188,14 +185,18 @@ class UserService{
 
     public function restoreUser(int $userId)
     {
-        $user = User::onlyTrashed()->findOrFail($userId);
+        $user = $this->managedUsersQuery()
+            ->onlyTrashed()
+            ->findOrFail($userId);
         $user->restore();
         return $user;
     }
 
     public function forceDeleteUser(int $userId)
     {
-        $user = User::withTrashed()->findOrFail($userId);
+        $user = $this->managedUsersQuery()
+            ->withTrashed()
+            ->findOrFail($userId);
         if ($user->media_id) {
             $media = Media::on('tenant')->find($user->media_id);
             if ($media) {
@@ -208,11 +209,14 @@ class UserService{
     public function changeUserStatus(int $userId, int $isActive): void
     {
         DB::transaction(function () use ($userId, $isActive): void {
-            User::where('id', $userId)->update(['is_active' => StatusEnum::from($isActive)->value]);
+            $user = $this->managedUsersQuery()->findOrFail($userId);
+            $user->update(['is_active' => StatusEnum::from($isActive)->value]);
         });
     }
     public function changePassword(array $data){
-        $user = user::where('email',$data['email'])->first();
+        $user = $this->managedUsersQuery()
+            ->where('email', $data['email'])
+            ->first();
         if(!$user){
             throw new ModelNotFoundException();
         }
@@ -227,6 +231,11 @@ class UserService{
         ]);
         $user->tokens()->delete();
         return $user;
+    }
+
+    private function managedUsersQuery(): Builder
+    {
+        return User::query()->managedBy(Auth::user());
     }
 
 
