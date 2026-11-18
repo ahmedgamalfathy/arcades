@@ -19,8 +19,8 @@ class VerifyCodeController extends Controller
     {
         try {
             $data = $request->validate([
-                'code' => 'required',
-                'email' => 'required|email|exists:users,email',
+                'code' => 'required|digits:6',
+                'email' => 'required|email',
             ]);
 
             $result = $this->forgotPasswordService->verifyCode($data['email'], $data['code']);

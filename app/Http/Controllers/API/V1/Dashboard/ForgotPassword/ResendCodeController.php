@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\ForgotPassword;
 
-use App\Models\User;
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Mail\ForgotPasswordSendCode;
-use Illuminate\Support\Facades\Mail;
 use App\Enums\ResponseCode\HttpStatusCode;
+use App\Services\Auth\ForgotPasswordService;
 use Illuminate\Validation\ValidationException;
 
 class ResendCodeController extends Controller
 {
+    public function __construct(private ForgotPasswordService $forgotPasswordService)
+    {
+    }
+
     /**
      * Handle the incoming request.
      */
@@ -20,20 +22,12 @@ class ResendCodeController extends Controller
     {
         try{
             $data = $request->validate([
-              'email' => 'required|email|exists:users,email',
+              'email' => 'required|email',
             ]);
-            $user=User::where('email',$data['email'])->first();
-            if($user){
-                $code=rand(100000,999999);
-                $user->update([
-                'code'=>$code,
-                'expired_at'=>now()->addMinutes(5)
-            ]);
-            Mail::to($user->email)->send(new ForgotPasswordSendCode($user, $user->code));
-            return ApiResponse::success([], __('crud.created'));
-            }else{
-            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
-            }
+
+            $this->forgotPasswordService->sendCode($data['email']);
+
+            return ApiResponse::success([], __('auth.send_code'));
             }catch(ValidationException $ex){
                 return ApiResponse::error(__('validation.validation_error'), $ex->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
             }catch(\Throwable $ex){

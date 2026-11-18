@@ -12,9 +12,12 @@ Route::prefix('v1/admin')->middleware('set_locale')->group(function () {
     });
 
     Route::prefix('forgot-password')->group(function () {
-        Route::post('send-code', SendCodeController::class);
-        Route::post('verify-code', VerifyCodeController::class);
-        Route::post('change-password', ChangePasswordController::class);
+        Route::post('send-code', SendCodeController::class)
+            ->middleware('throttle:password-reset-send');
+        Route::post('verify-code', VerifyCodeController::class)
+            ->middleware('throttle:password-reset-attempt');
+        Route::post('change-password', ChangePasswordController::class)
+            ->middleware('throttle:password-reset-attempt');
     });
 });
 

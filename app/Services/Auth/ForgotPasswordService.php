@@ -7,39 +7,50 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Throwable;
+
+use function Illuminate\Support\defer;
 
 class ForgotPasswordService
 {
-    public function sendCode(string $email): bool
+    public function sendCode(string $email): void
     {
-        return DB::transaction(function () use ($email): bool {
-            $user = User::where('email', $email)->first();
+        DB::transaction(function () use ($email): void {
+            $code = (string) random_int(100000, 999999);
+            $hashedCode = Hash::make($code);
+            $user = $this->findUserByEmail($email);
 
             if (!$user) {
-                return false;
+                return;
             }
 
             $user->update([
-                'code' => rand(100000, 999999),
+                'code' => $hashedCode,
                 'expired_at' => now()->addMinutes(5),
             ]);
 
-            Mail::to($email)->send(new ForgotPasswordSendCode($user, $user->code));
-
-            return true;
+            defer(function () use ($user, $code): void {
+                try {
+                    Mail::to($user->email)->send(new ForgotPasswordSendCode($user, $code));
+                } catch (Throwable $exception) {
+                    report($exception);
+                }
+            });
         });
     }
 
     public function verifyCode(string $email, string $code): string
     {
         return DB::transaction(function () use ($email, $code): string {
-            $user = User::where('email', $email)->first();
+            $dummyHash = Hash::make('000000');
+            $user = $this->findUserByEmail($email);
 
-            if (!$user || $user->code != $code) {
+            if (!$this->codeMatches($user?->code, $code, $dummyHash)) {
                 return 'invalid';
             }
 
-            if ($user->expired_at < now()) {
+            if (!$user->expired_at || $user->expired_at->isPast()) {
                 return 'expired';
             }
 
@@ -50,13 +61,14 @@ class ForgotPasswordService
     public function changePassword(string $email, string $code, string $password): string
     {
         return DB::transaction(function () use ($email, $code, $password): string {
-            $user = User::where('email', $email)->where('code', $code)->first();
+            $dummyHash = Hash::make('000000');
+            $user = $this->findUserByEmail($email, lockForUpdate: true);
 
-            if (!$user) {
-                return 'not_found';
+            if (!$this->codeMatches($user?->code, $code, $dummyHash)) {
+                return 'invalid';
             }
 
-            if ($user->expired_at < now()) {
+            if (!$user->expired_at || $user->expired_at->isPast()) {
                 return 'expired';
             }
 
@@ -69,5 +81,33 @@ class ForgotPasswordService
 
             return 'changed';
         });
+    }
+
+    private function codeMatches(?string $hashedCode, string $code, string $dummyHash): bool
+    {
+        $hasUsableHash = $hashedCode
+            && password_get_info($hashedCode)['algoName'] !== 'unknown';
+        $candidateHash = $hasUsableHash ? $hashedCode : $dummyHash;
+
+        $matches = Hash::check($code, $candidateHash);
+
+        return $hasUsableHash && $matches;
+    }
+
+    private function findUserByEmail(string $email, bool $lockForUpdate = false): ?User
+    {
+        $normalizedEmail = Str::lower(trim($email));
+        $query = User::where('email', $email);
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
+        }
+
+        return $query->get()->first(
+            fn (User $user): bool => hash_equals(
+                Str::lower(trim($user->email)),
+                $normalizedEmail
+            )
+        );
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -31,6 +32,24 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
+        });
+
+        RateLimiter::for('password-reset-send', function (Request $request) {
+            $email = Str::lower(trim((string) $request->input('email')));
+
+            return [
+                Limit::perMinute(10)->by('password-reset-send-ip:'.$request->ip()),
+                Limit::perMinute(3)->by('password-reset-send-email:'.hash('sha256', $email)),
+            ];
+        });
+
+        RateLimiter::for('password-reset-attempt', function (Request $request) {
+            $email = Str::lower(trim((string) $request->input('email')));
+
+            return [
+                Limit::perMinute(20)->by('password-reset-attempt-ip:'.$request->ip()),
+                Limit::perMinute(5)->by('password-reset-attempt-email:'.hash('sha256', $email)),
+            ];
         });
     }
 }

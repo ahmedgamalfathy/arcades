@@ -20,8 +20,8 @@ class ChangePasswordController extends Controller
     {
         try {
             $data = $request->validate([
-                'code' => 'required|exists:users,code',
-                'email' => 'required|email|exists:users,email',
+                'code' => 'required|digits:6',
+                'email' => 'required|email',
                 'password' => ['required', Password::min(8)->letters()->numbers(), 'confirmed'],
             ]);
 
@@ -31,8 +31,8 @@ class ChangePasswordController extends Controller
                 $data['password']
             );
 
-            if ($result === 'not_found') {
-                return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+            if ($result === 'invalid') {
+                return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
             }
 
             if ($result === 'expired') {

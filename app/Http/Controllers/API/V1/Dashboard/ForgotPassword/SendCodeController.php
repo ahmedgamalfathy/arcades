@@ -19,14 +19,10 @@ class SendCodeController extends Controller
     {
         try {
             $data = $request->validate([
-                'email' => 'required|email|exists:users,email',
+                'email' => 'required|email',
             ]);
 
-            if (!$this->forgotPasswordService->sendCode($data['email'])) {
-                return response()->json([
-                    'message' => __('crud.not_found'),
-                ], 404);
-            }
+            $this->forgotPasswordService->sendCode($data['email']);
 
             return ApiResponse::success([], __('auth.send_code'));
         } catch (ValidationException $e) {

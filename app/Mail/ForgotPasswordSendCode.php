@@ -20,7 +20,7 @@ class ForgotPasswordSendCode extends Mailable
 
     public $code;
     public $user;
-    public function __construct(User $user,$code)
+    public function __construct(User $user, string $code)
     {
        $this->code = $code;
        $this->user= $user;
