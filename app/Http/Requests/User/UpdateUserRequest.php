@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests\User;
 
+use Closure;
 use App\Enums\StatusEnum;
 use App\Helpers\ApiResponse;
 use App\Models\User;
+use App\Services\User\RoleAssignmentService;
 use App\Enums\User\UserStatus;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -56,7 +58,15 @@ class UpdateUserRequest extends FormRequest
             'phone' => ['nullable','numeric'],
             'address' => 'nullable',
             'isActive' => ['required', new Enum(StatusEnum::class)],
-            'roleId'=> 'required',
+            'roleId'=> [
+                'required',
+                'integer',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if (! app(RoleAssignmentService::class)->isAssignable($this->user(), $value)) {
+                        $fail(__('validation.exists', ['attribute' => $attribute]));
+                    }
+                },
+            ],
             'password'=> [
                 'nullable',
                 // 'confirmed',

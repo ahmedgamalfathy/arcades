@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\User;
 
+use Closure;
 use App\Enums\StatusEnum;
 use App\Helpers\ApiResponse;
+use App\Services\User\RoleAssignmentService;
 use App\Enums\User\UserStatus;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -46,7 +48,15 @@ class CreateUserRequest extends FormRequest
                 // 'confirmed',
                 Password::min(8)->letters()->numbers(),
             ],
-            'roleId'=> ['required', 'numeric'],
+            'roleId'=> [
+                'required',
+                'integer',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if (! app(RoleAssignmentService::class)->isAssignable($this->user(), $value)) {
+                        $fail(__('validation.exists', ['attribute' => $attribute]));
+                    }
+                },
+            ],
             // 'avatar' => ["nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
           'mediaId' => ['nullable', 'integer'],
           'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],

@@ -2,15 +2,21 @@
 
 namespace App\Services\Select;
 
-use Spatie\Permission\Models\Role;
+use App\Services\User\RoleAssignmentService;
+use Illuminate\Support\Facades\Auth;
 
 class RoleSelectService
 {
     public function getAllRoles()
     {
-       return Role::on('mysql')->whereNot('name', 'مدير عام')->get(['id as value', 'name as label']);
+        return app(RoleAssignmentService::class)
+            ->assignableRoles(Auth::user())
+            ->map(fn ($role) => [
+                'value' => $role->id,
+                'label' => $role->name,
+            ])
+            ->values();
     }
 }
-
 
 

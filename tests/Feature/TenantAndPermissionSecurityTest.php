@@ -6,8 +6,11 @@ use App\Enums\Device\DeviceStatusEnum;
 use App\Models\Device\Device;
 use App\Models\Device\DeviceType\DeviceType;
 use App\Models\User;
+use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\Concerns\InteractsWithTenants;
 use Tests\TestCase;
@@ -160,6 +163,93 @@ class TenantAndPermissionSecurityTest extends TestCase
             ->assertOk();
 
         $this->assertNull(User::withTrashed()->find($managedUser->id));
+    }
+
+    public function test_user_management_rejects_roles_above_the_current_users_authority(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $actor = $this->createUser($tenant, ['update_user', 'devices']);
+        $managedUser = $this->createManagedUser($actor, 'role-target@example.com');
+
+        $allowedRole = Role::findOrCreate('Operator', 'web');
+        $allowedRole->syncPermissions([
+            Permission::findByName('devices', 'web'),
+        ]);
+
+        $crossGuardRole = Role::findOrCreate('API Operator', 'api');
+        $crossGuardRole->syncPermissions([
+            Permission::findByName('devices', 'api'),
+        ]);
+        $actor->revokePermissionTo(Permission::findByName('devices', 'api'));
+
+        $elevatedPermission = Permission::findOrCreate('manage_everything', 'web');
+        $elevatedRole = Role::findOrCreate('Account Administrator', 'web');
+        $elevatedRole->syncPermissions([$elevatedPermission]);
+
+        $protectedRole = Role::findOrCreate('super admin', 'web');
+        $legacyProtectedRole = Role::findOrCreate('مدير عام', 'web');
+
+        $this->actingAsUser($actor);
+
+        foreach ([$elevatedRole->id, $protectedRole->id, $legacyProtectedRole->id, $crossGuardRole->id, 999999] as $forbiddenRoleId) {
+            $this->putJson("/api/v1/admin/users/{$managedUser->id}", [
+                'name' => 'Compromised Name',
+                'email' => 'role-target@example.com',
+                'isActive' => 1,
+                'roleId' => $forbiddenRoleId,
+            ])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('roleId');
+
+            $managedUser->refresh();
+            $this->assertSame('Tenant Staff', $managedUser->name);
+            $this->assertFalse($managedUser->roles->contains('id', $forbiddenRoleId));
+        }
+
+        $this->putJson("/api/v1/admin/users/{$managedUser->id}", [
+            'name' => 'Authorized Update',
+            'email' => 'role-target@example.com',
+            'isActive' => 1,
+            'roleId' => $allowedRole->id,
+        ])->assertOk();
+
+        $managedUser->refresh();
+        $this->assertSame('Authorized Update', $managedUser->name);
+        $this->assertTrue($managedUser->roles->contains('id', $allowedRole->id));
+    }
+
+    public function test_user_service_rechecks_role_authority_when_request_validation_is_bypassed(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $actor = $this->createUser($tenant, ['create_user']);
+        $elevatedPermission = Permission::findOrCreate('manage_everything', 'web');
+        $elevatedRole = Role::findOrCreate('Account Administrator', 'web');
+        $elevatedRole->syncPermissions([$elevatedPermission]);
+
+        $this->actingAs($actor, 'api');
+
+        try {
+            app(UserService::class)->createUser([
+                'roleId' => $elevatedRole->id,
+            ]);
+            $this->fail('The service accepted a role above the current user authority.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('roleId', $exception->errors());
+        }
+
+        $this->assertSame(1, User::count());
+
+        $allowedRole = Role::findOrCreate('Operator', 'web');
+        $createdUser = app(UserService::class)->createUser([
+            'name' => 'Authorized Staff',
+            'email' => 'authorized-staff@example.com',
+            'password' => 'password123',
+            'isActive' => 1,
+            'roleId' => $allowedRole->id,
+        ]);
+
+        $this->assertSame($actor->id, $createdUser->user_id);
+        $this->assertTrue($createdUser->roles->contains('id', $allowedRole->id));
     }
 
     private function createManagedUser(User $owner, string $email): User

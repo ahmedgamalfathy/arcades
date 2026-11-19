@@ -12,7 +12,6 @@ use Database\Seeders\MediaSeeder;
 use Illuminate\Http\UploadedFile;
 use App\Enums\Media\MediaTypeEnum;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 use App\Filters\User\FilterUserRole;
 use App\Services\Media\MediaService;
 use Illuminate\Support\Facades\Auth;
@@ -29,10 +28,16 @@ use Illuminate\Database\Eloquent\Builder;
 class UserService{
     protected $uploadService;
     protected $mediaService;
-    public function __construct(UploadService $uploadService , MediaService $mediaService)
+    protected $roleAssignmentService;
+    public function __construct(
+        UploadService $uploadService,
+        MediaService $mediaService,
+        RoleAssignmentService $roleAssignmentService
+    )
     {
         $this->uploadService = $uploadService;
         $this->mediaService = $mediaService;
+        $this->roleAssignmentService = $roleAssignmentService;
     }
 
     public function allUsers(Request $request)
@@ -62,6 +67,7 @@ class UserService{
     {
         return DB::transaction(function () use ($userData) {
         $superAdmin =Auth::user();
+        $role = $this->roleAssignmentService->findAssignableRole($superAdmin, $userData['roleId'] ?? null);
         // User::whereHas('roles', function ($query) {
         //     $query->where('name', 'super admin');
         // })->first();
@@ -95,8 +101,7 @@ class UserService{
             'database_password'=>$superAdmin->database_password??null,
         ]);
 
-        $role = Role::find($userData['roleId']);
-        $user->assignRole($role->id);
+        $user->assignRole($role);
 
         return $user;
         });
@@ -118,6 +123,7 @@ class UserService{
         //     $query->where('name', 'super admin');
         // })->first();
         $user = $this->managedUsersQuery()->findOrFail($userId);
+        $role = $this->roleAssignmentService->findAssignableRole($superAdmin, $userData['roleId'] ?? null);
         //  $finalEmail = $userData['email'] . $superAdmin->app_key;
         //     if (User::where('email', $finalEmail)->exists()) {
         //         throw ValidationException::withMessages([
@@ -158,8 +164,7 @@ class UserService{
         $user->media_id =$mediaId;
         $user->user_id = $superAdmin->user_id ?? $superAdmin->id;
         $user->save();
-        $role = Role::find($userData['roleId']);
-        $user->syncRoles($role->id);
+        $user->syncRoles($role);
 
         return $user;
         });
