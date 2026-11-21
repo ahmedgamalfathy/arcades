@@ -13,8 +13,8 @@ return [
     |
     */
     'validation_error' => 'Check the data',
-    'validation_daily'=>'There are active or paused booked devices. Please finish all booked devices before closing the daily.',
-    'validation_create_booked_device'=>'The device is already booked and active',
+    'validation_daily' => 'There are active or paused booked devices. Please finish all booked devices before closing the daily.',
+    'validation_create_booked_device' => 'The device is already booked and active',
     'accepted' => 'The :attribute field must be accepted.',
     'accepted_if' => 'The :attribute field must be accepted when :other is :value.',
     'active_url' => 'The :attribute field must be a valid URL.',
@@ -179,15 +179,14 @@ return [
     |
     */
 
-
     'custom' => [
-        //users
+        // users
         'username' => [
             'unique' => 'The username has already been taken.',
         ],
-        //genral
-        'required'=>'This field is required.',
-        'unique'=>'This value has already been taken.'
+        // genral
+        'required' => 'This field is required.',
+        'unique' => 'This value has already been taken.',
     ],
 
     /*

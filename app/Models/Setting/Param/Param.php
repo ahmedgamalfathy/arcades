@@ -2,15 +2,17 @@
 
 namespace App\Models\Setting\Param;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Trait\UsesTenantConnection;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
-class Param extends Model 
+class Param extends Model
 {
-    use UsesTenantConnection , LogsActivity; 
+    use LogsActivity , UsesTenantConnection;
+
     protected $guarded = [];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -18,7 +20,6 @@ class Param extends Model
             ->logAll()
             ->logOnlyDirty()
             ->dontLogIfAttributesChangedOnly(['updated_at'])
-            ->setDescriptionForEvent(fn(string $eventName) => "Param {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "Param {$eventName}");
     }
-    
 }

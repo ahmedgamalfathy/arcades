@@ -2,32 +2,31 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Daily;
 
-use Throwable;
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Services\Daily\DailyService;
 use App\Enums\ResponseCode\HttpStatusCode;
-use App\Services\Daily\DailyReportService;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Daily\CreateDailyRequest;
+use App\Http\Requests\Daily\Report\ReportDailyRequestSearch;
+use App\Http\Requests\Daily\UpdateDailyRequest;
+use App\Http\Resources\ActivityLog\AllActionDailyActivityResource;
 use App\Http\Resources\Daily\AllDailyResource;
+use App\Http\Resources\Daily\DailyEditResource;
+use App\Services\Daily\DailyReportService;
+use App\Services\Daily\DailyService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Validation\ValidationException;
-use App\Http\Requests\Daily\CreateDailyRequest;
-use App\Http\Requests\Daily\UpdateDailyRequest;
-use App\Http\Resources\Daily\DailyEditResource;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Http\Resources\Daily\Income\AllDailyIncomeResource;
-use App\Http\Requests\Daily\Report\ReportDailyRequestSearch;
-use App\Http\Resources\ActivityLog\AllActionDailyActivityResource;
+use Throwable;
 
 class DailyController extends Controller implements HasMiddleware
 {
-       protected $dailyService;
-       protected $dailyReportService;
+    protected $dailyService;
 
+    protected $dailyReportService;
 
-    public function __construct(DailyService $dailyService,DailyReportService $dailyReportService)
+    public function __construct(DailyService $dailyService, DailyReportService $dailyReportService)
     {
         $this->dailyService = $dailyService;
         $this->dailyReportService = $dailyReportService;
@@ -36,135 +35,150 @@ class DailyController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:daily', only:['index']),
-            new Middleware('permission:create_daily', only:['create']),
-            new Middleware('permission:edit_daily', only:['show']),
-            new Middleware('permission:update_daily', only:['update']),
-            new Middleware('permission:destroy_daily', only:['destroy']),
-            new Middleware('permission:close_daily', only:['closeDaily']),
-            new Middleware('permission:daily_report', only:['dailyReport']),
+            new Middleware('permission:daily', only: ['index']),
+            new Middleware('permission:create_daily', only: ['create']),
+            new Middleware('permission:edit_daily', only: ['show']),
+            new Middleware('permission:update_daily', only: ['update']),
+            new Middleware('permission:destroy_daily', only: ['destroy']),
+            new Middleware('permission:close_daily', only: ['closeDaily']),
+            new Middleware('permission:daily_report', only: ['dailyReport']),
         ];
     }
 
     public function index(Request $request)
     {
-        $dailies= $this->dailyService->allDailies($request);
+        $dailies = $this->dailyService->allDailies($request);
+
         return ApiResponse::success(new AllDailyResource($dailies));
     }
+
     public function create(CreateDailyRequest $createDailyRequest)
     {
         try {
             $this->dailyService->createDaily($createDailyRequest->validated());
-            return ApiResponse::success([],__('crud.created'));
+
+            return ApiResponse::success([], __('crud.created'));
         } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function show(int $id)
     {
         try {
-            $daily= $this->dailyService->editDaily($id);
+            $daily = $this->dailyService->editDaily($id);
+
             return ApiResponse::success(new DailyEditResource($daily));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (Throwable $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
-    public function update(int $id,UpdateDailyRequest $updateDailyRequest)
+
+    public function update(int $id, UpdateDailyRequest $updateDailyRequest)
     {
         try {
-            $this->dailyService->updateDaily($id,$updateDailyRequest->validated());
+            $this->dailyService->updateDaily($id, $updateDailyRequest->validated());
+
             return ApiResponse::success([], __('crud.updated'));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (Throwable $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function destroy(int $id)
     {
-        try{
+        try {
             $this->dailyService->deleteDaily($id);
-            return ApiResponse::success([],__('crud.deleted'));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),[],HttpStatusCode::INTERNAL_SERVER_ERROR);
+
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
+
     public function closeDaily(Request $request)
     {
         try {
-            $data= $request->validate([
-                'dailyId'=>'required|exists:dailies,id',
+            $data = $request->validate([
+                'dailyId' => 'required|exists:dailies,id',
             ]);
-            $daily=$this->dailyService->closeDaily($data);
-            $result=[
-                'incoming'=>$daily->total_income??0,
-                'expense'=>$daily->total_expense??0,
-                'profit'=>round($daily->total_income - $daily->total_expense,2),
+            $daily = $this->dailyService->closeDaily($data);
+            $result = [
+                'incoming' => $daily->total_income ?? 0,
+                'expense' => $daily->total_expense ?? 0,
+                'profit' => round($daily->total_income - $daily->total_expense, 2),
             ];
+
             return ApiResponse::success($result, __('crud.updated'));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (ValidationException $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (ValidationException $th) {
             return ApiResponse::error(__('validation.validation_error'), $th->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
-        }catch (Throwable $th) {
+        } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function dailyReport(ReportDailyRequestSearch $reportDailyRequestSearch)
     {
         try {
-            //new DailyReportResource
-            $dailyReport= $this->dailyReportService->dailyReport($reportDailyRequestSearch->validated());
+            // new DailyReportResource
+            $dailyReport = $this->dailyReportService->dailyReport($reportDailyRequestSearch->validated());
+
             return ApiResponse::success($dailyReport);
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (Throwable $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function monthlyChartData(Request $request)
     {
         try {
-            $data=$request->validate([
-                'dailyId'=>'required|exists:dailies,id',
+            $data = $request->validate([
+                'dailyId' => 'required|exists:dailies,id',
             ]);
-            $monthlyChartData= $this->dailyReportService->getMonthlyChartData($data['dailyId']);
+            $monthlyChartData = $this->dailyReportService->getMonthlyChartData($data['dailyId']);
+
             return ApiResponse::success($monthlyChartData);
-        }catch (Throwable $th) {
+        } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function activityLog(Request $request)
     {
         try {
-            $activities= $this->dailyService->activityLog($request->query('dailyId'));
+            $activities = $this->dailyService->activityLog($request->query('dailyId'));
+
             return ApiResponse::success(new AllActionDailyActivityResource($activities));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (Throwable $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function checkBookedDeviceOpen(Request $request)
     {
         try {
             $request->validate([
-                'dailyId'=>'required|exists:dailies,id',
+                'dailyId' => 'required|exists:dailies,id',
             ]);
-            $daily= $this->dailyService->checkOpenBookedDevicesInDaily($request->dailyId);
+            $daily = $this->dailyService->checkOpenBookedDevicesInDaily($request->dailyId);
+
             return ApiResponse::success($daily);
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (Throwable $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
 }
-
-
-
-

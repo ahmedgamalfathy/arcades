@@ -15,8 +15,7 @@ class DeviceTimerCreationService
     public function __construct(
         private BookedDeviceService $bookedDeviceService,
         private SessionDeviceService $sessionDeviceService
-    ) {
-    }
+    ) {}
 
     public function createIndividual(array $data): void
     {

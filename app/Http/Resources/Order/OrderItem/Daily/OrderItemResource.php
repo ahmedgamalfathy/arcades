@@ -4,8 +4,6 @@ namespace App\Http\Resources\Order\OrderItem\Daily;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\ProductMedia\ProductMediaResouce;
-use App\Models\Media\Media;
 
 class OrderItemResource extends JsonResource
 {
@@ -18,9 +16,9 @@ class OrderItemResource extends JsonResource
     {
         return [
             'price' => $this->price,
-            'qty'=>$this->qty,
-            'total'=>round($this->price*$this->qty,2),
-            'productName'=>$this->product->name,
+            'qty' => $this->qty,
+            'total' => round($this->price * $this->qty, 2),
+            'productName' => $this->product->name,
         ];
 
     }

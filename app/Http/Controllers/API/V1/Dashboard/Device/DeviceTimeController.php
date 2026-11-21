@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Device;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Illuminate\Database\QueryException;
 use App\Enums\ResponseCode\HttpStatusCode;
-use App\Services\Device\DeviceTime\DeviceTimeService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Http\Resources\Devices\DeviceTime\DeviceTimeResource;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Device\DeviceTime\CreateDeviceTimeRequest;
 use App\Http\Requests\Device\DeviceTime\UpdateDeviceTimeRequest;
-use App\Http\Resources\Devices\DeviceTime\AllDeviceTimeResource;
+use App\Http\Resources\Devices\DeviceTime\DeviceTimeResource;
+use App\Services\Device\DeviceTime\DeviceTimeService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class DeviceTimeController extends Controller
 {
     protected $deviceTimeService;
+
     public function __construct(DeviceTimeService $deviceTimeService)
     {
         $this->deviceTimeService = $deviceTimeService;
@@ -28,21 +28,23 @@ class DeviceTimeController extends Controller
      */
     public function index(Request $request)
     {
-        $deviceTimes=$this->deviceTimeService->allDeviceTimes($request);
+        $deviceTimes = $this->deviceTimeService->allDeviceTimes($request);
+
         return ApiResponse::success(DeviceTimeResource::Collection($deviceTimes));
     }
 
     /**
      * Display the specified resource.
      */
-      public function show($id)
+    public function show($id)
     {
         try {
-            $deviceTime=$this->deviceTimeService->editDeviceTime($id);
+            $deviceTime = $this->deviceTimeService->editDeviceTime($id);
+
             return ApiResponse::success(new DeviceTimeResource($deviceTime));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
@@ -50,8 +52,9 @@ class DeviceTimeController extends Controller
     public function store(CreateDeviceTimeRequest $createDeviceTimeRequest)
     {
         try {
-             $this->deviceTimeService->createDeviceTime($createDeviceTimeRequest->validated());
-            return ApiResponse::success([],__('crud.created'));
+            $this->deviceTimeService->createDeviceTime($createDeviceTimeRequest->validated());
+
+            return ApiResponse::success([], __('crud.created'));
         } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
@@ -61,8 +64,9 @@ class DeviceTimeController extends Controller
     public function update(UpdateDeviceTimeRequest $updateDeviceTimeRequest, $id)
     {
         try {
-              $this->deviceTimeService->updateDeviceTime($id, $updateDeviceTimeRequest->validated());
-            return ApiResponse::success([],__('crud.updated'));
+            $this->deviceTimeService->updateDeviceTime($id, $updateDeviceTimeRequest->validated());
+
+            return ApiResponse::success([], __('crud.updated'));
         } catch (ValidationException $e) {
             return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
         } catch (ModelNotFoundException $e) {
@@ -79,10 +83,11 @@ class DeviceTimeController extends Controller
     {
         try {
             $this->deviceTimeService->deleteDeviceTime($id);
+
             return ApiResponse::success([], __('crud.deleted'));
         } catch (ValidationException $e) {
             return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
-        }catch (ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (QueryException  $e) {
             return ApiResponse::error(__('crud.dont_delete_device_time'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
@@ -91,10 +96,12 @@ class DeviceTimeController extends Controller
         }
 
     }
+
     public function restore(int $id)
     {
         try {
             $this->deviceTimeService->restoreDeviceTime($id);
+
             return ApiResponse::success([], __('crud.updated'));
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
@@ -102,10 +109,12 @@ class DeviceTimeController extends Controller
             return ApiResponse::exception($th);
         }
     }
+
     public function forceDelete(int $id)
     {
         try {
             $this->deviceTimeService->forceDeleteDeviceTime($id);
+
             return ApiResponse::success([], __('crud.deleted'));
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
@@ -116,7 +125,3 @@ class DeviceTimeController extends Controller
         }
     }
 }
-
-
-
-

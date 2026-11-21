@@ -22,14 +22,13 @@ return new class extends Migration
             $table->dateTime('start_date_time');
             $table->dateTime('end_date_time')->nullable();
 
-            $table->tinyInteger('status')->default(BookedDeviceEnum::FINISHED->value);//'active', 'paused', 'finished'
-
+            $table->tinyInteger('status')->default(BookedDeviceEnum::FINISHED->value); // 'active', 'paused', 'finished'
 
             $table->unsignedBigInteger('total_paused_seconds')->default(0);
             $table->unsignedBigInteger('total_used_seconds')->default(0);
             $table->integer('end_date_static')->nullable();
 
-            $table->decimal('period_cost',10,2)->default(0);
+            $table->decimal('period_cost', 10, 2)->default(0);
             $table->decimal('actual_paid_amount', 10, 2)->nullable();
             $table->boolean('is_notification_sent')->default(false);
             $table->timestamps();

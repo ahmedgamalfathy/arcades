@@ -1,39 +1,41 @@
 <?php
+
 namespace App\Services\Timer;
 
-use App\Models\Timer\SessionDevice\SessionDevice;
-use Illuminate\Http\Request;
-use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\QueryBuilder\AllowedFilter;
 use App\Filters\Timer\FilterSessionDevice;
 use App\Filters\Timer\FilterTypeSessionDevice;
+use App\Models\Timer\SessionDevice\SessionDevice;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class SessionDeviceService
 {
-    public function getSessionDevices( Request $request)
+    public function getSessionDevices(Request $request)
     {
-        $perPage= $request->query('perPage',10);
-        $sessions=QueryBuilder::for(SessionDevice::class)
-        ->where('daily_id', $request->query('dailyId'))
-        ->allowedFilters([
-            AllowedFilter::custom('search', new FilterSessionDevice),
-            AllowedFilter::exact('type', 'type'),
-            AllowedFilter::custom('bookedDevicesStatus', new FilterTypeSessionDevice),
-        ]);
+        $perPage = $request->query('perPage', 10);
+        $sessions = QueryBuilder::for(SessionDevice::class)
+            ->where('daily_id', $request->query('dailyId'))
+            ->allowedFilters([
+                AllowedFilter::custom('search', new FilterSessionDevice),
+                AllowedFilter::exact('type', 'type'),
+                AllowedFilter::custom('bookedDevicesStatus', new FilterTypeSessionDevice),
+            ]);
 
         if ($request->has('trashed') && $request->trashed == 1) {
             $sessions->onlyTrashed();
         }
 
         return $sessions->whereHas('bookedDevices', function ($query) {
-        $query->where('status', '!=', 0);
+            $query->where('status', '!=', 0);
         })
-        ->with(['bookedDevices' => function ($query) {
-        $query->where('status', '!=', 0);
-        }])
-        ->cursorPaginate($perPage);
+            ->with(['bookedDevices' => function ($query) {
+                $query->where('status', '!=', 0);
+            }])
+            ->cursorPaginate($perPage);
     }
+
     public function createSessionDevice(array $data)
     {
         return SessionDevice::create($data);
@@ -42,19 +44,20 @@ class SessionDeviceService
     public function editSessionDevice(int $id)
     {
         // return SessionDevice::with('bookedDevices')->findOrFail($id);
-    return SessionDevice::with([
-        'bookedDevices',
-        'bookedDevicesLatest'
-    ])->findOrFail($id);
+        return SessionDevice::with([
+            'bookedDevices',
+            'bookedDevicesLatest',
+        ])->findOrFail($id);
     }
 
     public function updateSessionDevice(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
-        $sessionDevice=SessionDevice::findOrFail($id);
-        $sessionDevice->name = $data['name'];
-        $sessionDevice->save();
-        return $sessionDevice;
+            $sessionDevice = SessionDevice::findOrFail($id);
+            $sessionDevice->name = $data['name'];
+            $sessionDevice->save();
+
+            return $sessionDevice;
         });
     }
 
@@ -95,7 +98,7 @@ class SessionDeviceService
                     'name' => $sessionDevice->name,
                     'type' => $sessionDevice->type,
                 ],
-                'children' => $children
+                'children' => $children,
             ])
             ->tap(function ($activity) use ($sessionDevice) {
                 $activity->daily_id = $sessionDevice->daily_id;
@@ -107,6 +110,7 @@ class SessionDeviceService
     {
         $sessionDevice = SessionDevice::onlyTrashed()->findOrFail($id);
         $sessionDevice->restore();
+
         return $sessionDevice;
     }
 
@@ -114,6 +118,7 @@ class SessionDeviceService
     {
         $sessionDevice = SessionDevice::withTrashed()->findOrFail($id);
         $sessionDevice->forceDelete();
+
         return $sessionDevice;
     }
 }

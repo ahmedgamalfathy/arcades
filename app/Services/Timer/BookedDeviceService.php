@@ -1,21 +1,23 @@
 <?php
+
 namespace App\Services\Timer;
-use Exception;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\QueryBuilder\AllowedFilter;
-use App\Filters\Timer\FilterBookedDevice;
+
 use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Enums\SessionDevice\SessionDeviceEnum;
+use App\Filters\Timer\FilterBookedDevice;
 use App\Filters\Timer\FiltersessionDeviceType;
-use App\Services\Timer\Concerns\HandlesBookedDeviceActivityLog;
-use App\Services\Timer\Concerns\TransfersBookedDevices;
-use Illuminate\Validation\ValidationException;
+use App\Filters\Timer\FilterTypeBookedDeviceParam;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Timer\SessionDevice\SessionDevice;
-use App\Filters\Timer\FilterTypeBookedDeviceParam;
+use App\Services\Timer\Concerns\HandlesBookedDeviceActivityLog;
+use App\Services\Timer\Concerns\TransfersBookedDevices;
+use Carbon\Carbon;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class BookedDeviceService
 {
@@ -25,72 +27,75 @@ class BookedDeviceService
     public function allBookedDevices(Request $request)
     {
         $perPage = $request->query('perPage', 10);
-        $bookedDevices= QueryBuilder::for(BookedDevice::class)
-        ->with('sessionDevice','deviceType','deviceTime','device')
-        ->when($request->trashed, function ($query) {
-            $query->onlyTrashed();
-        })
-        ->whereHas('sessionDevice', function($q) use ($request) {
-            $q->where('daily_id', $request->dailyId );
-        })
-        ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
-        ->allowedFilters([
-             AllowedFilter::exact('status', 'status'),
-             AllowedFilter::custom('type', new FiltersessionDeviceType),
-             AllowedFilter::custom('search', new FilterBookedDevice),
-             AllowedFilter::custom('bookedDevicesStatus', new FilterTypeBookedDeviceParam),
-        ])
-        ->cursorPaginate($perPage);
+        $bookedDevices = QueryBuilder::for(BookedDevice::class)
+            ->with('sessionDevice', 'deviceType', 'deviceTime', 'device')
+            ->when($request->trashed, function ($query) {
+                $query->onlyTrashed();
+            })
+            ->whereHas('sessionDevice', function ($q) use ($request) {
+                $q->where('daily_id', $request->dailyId);
+            })
+            ->where('status', '!=', BookedDeviceEnum::FINISHED->value)
+            ->allowedFilters([
+                AllowedFilter::exact('status', 'status'),
+                AllowedFilter::custom('type', new FiltersessionDeviceType),
+                AllowedFilter::custom('search', new FilterBookedDevice),
+                AllowedFilter::custom('bookedDevicesStatus', new FilterTypeBookedDeviceParam),
+            ])
+            ->cursorPaginate($perPage);
+
         return $bookedDevices;
     }
+
     public function createBookedDevice(array $data)
     {
         $alreadyBooked = BookedDevice::where('device_id', $data['deviceId'])
-        ->where('device_type_id', $data['deviceTypeId'])
-        ->whereIn('status', [
-            BookedDeviceEnum::ACTIVE->value,
-            BookedDeviceEnum::PAUSED->value
-        ])
-        ->exists();
+            ->where('device_type_id', $data['deviceTypeId'])
+            ->whereIn('status', [
+                BookedDeviceEnum::ACTIVE->value,
+                BookedDeviceEnum::PAUSED->value,
+            ])
+            ->exists();
         if ($alreadyBooked) {
             throw ValidationException::withMessages([
-              "alreadyBooked" => __('validation.validation_create_booked_device')
-              ]);
+                'alreadyBooked' => __('validation.validation_create_booked_device'),
+            ]);
         }
+
         return BookedDevice::create([
-        'session_device_id'=>$data['sessionDeviceId'],
-        'device_type_id'=>$data['deviceTypeId'],
-        'device_id'=>$data['deviceId'],
-        'device_time_id'=>$data['deviceTimeId'],
-        'start_date_time'=>$data['startDateTime'],
-        'total_used_seconds'=>$data['totalUsedSeconds']??0,
-        'end_date_time'=>$data['endDateTime']??null,
-        'status'=>$data['status'],
+            'session_device_id' => $data['sessionDeviceId'],
+            'device_type_id' => $data['deviceTypeId'],
+            'device_id' => $data['deviceId'],
+            'device_time_id' => $data['deviceTimeId'],
+            'start_date_time' => $data['startDateTime'],
+            'total_used_seconds' => $data['totalUsedSeconds'] ?? 0,
+            'end_date_time' => $data['endDateTime'] ?? null,
+            'status' => $data['status'],
         ]);
     }
 
     public function editBookedDevice(int $id)
     {
-        return BookedDevice::with('sessionDevice','deviceType','deviceTime','device')->findOrFail($id);
+        return BookedDevice::with('sessionDevice', 'deviceType', 'deviceTime', 'device')->findOrFail($id);
     }
 
     public function updateBookedDevice(int $id, array $data)
     {
-        $bookedDevice=BookedDevice::findOrFail($id);
+        $bookedDevice = BookedDevice::findOrFail($id);
         $bookedDevice->update($data);
+
         return $bookedDevice;
     }
 
     public function finishBookedDevice(int $id, array $data = [])
     {
-        $bookedDevice=BookedDevice::findOrFail($id);
-        if($bookedDevice->status == BookedDeviceEnum::FINISHED->value)
-        {
-            throw new Exception("the booked device Finished status");
+        $bookedDevice = BookedDevice::findOrFail($id);
+        if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
+            throw new Exception('the booked device Finished status');
         }
         $start = $bookedDevice->start_date_time;
         $end = Carbon::now();
-        if($bookedDevice->end_date_time && $bookedDevice->end_date_time->lessThan($end)) {
+        if ($bookedDevice->end_date_time && $bookedDevice->end_date_time->lessThan($end)) {
             $end = $bookedDevice->end_date_time;
         }
         $total = $start->diffInSeconds($end);
@@ -98,9 +103,9 @@ class BookedDeviceService
         $bookedDevice->update([
             'end_date_time' => $end,
             'total_used_seconds' => $used,
-            'status' => BookedDeviceEnum::FINISHED->value
+            'status' => BookedDeviceEnum::FINISHED->value,
         ]);
-        $bookedDevice->period_cost=$bookedDevice->calculatePrice();
+        $bookedDevice->period_cost = $bookedDevice->calculatePrice();
         $bookedDevice->actual_paid_amount = $data['actualPaidAmount'] ?? $bookedDevice->total_cost;
         $bookedDevice->save();
 
@@ -110,9 +115,9 @@ class BookedDeviceService
             ]);
         });
 
-
         return $bookedDevice->fresh();
     }
+
     public function deleteBookedDevice(int $id)
     {
         $bookedDevice = BookedDevice::findOrFail($id);
@@ -182,9 +187,9 @@ class BookedDeviceService
                 ],
                 'children' => $children,
                 'session_key' => $sessionDevice->type === SessionDeviceEnum::INDIVIDUAL->value
-                    ? 'individual_' . ($bookedDevices[0]->device_id ?? 'unknown') . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s')
-                    : 'session_' . $sessionDevice->id . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s'), // Add session key
-                'delete_type' => 'session_with_devices' // Mark delete type
+                    ? 'individual_'.($bookedDevices[0]->device_id ?? 'unknown').'_'.$sessionDevice->created_at->format('Y-m-d_H-i-s')
+                    : 'session_'.$sessionDevice->id.'_'.$sessionDevice->created_at->format('Y-m-d_H-i-s'), // Add session key
+                'delete_type' => 'session_with_devices', // Mark delete type
             ])
             ->tap(function ($activity) use ($sessionDevice) {
                 $activity->daily_id = $sessionDevice->daily_id;
@@ -212,13 +217,14 @@ class BookedDeviceService
         }
         $bookedDevice->forceDelete();
     }
+
     public function updateEndDateTime(int $id, array $data)
-        {
-            return DB::transaction(function () use ($id, $data) {
+    {
+        return DB::transaction(function () use ($id, $data) {
             $bookedDevice = BookedDevice::findOrFail($id);
 
             if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
-                throw new Exception("the booked device Finished status");
+                throw new Exception('the booked device Finished status');
             }
 
             // Save old values for logging (keep as Carbon object or null)
@@ -246,8 +252,8 @@ class BookedDeviceService
             if ($sessionDevice) {
                 // Generate session key
                 $sessionKey = $sessionDevice->type === SessionDeviceEnum::INDIVIDUAL->value
-                    ? 'individual_' . $bookedDevice->device_id . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s')
-                    : 'session_' . $sessionDevice->id . '_' . $sessionDevice->created_at->format('Y-m-d_H-i-s');
+                    ? 'individual_'.$bookedDevice->device_id.'_'.$sessionDevice->created_at->format('Y-m-d_H-i-s')
+                    : 'session_'.$sessionDevice->id.'_'.$sessionDevice->created_at->format('Y-m-d_H-i-s');
 
                 // Manual activity log for SessionDevice with BookedDevice as child
                 activity()
@@ -276,7 +282,7 @@ class BookedDeviceService
                             'old_end_date_time' => $oldEndDateTime ? $oldEndDateTime->format('Y-m-d H:i:s') : null,
                         ]],
                         'session_key' => $sessionKey, // Add session key
-                        'update_type' => 'end_time' // Mark update type
+                        'update_type' => 'end_time', // Mark update type
                     ])
                     ->tap(function ($activity) use ($sessionDevice) {
                         $activity->daily_id = $sessionDevice->daily_id;
@@ -287,40 +293,39 @@ class BookedDeviceService
             // broadcast(new BookedDeviceChangeStatus($bookedDevice))->toOthers();
 
             return $bookedDevice;
-            });
-        }
+        });
+    }
 
     public function createBookedDeviceWithoutLog(array $data)
     {
         $alreadyBooked = BookedDevice::where('device_id', $data['deviceId'])
-        ->where('device_type_id', $data['deviceTypeId'])
-        ->whereIn('status', [
-            BookedDeviceEnum::ACTIVE->value,
-            BookedDeviceEnum::PAUSED->value
-        ])
-        ->exists();
+            ->where('device_type_id', $data['deviceTypeId'])
+            ->whereIn('status', [
+                BookedDeviceEnum::ACTIVE->value,
+                BookedDeviceEnum::PAUSED->value,
+            ])
+            ->exists();
 
         if ($alreadyBooked) {
             throw ValidationException::withMessages([
-              "alreadyBooked" => __('validation.validation_create_booked_device')
-              ]);
+                'alreadyBooked' => __('validation.validation_create_booked_device'),
+            ]);
         }
 
         // Create without triggering events/logging
         $bookedDevice = new BookedDevice([
-            'session_device_id'=>$data['sessionDeviceId'],
-            'device_type_id'=>$data['deviceTypeId'],
-            'device_id'=>$data['deviceId'],
-            'device_time_id'=>$data['deviceTimeId'],
-            'start_date_time'=>$data['startDateTime'],
-            'total_used_seconds'=>$data['totalUsedSeconds']??0,
-            'end_date_time'=>$data['endDateTime']??null,
-            'status'=>$data['status'],
+            'session_device_id' => $data['sessionDeviceId'],
+            'device_type_id' => $data['deviceTypeId'],
+            'device_id' => $data['deviceId'],
+            'device_time_id' => $data['deviceTimeId'],
+            'start_date_time' => $data['startDateTime'],
+            'total_used_seconds' => $data['totalUsedSeconds'] ?? 0,
+            'end_date_time' => $data['endDateTime'] ?? null,
+            'status' => $data['status'],
         ]);
 
         $bookedDevice->saveQuietly();
 
         return $bookedDevice;
     }
-
 }

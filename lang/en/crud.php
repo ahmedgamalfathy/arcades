@@ -14,7 +14,7 @@ return [
     'created' => 'Data has been added successfully.',
     'updated' => 'Data has been updated successfully.',
     'deleted' => 'Data has been deleted successfully.',
-    'restore'=>'Data recovered successfully',
+    'restore' => 'Data recovered successfully',
 
     'server_error' => 'A server error occurred.',
     'no_data' => 'No data available.',
@@ -22,7 +22,7 @@ return [
 
     // orders
     'no_available_quantity' => 'No available quantity.',
-    'nullable_choice_upload' =>'You must select an existing image or upload a new one.',
-    'multi_choice_upload' =>'You cannot upload an image and select an existing image at the same time.'
+    'nullable_choice_upload' => 'You must select an existing image or upload a new one.',
+    'multi_choice_upload' => 'You cannot upload an image and select an existing image at the same time.',
 
 ];

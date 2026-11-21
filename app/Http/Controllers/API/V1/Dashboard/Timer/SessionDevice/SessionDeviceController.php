@@ -1,22 +1,22 @@
 <?php
 
 namespace App\Http\Controllers\API\V1\Dashboard\Timer\SessionDevice;
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+
 use App\Enums\ResponseCode\HttpStatusCode;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Timer\SessionDevice\AllSessionResource;
+use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
 use App\Services\Timer\SessionDeviceService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Http\Resources\Timer\SessionDevice\SessionDeviceResource;
-use App\Http\Resources\Timer\SessionDevice\AllSessionResource;
+use Illuminate\Http\Request;
 
 class SessionDeviceController extends Controller
 {
     public function __construct(
-    protected SessionDeviceService $sessionDeviceService
-    )
-    {
-    }
+        protected SessionDeviceService $sessionDeviceService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -24,10 +24,11 @@ class SessionDeviceController extends Controller
     {
         try {
             $sessionDevices = $this->sessionDeviceService->getSessionDevices($request);
+
             return ApiResponse::success(new AllSessionResource($sessionDevices));
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
-        } catch (\Throwable $e ) {
+        } catch (\Throwable $e) {
             return ApiResponse::exception($e);
         }
     }
@@ -39,10 +40,11 @@ class SessionDeviceController extends Controller
     {
         try {
             $sessionDevice = $this->sessionDeviceService->editSessionDevice($id);
+
             return ApiResponse::success(new SessionDeviceResource($sessionDevice));
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
-        } catch (\Throwable $e ) {
+        } catch (\Throwable $e) {
             return ApiResponse::exception($e);
         }
     }
@@ -54,50 +56,54 @@ class SessionDeviceController extends Controller
     {
         try {
             $this->sessionDeviceService->deleteSessionDevice($id);
-            return ApiResponse::success([],__('crud.deleted'));
+
+            return ApiResponse::success([], __('crud.deleted'));
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
-        } catch (\Throwable $e ) {
+        } catch (\Throwable $e) {
             return ApiResponse::exception($e);
         }
     }
+
     public function restore(int $id)
     {
         try {
             $this->sessionDeviceService->restoreSessionDevice($id);
-            return ApiResponse::success([],__('crud.updated'));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+
+            return ApiResponse::success([], __('crud.updated'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function forceDelete(int $id)
     {
         try {
             $this->sessionDeviceService->forceDeleteSessionDevice($id);
-            return ApiResponse::success([],__('crud.deleted'));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function update(Request $request, string $id)
     {
         try {
-            $data=$request->validate([
-                'name'=>'required|string|max:255',
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
             ]);
             $this->sessionDeviceService->updateSessionDevice($id, $data);
+
             return ApiResponse::success([], __('crud.updated'));
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
-        } catch (\Throwable $e ) {
+        } catch (\Throwable $e) {
             return ApiResponse::exception($e);
         }
     }
 }
-
-
-

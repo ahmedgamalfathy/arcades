@@ -1,11 +1,12 @@
 <?php
+
 namespace App\Services\Device\DeviceTime;
 
-use Illuminate\Http\Request;
 use App\Models\Device\DeviceTime\DeviceTime;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DeviceTimeService
 {
@@ -21,80 +22,90 @@ class DeviceTimeService
 
         return $query->get();
     }
+
     public function editDeviceTime(int $id)
     {
         $deviceTime = DeviceTime::find($id);
-        if(!$deviceTime){
-        throw new ModelNotFoundException("Device Time with id {$id} not found");
+        if (! $deviceTime) {
+            throw new ModelNotFoundException("Device Time with id {$id} not found");
         }
-        return  $deviceTime;
+
+        return $deviceTime;
     }
+
     public function createDeviceTime(array $data)
     {
         return DB::transaction(function () use ($data) {
             $deviceTime = DeviceTime::create([
-                'name'=>$data['name'],
-                'rate'=>$data['rate'],
-                'device_type_id'=>$data['deviceTypeId']??null,
-                'device_id'=>$data['deviceId']??null
+                'name' => $data['name'],
+                'rate' => $data['rate'],
+                'device_type_id' => $data['deviceTypeId'] ?? null,
+                'device_id' => $data['deviceId'] ?? null,
             ]);
+
             return $deviceTime;
         });
     }
+
     public function updateDeviceTime(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
             $deviceTime = DeviceTime::find($id);
-            if(!$deviceTime){
-              throw new ModelNotFoundException("Device Time with id {$id} not found");
+            if (! $deviceTime) {
+                throw new ModelNotFoundException("Device Time with id {$id} not found");
             }
-            if (!$deviceTime->canBeDeleted()) {
+            if (! $deviceTime->canBeDeleted()) {
                 throw ValidationException::withMessages([
                     'device_id' => $deviceTime->getDeletionBlockReason(),
                 ]);
             }
             $deviceTime->name = $data['name'];
             $deviceTime->rate = $data['rate'];
-            $deviceTime->device_type_id = $data['deviceTypeId']??null;
-            $deviceTime->device_id = $data['deviceId']??null;
+            $deviceTime->device_type_id = $data['deviceTypeId'] ?? null;
+            $deviceTime->device_id = $data['deviceId'] ?? null;
             $deviceTime->save();
+
             return $deviceTime;
         });
     }
+
     public function deleteDeviceTime(int $id)
     {
         $deviceTime = DeviceTime::find($id);
-        if (!$deviceTime) {
+        if (! $deviceTime) {
             throw new ModelNotFoundException("Device Time with id {$id} not found");
         }
 
         // التحقق من إمكانية الحذف (سيرمي Exception إذا كان مستخدم في حجوزات نشطة)
-        if (!$deviceTime->canBeDeleted()) {
+        if (! $deviceTime->canBeDeleted()) {
             throw new \Exception($deviceTime->getDeletionBlockReason());
         }
 
         // إذا مش مستخدم في حجوزات نشطة، يتحذف Soft Delete
         $deviceTime->delete();
+
         return $deviceTime;
     }
 
     public function restoreDeviceTime(int $id)
     {
         $deviceTime = DeviceTime::onlyTrashed()->find($id);
-        if (!$deviceTime) {
+        if (! $deviceTime) {
             throw new ModelNotFoundException("Device Time with id {$id} not found in trashed");
         }
         $deviceTime->restore();
+
         return $deviceTime;
     }
 
     public function forceDeleteDeviceTime(int $id)
     {
         $deviceTime = DeviceTime::withTrashed()->find($id);
-        if (!$deviceTime) {
+        if (! $deviceTime) {
             throw new ModelNotFoundException("Device Time with id {$id} not found");
         }
         $deviceTime->forceDelete();
+
         return $deviceTime;
     }
 }

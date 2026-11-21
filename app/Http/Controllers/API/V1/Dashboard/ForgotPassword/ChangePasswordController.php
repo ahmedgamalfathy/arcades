@@ -12,9 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class ChangePasswordController extends Controller
 {
-    public function __construct(private ForgotPasswordService $forgotPasswordService)
-    {
-    }
+    public function __construct(private ForgotPasswordService $forgotPasswordService) {}
 
     public function __invoke(Request $request)
     {

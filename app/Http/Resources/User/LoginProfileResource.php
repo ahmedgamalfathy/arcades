@@ -16,10 +16,10 @@ class LoginProfileResource extends JsonResource
     {
         return [
             // 'id' => $this->id,
-            'avatar' => $this->avatar??"",
+            'avatar' => $this->avatar ?? '',
             'name' => $this->name,
             'email' => $this->email,
-            'appKey'=>$this->app_key??"",
+            'appKey' => $this->app_key ?? '',
         ];
     }
 }

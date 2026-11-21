@@ -2,17 +2,12 @@
 
 namespace App\Http\Requests\Device\DeviceTime;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
-use App\Enums\Expense\ExpenseTypeEnum;
-use App\Services\Expense\ExpenseService;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
+use Illuminate\Validation\Rule;
 
 class UpdateDeviceTimeRequest extends FormRequest
 {
@@ -37,14 +32,12 @@ class UpdateDeviceTimeRequest extends FormRequest
                 'string',
                 Rule::unique('device_times', 'name')
                     ->ignore($this->route('device_time')) // هنا بتستثني السجل الحالي
-                    ->when($this->deviceTypeId, fn($query) =>
-                        $query->where('device_type_id', $this->deviceTypeId)
+                    ->when($this->deviceTypeId, fn ($query) => $query->where('device_type_id', $this->deviceTypeId)
                     )
-                    ->when($this->deviceId, fn($query) =>
-                        $query->where('device_id', $this->deviceId)
+                    ->when($this->deviceId, fn ($query) => $query->where('device_id', $this->deviceId)
                     ),
             ],
-            'rate'=> ['required','numeric','min:1'],
+            'rate' => ['required', 'numeric', 'min:1'],
             'deviceTypeId' => [
                 'nullable',
                 'integer',
@@ -76,5 +69,4 @@ class UpdateDeviceTimeRequest extends FormRequest
             'deviceTypeId.required' => __('validation.custom.required'),
         ];
     }
-
 }

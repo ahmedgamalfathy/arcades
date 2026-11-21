@@ -2,20 +2,21 @@
 
 namespace App\Models\Device;
 
-use App\Models\Media\Media;
-use App\Models\Maintenance\Maintenance;
-use App\Trait\UsesTenantConnection;
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Models\Device\DeviceTime\DeviceTime;
 use App\Models\Device\DeviceType\DeviceType;
+use App\Models\Maintenance\Maintenance;
+use App\Models\Media\Media;
 use App\Models\Timer\BookedDevice\BookedDevice;
+use App\Trait\UsesTenantConnection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-use App\Enums\BookedDevice\BookedDeviceEnum;
+use Spatie\Activitylog\Traits\LogsActivity;
+
 class Device extends Model
 {
-    use UsesTenantConnection , LogsActivity, SoftDeletes;
+    use LogsActivity , SoftDeletes, UsesTenantConnection;
 
     protected $fillable = [
         'name',
@@ -30,7 +31,7 @@ class Device extends Model
 
         // منع الحذف إذا كان الجهاز شغال في تيم
         static::deleting(function ($device) {
-            if (!$device->canBeDeleted()) {
+            if (! $device->canBeDeleted()) {
                 throw new \Exception($device->getDeletionBlockReason());
             }
         });
@@ -43,30 +44,37 @@ class Device extends Model
             ->logAll()
             ->logOnlyDirty()
             ->dontLogIfAttributesChangedOnly(['updated_at'])
-            ->setDescriptionForEvent(fn(string $eventName) => "Device {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "Device {$eventName}");
     }
+
     public function media()
     {
         return $this->belongsTo(Media::class);
     }
+
     public function deviceType()
     {
-        return $this->belongsTo(DeviceType::class,'device_type_id')->withTrashed();
+        return $this->belongsTo(DeviceType::class, 'device_type_id')->withTrashed();
     }
+
     public function deviceTimes()
     {
         return $this->belongsToMany(DeviceTime::class, 'device_device_time');
     }
-    public  function deviceTimeSpecial(){
-        return $this->hasMany(DeviceTime::class,'device_id');
+
+    public function deviceTimeSpecial()
+    {
+        return $this->hasMany(DeviceTime::class, 'device_id');
     }
+
     public function maintenances()
     {
-        return $this->hasMany(Maintenance::class,'device_id');
+        return $this->hasMany(Maintenance::class, 'device_id');
     }
-     public function bookedDevices()
+
+    public function bookedDevices()
     {
-        return $this->hasMany(BookedDevice::class,'device_id');
+        return $this->hasMany(BookedDevice::class, 'device_id');
     }
 
     /**
@@ -75,7 +83,7 @@ class Device extends Model
     public function hasActiveBookings(): bool
     {
         return $this->bookedDevices()
-            ->whereNot('status',BookedDeviceEnum::FINISHED->value) // نشط
+            ->whereNot('status', BookedDeviceEnum::FINISHED->value) // نشط
             ->exists();
     }
 
@@ -102,6 +110,7 @@ class Device extends Model
             $activeBookingsCount = $this->bookedDevices()
                 ->whereNot('status', BookedDeviceEnum::FINISHED->value)
                 ->count();
+
             return "لا يمكن حذف الجهاز لأنه شغال حالياً في التيم ({$activeBookingsCount} حجز نشط). يجب إنهاء الحجوزات أولاً.";
         }
 

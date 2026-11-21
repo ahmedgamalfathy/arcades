@@ -6,13 +6,15 @@ use App\Models\Media\Media;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Product extends Model
 {
-    use UsesTenantConnection , LogsActivity, SoftDeletes;
-    protected $guarded =[];
+    use LogsActivity , SoftDeletes, UsesTenantConnection;
+
+    protected $guarded = [];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -20,9 +22,11 @@ class Product extends Model
             ->logAll()
             ->logOnlyDirty()
             ->dontLogIfAttributesChangedOnly(['updated_at'])
-            ->setDescriptionForEvent(fn(string $eventName) => "Product {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "Product {$eventName}");
     }
-    public function media(){
+
+    public function media()
+    {
         return $this->belongsTo(Media::class);
     }
 }

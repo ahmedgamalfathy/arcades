@@ -2,11 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use Database\Seeders\UserSeeder;
 use Database\Seeders\Roles\RolesAndPermissionsSeeder;
+use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -30,7 +28,7 @@ class DatabaseSeeder extends Seeder
         if (config('database.default') === 'tenant') {
             // قاعدة بيانات التيننت
             $this->call([
-                MediaSeeder::class
+                MediaSeeder::class,
             ]);
         }
     }

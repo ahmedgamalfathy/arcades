@@ -2,13 +2,11 @@
 
 namespace App\Http\Requests\Device\DeviceType;
 
-use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
 
 class CreateDeviceTypeRequest extends FormRequest
 {
@@ -26,21 +24,21 @@ class CreateDeviceTypeRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
-    {//name , rate , device_type_id
+    {// name , rate , device_type_id
         return [
-            'name' => ['string','required','unique:device_types,name'],
-            'times'=> ['required','array','min:1'],
-           'times.*.name' => [
-            'required',
-            'string',
-            function ($attribute, $value, $fail) {
-                $names = array_column($this->input('times'), 'name');
-                if (count(array_keys($names, $value)) > 1) {
-                    $fail("The name '$value' is duplicated within the request.");
-                }
-            }
-        ],
-            'times.*.rate'=>['required','numeric','min:1'],
+            'name' => ['string', 'required', 'unique:device_types,name'],
+            'times' => ['required', 'array', 'min:1'],
+            'times.*.name' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    $names = array_column($this->input('times'), 'name');
+                    if (count(array_keys($names, $value)) > 1) {
+                        $fail("The name '$value' is duplicated within the request.");
+                    }
+                },
+            ],
+            'times.*.rate' => ['required', 'numeric', 'min:1'],
         ];
     }
 
@@ -54,7 +52,7 @@ class CreateDeviceTypeRequest extends FormRequest
 
     public function messages()
     {
-            //name , price , date , note ,type
+        // name , price , date , note ,type
         return [
             'name.required' => __('validation.custom.required'),
             'name.unique' => __('validation.custom.unique'),
@@ -62,5 +60,4 @@ class CreateDeviceTypeRequest extends FormRequest
             'deviceTypeId.required' => __('validation.custom.required'),
         ];
     }
-
 }

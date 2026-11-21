@@ -11,9 +11,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 
 class DailyActivityController extends Controller implements HasMiddleware
 {
-    public function __construct(private DailyActivityService $dailyActivityService)
-    {
-    }
+    public function __construct(private DailyActivityService $dailyActivityService) {}
 
     public static function middleware(): array
     {

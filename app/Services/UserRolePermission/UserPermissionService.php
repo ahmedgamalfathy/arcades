@@ -7,7 +7,6 @@ use Spatie\Permission\Models\Permission;
 
 class UserPermissionService
 {
-
     public function getUserPermissions(Authenticatable $user)
     {
         $permissions = Permission::all()->pluck('name')->toArray();
@@ -16,7 +15,7 @@ class UserPermissionService
 
             return [
                 'permissionName' => $permission,
-                'access' => $user->can($permission)
+                'access' => $user->can($permission),
             ];
         }, $permissions);
     }

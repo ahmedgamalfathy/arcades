@@ -3,12 +3,11 @@
 namespace App\Http\Resources\Daily;
 
 use App\Enums\BookedDevice\BookedDeviceEnum;
-use App\Enums\Order\OrderTypeEnum;
+use App\Http\Resources\Expense\Daily\AllExpenseDailyResource;
+use App\Http\Resources\Order\Daily\AllOrderIncomeResource;
+use App\Http\Resources\Timer\SessionDevice\Daily\AllSessionIncomeResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-    use App\Http\Resources\Expense\Daily\AllExpenseDailyResource;
-use App\Http\Resources\Timer\SessionDevice\Daily\AllSessionIncomeResource;
-use App\Http\Resources\Order\Daily\AllOrderIncomeResource;
 
 class DailyResource extends JsonResource
 {
@@ -17,7 +16,7 @@ class DailyResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-     public function toArray(Request $request): array
+    public function toArray(Request $request): array
     {
         $includes = collect(explode(',', $request->get('include', '')))
             ->filter()
@@ -49,15 +48,15 @@ class DailyResource extends JsonResource
 
         if (in_array('sessions', $includes) && $this->relationLoaded('sessions')) {
             // احسب الإجمالي (live للشغال + المحفوظ للمقفول)
-            $sessionsTotal = $this->sessions->sum(function($session) {
-            return $session->bookedDevices
-            ->where('status', BookedDeviceEnum::FINISHED->value)
-            ->groupBy('device_id')
-            ->map(function($devices) {
-                // آخر سجل لكل جهاز
-                return $devices->sortByDesc('id')->first();
-            })
-            ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
+            $sessionsTotal = $this->sessions->sum(function ($session) {
+                return $session->bookedDevices
+                    ->where('status', BookedDeviceEnum::FINISHED->value)
+                    ->groupBy('device_id')
+                    ->map(function ($devices) {
+                        // آخر سجل لكل جهاز
+                        return $devices->sortByDesc('id')->first();
+                    })
+                    ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
                 // return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
                 //     $cost = ($bookedDevice->status != 0)
                 //         ? $bookedDevice->calculatePrice()
@@ -68,21 +67,21 @@ class DailyResource extends JsonResource
 
             $data['sessions'] = [
                 'total' => round($sessionsTotal, 2),
-                'data' => AllSessionIncomeResource::collection($this->sessions)
+                'data' => AllSessionIncomeResource::collection($this->sessions),
             ];
         }
 
         if (in_array('orders', $includes) && $this->relationLoaded('orders')) {
             $data['orders'] = [
                 'total' => round($this->totalOrders(), 2),
-                'data' => AllOrderIncomeResource::collection($this->orders)
+                'data' => AllOrderIncomeResource::collection($this->orders),
             ];
         }
 
         if (in_array('expenses', $includes) && $this->relationLoaded('expenses')) {
             $data['expenses'] = [
                 'total' => round($this->totalExpenses(), 2),
-                'data' => AllExpenseDailyResource::collection($this->expenses)
+                'data' => AllExpenseDailyResource::collection($this->expenses),
             ];
         }
 
@@ -97,15 +96,15 @@ class DailyResource extends JsonResource
         $sessionsTotal = 0;
 
         if ($this->relationLoaded('sessions')) {
-            $sessionsTotal = $this->sessions->sum(function($session) {
-             return $session->bookedDevices
-            ->where('status', BookedDeviceEnum::FINISHED->value)
-            ->groupBy('device_id')
-            ->map(function($devices) {
-                // آخر سجل لكل جهاز
-                return $devices->sortByDesc('id')->first();
-            })
-            ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
+            $sessionsTotal = $this->sessions->sum(function ($session) {
+                return $session->bookedDevices
+                    ->where('status', BookedDeviceEnum::FINISHED->value)
+                    ->groupBy('device_id')
+                    ->map(function ($devices) {
+                        // آخر سجل لكل جهاز
+                        return $devices->sortByDesc('id')->first();
+                    })
+                    ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2));
                 // return $session->bookedDevices->where('status', 0)->sum(function($bookedDevice) {
                 //     $cost = ($bookedDevice->status != 0)
                 //         ? $bookedDevice->calculatePrice()
@@ -116,6 +115,7 @@ class DailyResource extends JsonResource
         }
 
         $ordersTotal = $this->relationLoaded('orders') ? $this->totalOrders() : 0;
+
         return round($sessionsTotal + $ordersTotal, 2);
     }
 
@@ -125,6 +125,7 @@ class DailyResource extends JsonResource
     protected function calculateTotalExpense(): float
     {
         $total = $this->relationLoaded('expenses') ? $this->totalExpenses() : 0;
+
         return round($total, 2);
     }
 }

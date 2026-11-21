@@ -2,14 +2,12 @@
 
 namespace App\Http\Requests\Device\DeviceTime;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rule;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
+use Illuminate\Validation\Rule;
 
 class CreateDeviceTimeRequest extends FormRequest
 {
@@ -27,7 +25,7 @@ class CreateDeviceTimeRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
-    {//name , rate , device_type_id
+    {// name , rate , device_type_id
         return [
             'deviceTypeId' => [
                 'nullable',
@@ -42,18 +40,16 @@ class CreateDeviceTimeRequest extends FormRequest
                 'required_without:deviceTypeId',
             ],
 
-            'name' =>[
+            'name' => [
                 'required',
                 'string',
-            Rule::unique('device_times', 'name')
-                ->when($this->deviceTypeId, fn($query) =>
-                    $query->where('device_type_id', $this->deviceTypeId)
-                )
-                ->when($this->deviceId, fn($query) =>
-                    $query->where('device_id', $this->deviceId)
-                ),
-           ],
-          'rate'=> ['required','numeric','min:1'],
+                Rule::unique('device_times', 'name')
+                    ->when($this->deviceTypeId, fn ($query) => $query->where('device_type_id', $this->deviceTypeId)
+                    )
+                    ->when($this->deviceId, fn ($query) => $query->where('device_id', $this->deviceId)
+                    ),
+            ],
+            'rate' => ['required', 'numeric', 'min:1'],
         ];
     }
 
@@ -67,12 +63,11 @@ class CreateDeviceTimeRequest extends FormRequest
 
     public function messages()
     {
-            //name , price , date , note ,type
+        // name , price , date , note ,type
         return [
             'name.required' => __('validation.custom.required'),
             'rate.required' => __('validation.custom.required'),
             'deviceTypeId.required' => __('validation.custom.required'),
         ];
     }
-
 }

@@ -11,9 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 class SendCodeController extends Controller
 {
-    public function __construct(private ForgotPasswordService $forgotPasswordService)
-    {
-    }
+    public function __construct(private ForgotPasswordService $forgotPasswordService) {}
 
     public function __invoke(Request $request)
     {

@@ -17,12 +17,12 @@ class MaintenanceResource extends JsonResource
     {
         return [
             'maintenanceId' => $this->id,
-            'userName'=>$this->user->name ??"",
+            'userName' => $this->user->name ?? '',
             'title' => $this->title,
             'price' => $this->price,
-            'place'=>$this->place ?? "",
+            'place' => $this->place ?? '',
             'date' => Carbon::parse($this->date)->format('d/m/Y'),
-            'note' => $this->note??"",
+            'note' => $this->note ?? '',
         ];
     }
 }

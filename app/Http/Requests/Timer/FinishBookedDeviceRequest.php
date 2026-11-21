@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Timer;
 
-use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class FinishBookedDeviceRequest extends FormRequest
@@ -29,6 +29,7 @@ class FinishBookedDeviceRequest extends FormRequest
             'actualPaidAmount' => 'nullable|numeric|min:0',
         ];
     }
+
     public function failedValidation(Validator $validator)
     {
 

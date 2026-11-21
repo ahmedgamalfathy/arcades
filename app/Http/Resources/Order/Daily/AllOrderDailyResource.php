@@ -2,11 +2,11 @@
 
 namespace App\Http\Resources\Order\Daily;
 
+use App\Http\Resources\Order\OrderItem\Daily\OrderItemResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Order\OrderItem\Daily\OrderItemResource;
 
-class AllOrderDailyResource  extends JsonResource
+class AllOrderDailyResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,7 +16,7 @@ class AllOrderDailyResource  extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'orderItems'=> OrderItemResource::collection($this->items),
+            'orderItems' => OrderItemResource::collection($this->items),
         ];
     }
 }

@@ -3,37 +3,42 @@
 namespace App\Http\Controllers\API\V1\Dashboard\Media;
 
 use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Services\Media\MediaService;
-use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\Media\CreateMediaRequest;
 use App\Http\Requests\Media\UpdateMediaRequest;
+use App\Services\Media\MediaService;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class MediaController extends Controller  implements HasMiddleware
+class MediaController extends Controller implements HasMiddleware
 {
     /**
      * Display a listing of the resource.
      */
     public $mediaService;
-    public function __construct(MediaService $mediaService) {
-     $this->mediaService =$mediaService;
+
+    public function __construct(MediaService $mediaService)
+    {
+        $this->mediaService = $mediaService;
     }
+
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:media', only:['index']),
-            new Middleware('permission:create_media', only:['store']),
-            new Middleware('permission:edit_media', only:['show']),
-            new Middleware('permission:update_media', only:['update']),
-            new Middleware('permission:destroy_media', only:['destroy']),
+            new Middleware('permission:media', only: ['index']),
+            new Middleware('permission:create_media', only: ['store']),
+            new Middleware('permission:edit_media', only: ['show']),
+            new Middleware('permission:update_media', only: ['update']),
+            new Middleware('permission:destroy_media', only: ['destroy']),
         ];
     }
+
     public function index(Request $request)
     {
         $category = $request->query('category');
-        $media =$this->mediaService->allMedia($category);
+        $media = $this->mediaService->allMedia($category);
+
         return ApiResponse::success($media);
     }
 
@@ -43,7 +48,8 @@ class MediaController extends Controller  implements HasMiddleware
     public function store(CreateMediaRequest $createMediaRequest)
     {
         $this->mediaService->createMedia($createMediaRequest->validated());
-        return ApiResponse::success([],__('crud.created'));
+
+        return ApiResponse::success([], __('crud.created'));
     }
 
     /**
@@ -51,7 +57,8 @@ class MediaController extends Controller  implements HasMiddleware
      */
     public function show(int $id)
     {
-        $media =$this->mediaService->editMedia($id);
+        $media = $this->mediaService->editMedia($id);
+
         return ApiResponse::success($media);
     }
 
@@ -60,8 +67,9 @@ class MediaController extends Controller  implements HasMiddleware
      */
     public function update(UpdateMediaRequest $updateMediaRequest, int $id)
     {
-        $this->mediaService->updateMedia($id,$updateMediaRequest->validated());
-        return ApiResponse::success([],__('crud.updated'));
+        $this->mediaService->updateMedia($id, $updateMediaRequest->validated());
+
+        return ApiResponse::success([], __('crud.updated'));
     }
 
     /**
@@ -70,6 +78,7 @@ class MediaController extends Controller  implements HasMiddleware
     public function destroy(string $id)
     {
         $this->mediaService->deleteMedia($id);
-        return ApiResponse::success([],__('crud.deleted'));
+
+        return ApiResponse::success([], __('crud.deleted'));
     }
 }

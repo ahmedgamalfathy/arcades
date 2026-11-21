@@ -2,19 +2,17 @@
 
 namespace App\Http\Requests\User;
 
-use Closure;
+use App\Enums\ResponseCode\HttpStatusCode;
 use App\Enums\StatusEnum;
 use App\Helpers\ApiResponse;
 use App\Services\User\RoleAssignmentService;
-use App\Enums\User\UserStatus;
+use Closure;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
-use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
-
 
 class CreateUserRequest extends FormRequest
 {
@@ -34,21 +32,21 @@ class CreateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-        'name' => 'required|string',
+            'name' => 'required|string',
             'email' => [
                 'required',
                 Rule::anyOf([
-                    ['string', 'email','unique:users,email'],
-                    ['string', 'min:3','unique:users,email'],
+                    ['string', 'email', 'unique:users,email'],
+                    ['string', 'min:3', 'unique:users,email'],
                 ]),
             ],
             'isActive' => ['required', new Enum(StatusEnum::class)],
-            'password'=> [
+            'password' => [
                 'required',
                 // 'confirmed',
                 Password::min(8)->letters()->numbers(),
             ],
-            'roleId'=> [
+            'roleId' => [
                 'required',
                 'integer',
                 function (string $attribute, mixed $value, Closure $fail): void {
@@ -58,22 +56,24 @@ class CreateUserRequest extends FormRequest
                 },
             ],
             // 'avatar' => ["nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
-          'mediaId' => ['nullable', 'integer'],
-          'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'mediaId' => ['nullable', 'integer'],
+            'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
         ];
     }
+
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            if (!$this->mediaId && !$this->hasFile('mediaFile')) {
+            if (! $this->mediaId && ! $this->hasFile('mediaFile')) {
                 $validator->errors()->add('media', __('crud.nullable_choice_upload'));
             }
 
             if ($this->mediaId && $this->hasFile('mediaFile')) {
-                $validator->errors()->add('media',  __('crud.multi_choice_uploadmulti_choice_upload'));
+                $validator->errors()->add('media', __('crud.multi_choice_uploadmulti_choice_upload'));
             }
         });
     }
+
     public function failedValidation(Validator $validator)
     {
 
@@ -92,5 +92,4 @@ class CreateUserRequest extends FormRequest
 
         ];
     }
-
 }

@@ -4,8 +4,6 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -18,6 +16,7 @@ class BookedDeviceExpireTime implements ShouldBroadcastNow
      * Create a new event instance.
      */
     public $notification;
+
     public function __construct($notification)
     {
         $this->notification = $notification;
@@ -32,13 +31,15 @@ class BookedDeviceExpireTime implements ShouldBroadcastNow
             new Channel('booked-device-expire-time'),
         ];
     }
+
     /**
      * اسم الـ Event
      */
-        public function broadcastAs(): string
+    public function broadcastAs(): string
     {
         return 'device-expire-time';
     }
+
     public function broadcastWith(): array
     {
         return [
@@ -52,5 +53,4 @@ class BookedDeviceExpireTime implements ShouldBroadcastNow
             'timestamp' => now()->toISOString(),
         ];
     }
-    
 }

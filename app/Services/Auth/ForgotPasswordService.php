@@ -21,7 +21,7 @@ class ForgotPasswordService
             $hashedCode = Hash::make($code);
             $user = $this->findUserByEmail($email);
 
-            if (!$user) {
+            if (! $user) {
                 return;
             }
 
@@ -46,11 +46,11 @@ class ForgotPasswordService
             $dummyHash = Hash::make('000000');
             $user = $this->findUserByEmail($email);
 
-            if (!$this->codeMatches($user?->code, $code, $dummyHash)) {
+            if (! $this->codeMatches($user?->code, $code, $dummyHash)) {
                 return 'invalid';
             }
 
-            if (!$user->expired_at || $user->expired_at->isPast()) {
+            if (! $user->expired_at || $user->expired_at->isPast()) {
                 return 'expired';
             }
 
@@ -64,11 +64,11 @@ class ForgotPasswordService
             $dummyHash = Hash::make('000000');
             $user = $this->findUserByEmail($email, lockForUpdate: true);
 
-            if (!$this->codeMatches($user?->code, $code, $dummyHash)) {
+            if (! $this->codeMatches($user?->code, $code, $dummyHash)) {
                 return 'invalid';
             }
 
-            if (!$user->expired_at || $user->expired_at->isPast()) {
+            if (! $user->expired_at || $user->expired_at->isPast()) {
                 return 'expired';
             }
 

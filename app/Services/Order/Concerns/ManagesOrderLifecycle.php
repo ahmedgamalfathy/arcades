@@ -8,53 +8,55 @@ use Spatie\Activitylog\Facades\LogBatch;
 
 trait ManagesOrderLifecycle
 {
-    public function deleteOrder(int $id){
-            LogBatch::startBatch();
+    public function deleteOrder(int $id)
+    {
+        LogBatch::startBatch();
 
-            $order = Order::find($id);
-            if(!$order){
-                throw new ModelNotFoundException();
-            }
+        $order = Order::find($id);
+        if (! $order) {
+            throw new ModelNotFoundException;
+        }
 
-            $order->load('items.product');
+        $order->load('items.product');
 
-            $orderData = [
-                'id' => $order->id,
-                'name' => $order->name,
-                'number' => $order->number,
-                'price' => $order->price,
-                'booked_device_id' => $order->booked_device_id,
+        $orderData = [
+            'id' => $order->id,
+            'name' => $order->name,
+            'number' => $order->number,
+            'price' => $order->price,
+            'booked_device_id' => $order->booked_device_id,
+        ];
+
+        $itemsData = $order->items->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'product_name' => $item->product?->name,
+                'qty' => $item->qty,
+                'price' => $item->price,
+                'total' => $item->qty * $item->price,
             ];
+        })->toArray();
 
-            $itemsData = $order->items->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product?->name,
-                    'qty' => $item->qty,
-                    'price' => $item->price,
-                    'total' => $item->qty * $item->price,
-                ];
-            })->toArray();
+        $dailyId = $order->daily_id;
 
-            $dailyId = $order->daily_id;
+        $order->delete();
 
-            $order->delete();
+        activity()
+            ->useLog('Order')
+            ->event('deleted')
+            ->withProperties([
+                'old' => $orderData,
+                'children' => $itemsData,
+            ])
+            ->tap(function ($activity) use ($dailyId) {
+                $activity->daily_id = $dailyId;
+            })
+            ->log('Order deleted');
 
-            activity()
-                ->useLog('Order')
-                ->event('deleted')
-                ->withProperties([
-                    'old' => $orderData,
-                    'children' => $itemsData,
-                ])
-                ->tap(function ($activity) use ($dailyId) {
-                    $activity->daily_id = $dailyId;
-                })
-                ->log('Order deleted');
-
-            LogBatch::endBatch();
+        LogBatch::endBatch();
     }
+
     public function restoreOrder(int $id)
     {
         LogBatch::startBatch();
@@ -62,7 +64,7 @@ trait ManagesOrderLifecycle
         $order = Order::onlyTrashed()->findOrFail($id);
         $order->restore();
 
-        $order->load('items.product'); // طھط­ظ…ظٹظ„ ط§ظ„ط¹ظ„ط§ظ‚ط§طھ
+        $order->load('items.product'); // تحميل العلاقات
         activity()
             ->useLog('Order')
             ->event('restored')
@@ -92,6 +94,7 @@ trait ManagesOrderLifecycle
 
         return $order;
     }
+
     public function forceDeleteOrder(int $id)
     {
         LogBatch::startBatch();
@@ -122,6 +125,7 @@ trait ManagesOrderLifecycle
 
         LogBatch::endBatch();
     }
+
     public function changeOrderStatus(int $id, array $data)
     {
         $order = Order::findOrFail($id);
@@ -171,6 +175,7 @@ trait ManagesOrderLifecycle
 
         return $order;
     }
+
     public function changeOrderPaymentStatus(int $id, array $data)
     {
         $order = Order::findOrFail($id);
@@ -220,5 +225,4 @@ trait ManagesOrderLifecycle
 
         return $order;
     }
-
 }

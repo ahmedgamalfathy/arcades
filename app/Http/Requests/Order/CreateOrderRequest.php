@@ -2,16 +2,14 @@
 
 namespace App\Http\Requests\Order;
 
-use App\Helpers\ApiResponse;
 use App\Enums\Order\OrderStatus;
-use App\Enums\Order\DiscountType;
 use App\Enums\Order\OrderTypeEnum;
-use Illuminate\Validation\Rules\Enum;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
+use Illuminate\Validation\Rules\Enum;
 
 class CreateOrderRequest extends FormRequest
 {
@@ -33,7 +31,7 @@ class CreateOrderRequest extends FormRequest
         return [
             'name' => [
                 'string',
-                'required'
+                'required',
                 // 'required_if:type,1',
             ],
             // 'type' => ['required',new Enum(OrderTypeEnum::class)],
@@ -45,7 +43,7 @@ class CreateOrderRequest extends FormRequest
             'orderItems' => ['required', 'array', 'min:1'],
             'isPaid' => ['required', 'boolean'],
             'status' => ['required', new Enum(OrderStatus::class)],
-            'orderItems.*.productId' => ["required", 'integer', 'exists:products,id'],
+            'orderItems.*.productId' => ['required', 'integer', 'exists:products,id'],
             'orderItems.*.qty' => ['required', 'integer', 'min:1'],
             'dailyId' => ['required', 'exists:dailies,id'],
         ];
@@ -57,6 +55,7 @@ class CreateOrderRequest extends FormRequest
             ApiResponse::error('', $validator->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY)
         );
     }
+
     public function messages()
     {
         return [
@@ -68,5 +67,4 @@ class CreateOrderRequest extends FormRequest
             'qty.required' => __('validation.custom.required'),
         ];
     }
-
 }

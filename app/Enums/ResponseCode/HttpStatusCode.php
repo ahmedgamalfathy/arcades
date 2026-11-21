@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Enums\ResponseCode;
 
 enum HttpStatusCode: int

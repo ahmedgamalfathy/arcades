@@ -2,15 +2,13 @@
 
 namespace App\Http\Resources\ActivityLog;
 
+use App\Models\Device\Device;
+use App\Models\Device\DeviceTime\DeviceTime;
+use App\Models\Device\DeviceType\DeviceType;
+use App\Models\Timer\SessionDevice\SessionDevice;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\Timer\BookedDevice\BookedDevice;
-use Spatie\Activitylog\Models\Activity;
-use App\Models\User;
-use App\Models\Device\Device;
-use App\Models\Device\DeviceType\DeviceType;
-use App\Models\Device\DeviceTime\DeviceTime;
-use App\Models\Timer\SessionDevice\SessionDevice;
 
 class BookedDeviceActivityResource extends JsonResource
 {
@@ -22,28 +20,31 @@ class BookedDeviceActivityResource extends JsonResource
     public function toArray(Request $request): array
     {
         $props = $this->getProperties();
-       return [
+
+        return [
             'modelName' => $this->log_name,
             'event' => $this->event,
             'properties' => $props,
             'message' => $this->description,
             'createdAt' => $this->created_at?->format('Y-m-d H:i:s'),
-            'userName' => $this->causer_id?User::find($this->causer_id)->name:"",
+            'userName' => $this->causer_id ? User::find($this->causer_id)->name : '',
         ];
     }
+
     private function getProperties(): array
     {
-        return match($this->event) {
+        return match ($this->event) {
             'created' => $this->getCreatedProperties(),
             'updated' => $this->getUpdatedProperties(),
             'deleted' => $this->getDeletedProperties(),
             default => []
         };
     }
+
     public function getCreatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
-        
+
         return [
             'bookedDeviceId' => $attributes['id'] ?? '',
             'deviceId' => $attributes['device_id'] ? Device::find($attributes['device_id'])->name : '',
@@ -53,28 +54,30 @@ class BookedDeviceActivityResource extends JsonResource
             'status' => $attributes['status'] ?? '',
         ];
     }
+
     public function getUpdatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
         $old = $this->properties['old'] ?? [];
-        
+
         $props = [];
-        
+
         foreach ($old as $field => $oldValue) {
             if (array_key_exists($field, $attributes) && $oldValue != $attributes[$field]) {
                 $props[$field] = [
                     'old' => $oldValue,
-                    'new' => $attributes[$field]
+                    'new' => $attributes[$field],
                 ];
             }
         }
-        
+
         return $props;
     }
+
     public function getDeletedProperties(): array
     {
         $attributes = $this->properties['old'] ?? [];
-        
+
         return [
             'bookedDeviceId' => $attributes['id'] ?? '',
             'deviceId' => $attributes['device_id'] ? Device::find($attributes['device_id'])->name : '',

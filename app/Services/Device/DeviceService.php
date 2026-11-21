@@ -1,47 +1,54 @@
 <?php
+
 namespace App\Services\Device;
 
-use Log;
-use Exception;
-use Illuminate\Http\Request;
-use App\Models\Device\Device;
-use App\Enums\Media\MediaTypeEnum;
-use Illuminate\Support\Facades\DB;
-use App\Services\Media\MediaService;
 use App\Enums\Device\DeviceStatusEnum;
+use App\Enums\Media\MediaTypeEnum;
+use App\Models\Device\Device;
 use App\Models\Device\DeviceTime\DeviceTime;
-use Illuminate\Validation\ValidationException;
 use App\Services\Device\DeviceTime\DeviceTimeService;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+use App\Services\Media\MediaService;
+use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class DeviceService
 {
     protected $mediaService;
+
     protected $deviceTimeService;
-    public function __construct(MediaService $mediaService ,DeviceTimeService $deviceTimeService){
-      $this->mediaService = $mediaService;
-      $this->deviceTimeService = $deviceTimeService;
+
+    public function __construct(MediaService $mediaService, DeviceTimeService $deviceTimeService)
+    {
+        $this->mediaService = $mediaService;
+        $this->deviceTimeService = $deviceTimeService;
     }
+
     public function allDevices(Request $request)
     {
-      $query = $request->query('perPage',10);
-      $devices = Device::with('media','deviceTimes','deviceTimeSpecial','maintenances');
+        $query = $request->query('perPage', 10);
+        $devices = Device::with('media', 'deviceTimes', 'deviceTimeSpecial', 'maintenances');
 
-      if ($request->has('trashed') && $request->trashed == 1) {
-          $devices->onlyTrashed();
-      }
+        if ($request->has('trashed') && $request->trashed == 1) {
+            $devices->onlyTrashed();
+        }
 
-      return $devices->cursorPaginate($query);
+        return $devices->cursorPaginate($query);
     }
+
     public function editDevice(int $id)
     {
-        $device = Device::with('media','deviceTimes')->find($id);
-        if(!$device){
-        throw new ModelNotFoundException("Device  with id {$id} not found");
+        $device = Device::with('media', 'deviceTimes')->find($id);
+        if (! $device) {
+            throw new ModelNotFoundException("Device  with id {$id} not found");
         }
-        return  $device;
+
+        return $device;
     }
+
     public function createDevice(array $data)
     {
         return DB::transaction(function () use ($data) {
@@ -50,11 +57,10 @@ class DeviceService
                 $media = $this->mediaService->createMedia([
                     'path' => $data['mediaFile'],
                     'type' => MediaTypeEnum::PHOTO,
-                    'category'=>null,
+                    'category' => null,
                 ]);
                 $mediaId = $media->id;
-            }
-            elseif (isset($data['mediaId'])) {
+            } elseif (isset($data['mediaId'])) {
                 $mediaId = $data['mediaId'];
             }
             // إنشاء الجهاز
@@ -69,10 +75,10 @@ class DeviceService
             }
             if (isset($data['deviceTimeSpecial'])) {
                 foreach ($data['deviceTimeSpecial'] as $deviceTimeSpecial) {
-                    if($deviceTimeSpecial['name'] ){
+                    if ($deviceTimeSpecial['name']) {
                         $existingDeviceTime = DeviceTime::where('name', $deviceTimeSpecial['name'])
-                        ->where('device_id', $device->id)
-                        ->first();
+                            ->where('device_id', $device->id)
+                            ->first();
                         if ($existingDeviceTime) {
                             throw new Exception("Device time with name {$deviceTimeSpecial['name']} already exists for this device");
                         }
@@ -81,75 +87,78 @@ class DeviceService
                     $this->deviceTimeService->createDeviceTime($deviceTimeSpecial);
                 }
             }
+
             return $device;
         });
     }
+
     public function updateDevice(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
-        $device = Device::find($id);
-        if(!$device){
-        throw new ModelNotFoundException("Device  with id {$id} not found");
-        }
-        $oldMediaId = $device->media_id;
-        $mediaId = $oldMediaId;
-        if (isset($data['mediaFile']) && $data['mediaFile'] instanceof UploadedFile) {
+            $device = Device::find($id);
+            if (! $device) {
+                throw new ModelNotFoundException("Device  with id {$id} not found");
+            }
+            $oldMediaId = $device->media_id;
+            $mediaId = $oldMediaId;
+            if (isset($data['mediaFile']) && $data['mediaFile'] instanceof UploadedFile) {
                 $media = $this->mediaService->createMedia([
                     'path' => $data['mediaFile'],
                     'type' => MediaTypeEnum::PHOTO,
                 ]);
                 $mediaId = $media->id;
                 if ($oldMediaId) {
-                $this->mediaService->deleteMedia($mediaId);
+                    $this->mediaService->deleteMedia($mediaId);
                 }
-        }
-        elseif (isset($data['mediaId']) && $data['mediaId'] != $oldMediaId) {
+            } elseif (isset($data['mediaId']) && $data['mediaId'] != $oldMediaId) {
                 $mediaId = $data['mediaId'];
                 if ($oldMediaId) {
                     $this->mediaService->deleteMedia($mediaId);
                 }
-        }
-        $device->update([
-        'name' => $data['name'],
-        'device_type_id' => $data['deviceTypeId'],
-        'media_id' => $mediaId
-        ]);
-        if (isset($data['deviceTimeIds'])) {
-            $device->deviceTimes()->sync($data['deviceTimeIds']);
-        }
-        if (isset($data['deviceTimeSpecial'])) {
-        foreach ($data['deviceTimeSpecial'] as $deviceTimeSpecial) {
-            if ($deviceTimeSpecial['actionStatus'] !== 'delete' && isset($deviceTimeSpecial['name'])) {
-                $existingDeviceTime = DeviceTime::where('name', $deviceTimeSpecial['name'])
-                    ->where('device_id', $device->id)
-                    ->first();
-                if ($existingDeviceTime) {
-                    throw new Exception("Device time with name {$deviceTimeSpecial['name']} already exists for this device");
+            }
+            $device->update([
+                'name' => $data['name'],
+                'device_type_id' => $data['deviceTypeId'],
+                'media_id' => $mediaId,
+            ]);
+            if (isset($data['deviceTimeIds'])) {
+                $device->deviceTimes()->sync($data['deviceTimeIds']);
+            }
+            if (isset($data['deviceTimeSpecial'])) {
+                foreach ($data['deviceTimeSpecial'] as $deviceTimeSpecial) {
+                    if ($deviceTimeSpecial['actionStatus'] !== 'delete' && isset($deviceTimeSpecial['name'])) {
+                        $existingDeviceTime = DeviceTime::where('name', $deviceTimeSpecial['name'])
+                            ->where('device_id', $device->id)
+                            ->first();
+                        if ($existingDeviceTime) {
+                            throw new Exception("Device time with name {$deviceTimeSpecial['name']} already exists for this device");
+                        }
+                    }
+                    if ($deviceTimeSpecial['actionStatus'] == 'update' && isset($deviceTimeSpecial['timeTypeId'])) {
+                        $deviceTimeSpecial['deviceId'] = $device->id;
+                        $this->deviceTimeService->updateDeviceTime($deviceTimeSpecial['timeTypeId'], $deviceTimeSpecial);
+                    } elseif ($deviceTimeSpecial['actionStatus'] == 'create') {
+                        $deviceTimeSpecial['deviceId'] = $device->id;
+                        $this->deviceTimeService->createDeviceTime($deviceTimeSpecial);
+                    } elseif ($deviceTimeSpecial['actionStatus'] == 'delete' && isset($deviceTimeSpecial['timeTypeId'])) {
+                        $this->deviceTimeService->deleteDeviceTime($deviceTimeSpecial['timeTypeId']);
+                    }
                 }
             }
-            if ($deviceTimeSpecial['actionStatus'] == 'update' && isset($deviceTimeSpecial['timeTypeId'])) {
-                  $deviceTimeSpecial['deviceId'] = $device->id;
-                $this->deviceTimeService->updateDeviceTime($deviceTimeSpecial['timeTypeId'], $deviceTimeSpecial);
-            } elseif ($deviceTimeSpecial['actionStatus'] == 'create') {
-                $deviceTimeSpecial['deviceId'] = $device->id;
-                $this->deviceTimeService->createDeviceTime($deviceTimeSpecial);
-            } elseif ($deviceTimeSpecial['actionStatus'] == 'delete' && isset($deviceTimeSpecial['timeTypeId'])) {
-                $this->deviceTimeService->deleteDeviceTime($deviceTimeSpecial['timeTypeId']);
-            }
-        }
-    }
-    return $device;
+
+            return $device;
         });
     }
+
     public function deleteDevice(int $id)
     {
         $device = Device::find($id);
-        if(!$device){
-        throw new ModelNotFoundException("Device  with id {$id} not found");
+        if (! $device) {
+            throw new ModelNotFoundException("Device  with id {$id} not found");
         }
 
         // التحقق من إمكانية الحذف (سيرمي ValidationException إذا كان شغال في تيم)
-        if (!$device->canBeDeleted()) {
+        if (! $device->canBeDeleted()) {
             throw ValidationException::withMessages([
                 'device_id' => $device->getDeletionBlockReason(),
             ]);
@@ -157,45 +166,53 @@ class DeviceService
 
         // إذا مش شغال، يتحذف Soft Delete
         $device->delete();
+
         return $device;
     }
+
     public function restoreDevice(int $id)
     {
         $device = Device::onlyTrashed()->find($id);
-        if(!$device){
+        if (! $device) {
             throw new ModelNotFoundException("Device with id {$id} not found in trashed");
         }
         $device->restore();
+
         return $device;
     }
+
     public function forceDeleteDevice(int $id)
     {
         $device = Device::withTrashed()->find($id);
-        if(!$device){
+        if (! $device) {
             throw new ModelNotFoundException("Device with id {$id} not found");
         }
         $device->forceDelete();
+
         return $device;
     }
+
     public function changeDeviceStatus(int $id, array $data): void
     {
-        $device =Device::find($id);
-        if(!$device){
-        throw new ModelNotFoundException("Device  with id {$id} not found");
+        $device = Device::find($id);
+        if (! $device) {
+            throw new ModelNotFoundException("Device  with id {$id} not found");
         }
-        $device->status =DeviceStatusEnum::from($data['status'])->value;
+        $device->status = DeviceStatusEnum::from($data['status'])->value;
         $device->save();
 
     }
+
     public function getTimesByDeviceId(int $deviceId)
     {
-        $device = Device::with('deviceTimes','deviceTimeSpecial')->find($deviceId);
-        if(!$device){
-        throw new ModelNotFoundException("Device  with id {$deviceId} not found");
+        $device = Device::with('deviceTimes', 'deviceTimeSpecial')->find($deviceId);
+        if (! $device) {
+            throw new ModelNotFoundException("Device  with id {$deviceId} not found");
         }
+
         return $device->deviceTimes
-        ->merge($device->deviceTimeSpecial)
-        ->unique('id')
-        ->values();
+            ->merge($device->deviceTimeSpecial)
+            ->unique('id')
+            ->values();
     }
 }

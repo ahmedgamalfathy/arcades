@@ -6,9 +6,8 @@ use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\SerializesModels;
 
 class ForgotPasswordSendCode extends Mailable
 {
@@ -17,13 +16,14 @@ class ForgotPasswordSendCode extends Mailable
     /**
      * Create a new message instance.
      */
-
     public $code;
+
     public $user;
+
     public function __construct(User $user, string $code)
     {
-       $this->code = $code;
-       $this->user= $user;
+        $this->code = $code;
+        $this->user = $user;
     }
 
     /**
@@ -32,7 +32,7 @@ class ForgotPasswordSendCode extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "welcom in arcades",
+            subject: 'welcom in arcades',
         );
     }
 

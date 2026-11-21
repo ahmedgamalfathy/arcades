@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\User;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
 use App\Enums\ResponseCode\HttpStatusCode;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\User\ChangePasswordRequest;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Hash;
+
 class ChangeCurrentPasswordController extends Controller implements HasMiddleware
 {
-   public static function middleware(): array
+    public static function middleware(): array
     {
         return [
         ];
     }
+
     /**
      * Handle the incoming request.
      */
@@ -24,8 +25,8 @@ class ChangeCurrentPasswordController extends Controller implements HasMiddlewar
     {
         $authUser = $request->user();
 
-        if (!Hash::check($request->currentPassword, $authUser->password)) {
-            return ApiResponse::error(__('passwords.current_password_error'), [],HttpStatusCode::UNPROCESSABLE_ENTITY);
+        if (! Hash::check($request->currentPassword, $authUser->password)) {
+            return ApiResponse::error(__('passwords.current_password_error'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
         }
 
         // Update password securely

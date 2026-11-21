@@ -53,7 +53,7 @@ class BatchedActivityResource extends JsonResource
             $count = $items->count();
             $logName = $items->first()->log_name;
 
-            $eventArabic = match($event) {
+            $eventArabic = match ($event) {
                 'created' => 'إنشاء',
                 'updated' => 'تحديث',
                 'deleted' => 'حذف',
@@ -91,22 +91,22 @@ class BatchedActivityResource extends JsonResource
      */
     private function formatProperties($activity): array
     {
-        return match($activity->event) {
+        return match ($activity->event) {
             'created' => [
                 'type' => 'created',
-                'data' => $activity->properties['attributes'] ?? []
+                'data' => $activity->properties['attributes'] ?? [],
             ],
             'updated' => [
                 'type' => 'updated',
-                'changes' => $this->getChanges($activity)
+                'changes' => $this->getChanges($activity),
             ],
             'deleted' => [
                 'type' => 'deleted',
-                'data' => $activity->properties['old'] ?? []
+                'data' => $activity->properties['old'] ?? [],
             ],
             'restored' => [
                 'type' => 'restored',
-                'data' => $activity->properties['attributes'] ?? []
+                'data' => $activity->properties['attributes'] ?? [],
             ],
             default => $activity->properties
         };
@@ -126,7 +126,7 @@ class BatchedActivityResource extends JsonResource
             if (array_key_exists($key, $old) && $old[$key] != $newValue) {
                 $changes[$key] = [
                     'old' => $old[$key],
-                    'new' => $newValue
+                    'new' => $newValue,
                 ];
             }
         }

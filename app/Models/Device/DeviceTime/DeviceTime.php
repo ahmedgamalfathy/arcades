@@ -2,21 +2,21 @@
 
 namespace App\Models\Device\DeviceTime;
 
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Models\Device\Device;
+use App\Models\Device\DeviceType\DeviceType;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Device\DeviceType\DeviceType;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-use App\Enums\BookedDevice\BookedDeviceEnum;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class DeviceTime extends Model
 {
+    use LogsActivity, SoftDeletes, UsesTenantConnection;
 
-    use UsesTenantConnection, LogsActivity, SoftDeletes;
     protected $guarded = [];
-    
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -24,17 +24,19 @@ class DeviceTime extends Model
             ->logAll()
             ->logOnlyDirty()
             ->dontLogIfAttributesChangedOnly(['updated_at'])
-            ->setDescriptionForEvent(fn(string $eventName) => "DeviceTime {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "DeviceTime {$eventName}");
     }
+
     public function deviceType()
     {
         return $this->belongsTo(DeviceType::class);
     }
+
     public function devices()
     {
         return $this->belongsToMany(Device::class, 'device_device_time');
     }
-    
+
     /**
      * العلاقة مع BookedDevice
      */
@@ -42,7 +44,7 @@ class DeviceTime extends Model
     {
         return $this->hasMany(\App\Models\Timer\BookedDevice\BookedDevice::class, 'device_time_id');
     }
-    
+
     /**
      * التحقق من وجود حجوزات نشطة
      */
@@ -52,7 +54,7 @@ class DeviceTime extends Model
             ->whereNot('status', BookedDeviceEnum::FINISHED->value) // نشط
             ->exists();
     }
-    
+
     /**
      * التحقق من إمكانية حذف وقت التشغيل
      */
@@ -62,11 +64,11 @@ class DeviceTime extends Model
         if ($this->hasActiveBookings()) {
             return false;
         }
-        
+
         // إذا مش مستخدم في حجوزات نشطة، يتحذف Soft Delete
         return true;
     }
-    
+
     /**
      * الحصول على سبب عدم إمكانية الحذف
      */
@@ -76,10 +78,10 @@ class DeviceTime extends Model
             $activeBookingsCount = $this->bookedDevices()
                 ->whereNot('status', BookedDeviceEnum::FINISHED->value)
                 ->count();
+
             return "لا يمكن حذف وقت التشغيل لأنه مستخدم حالياً في {$activeBookingsCount} حجز نشط. يجب إنهاء الحجوزات أولاً.";
         }
-        
+
         return '';
     }
-
 }

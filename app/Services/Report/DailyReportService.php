@@ -2,11 +2,11 @@
 
 namespace App\Services\Report;
 
-use Carbon\Carbon;
+use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Models\Daily\Daily;
 use App\Models\Media\Media;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use App\Enums\BookedDevice\BookedDeviceEnum;
 
 class DailyReportService
 {
@@ -20,12 +20,12 @@ class DailyReportService
         $includes = $this->parseIncludes($data['include'] ?? null);
         if ($hasDates) {
             $startDate = Carbon::parse($data['startDateTime'])->startOfDay();
-            $endDate   = Carbon::parse($data['endDateTime'])->endOfDay();
+            $endDate = Carbon::parse($data['endDateTime'])->endOfDay();
             $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes, $data['dailyId'] ?? null);
         } else {
             $daily = Daily::whereNull('end_date_time')->first();
-            $startDate = Carbon::parse($daily->start_date_time??now())->startOfDay();
-            $endDate   = Carbon::parse($daily->start_date_time??now())->endOfDay();
+            $startDate = Carbon::parse($daily->start_date_time ?? now())->startOfDay();
+            $endDate = Carbon::parse($daily->start_date_time ?? now())->endOfDay();
             $dailies = $this->fetchDailies($startDate, $endDate, $search, $includes, $data['dailyId'] ?? null);
         }
 
@@ -50,9 +50,10 @@ class DailyReportService
         $startDate = Carbon::parse($data['startDateTime'])->startOfDay();
         $endDate = Carbon::parse($data['endDateTime'])->endOfDay();
         $search = $data['search'] ?? null;
-        $includes = !empty($data['include'])
+        $includes = ! empty($data['include'])
             ? array_filter(array_map('trim', explode(',', $data['include'])))
             : [];
+
         return $this->fetchDailies($startDate, $endDate, $search, $includes, $data['dailyId'] ?? null);
     }
 
@@ -71,18 +72,18 @@ class DailyReportService
     /**
      * Fetch dailies with date filters and includes
      */
-  private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes , $dailyId =null): Collection
+    private function fetchDailies(Carbon $startDate, Carbon $endDate, ?string $search, array $includes, $dailyId = null): Collection
     {
         return Daily::query()
-        ->when($dailyId, function ($q) use ($dailyId) {
-            $q->where('id', $dailyId);
-        })
-        ->where(function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('start_date_time', [$startDate, $endDate]);
-            //   ->orWhereBetween('end_date_time', [$startDate, $endDate]);
-        })
-        ->orderBy('start_date_time', 'asc')
-        ->get();
+            ->when($dailyId, function ($q) use ($dailyId) {
+                $q->where('id', $dailyId);
+            })
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date_time', [$startDate, $endDate]);
+                //   ->orWhereBetween('end_date_time', [$startDate, $endDate]);
+            })
+            ->orderBy('start_date_time', 'asc')
+            ->get();
     }
 
     /**
@@ -91,9 +92,9 @@ class DailyReportService
     private function applySearchFilters($query, string $search, array $includes, Carbon $startDate, Carbon $endDate): void
     {
         if (in_array('orders', $includes)) {
-            $query->orWhereHas('orders', function($q) use ($search, $startDate, $endDate) {
+            $query->orWhereHas('orders', function ($q) use ($search, $startDate, $endDate) {
                 $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->where(function($searchQuery) use ($search) {
+                    ->where(function ($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('number', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
@@ -102,11 +103,11 @@ class DailyReportService
         }
 
         if (in_array('sessions', $includes)) {
-            $query->orWhereHas('sessions', function($q) use ($search, $startDate, $endDate) {
+            $query->orWhereHas('sessions', function ($q) use ($search, $startDate, $endDate) {
                 $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->where(function($searchQuery) use ($search) {
+                    ->where(function ($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
-                            ->orWhereHas('bookedDevices.device', function($deviceQuery) use ($search) {
+                            ->orWhereHas('bookedDevices.device', function ($deviceQuery) use ($search) {
                                 $deviceQuery->where('name', 'like', "%{$search}%");
                             });
                     });
@@ -114,9 +115,9 @@ class DailyReportService
         }
 
         if (in_array('expenses', $includes)) {
-            $query->orWhereHas('expenses', function($q) use ($search, $startDate, $endDate) {
+            $query->orWhereHas('expenses', function ($q) use ($search, $startDate, $endDate) {
                 $q->whereBetween('date', [$startDate, $endDate])
-                    ->where(function($searchQuery) use ($search) {
+                    ->where(function ($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
                     });
@@ -146,19 +147,19 @@ class DailyReportService
     private function loadOrders($query, ?string $search, Carbon $startDate, Carbon $endDate): void
     {
         if ($search) {
-            $query->with(['orders' => function($q) use ($search, $startDate, $endDate) {
+            $query->with(['orders' => function ($q) use ($search) {
                 // $q->whereBetween('created_at', [$startDate, $endDate])
-                    $q->where(function($searchQuery) use ($search) {
-                        $searchQuery->where('name', 'like', "%{$search}%")
-                            ->orWhere('number', 'like', "%{$search}%")
-                            ->orWhere('price', 'like', "%{$search}%");
-                    })
+                $q->where(function ($searchQuery) use ($search) {
+                    $searchQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('number', 'like', "%{$search}%")
+                        ->orWhere('price', 'like', "%{$search}%");
+                })
                     ->with('items.product');
             }]);
         } else {
-            $query->with(['orders' => function($q) use ($startDate, $endDate) {
+            $query->with(['orders' => function ($q) {
                 // $q->whereBetween('created_at', [$startDate, $endDate])
-                    $q->with('items.product');
+                $q->with('items.product');
             }]);
         }
     }
@@ -169,20 +170,20 @@ class DailyReportService
     private function loadSessions($query, ?string $search, Carbon $startDate, Carbon $endDate): void
     {
         if ($search) {
-            $query->with(['sessions' => function($q) use ($search, $startDate, $endDate) {
+            $query->with(['sessions' => function ($q) use ($search) {
                 // $q->whereBetween('created_at', [$startDate, $endDate])
-                    $q->where(function($sessionQ) use ($search) {
-                        $sessionQ->where('name', 'like', "%{$search}%")
-                            ->orWhereHas('bookedDevices.device', function($deviceQuery) use ($search) {
-                                $deviceQuery->where('name', 'like', "%{$search}%");
-                            });
-                    })
+                $q->where(function ($sessionQ) use ($search) {
+                    $sessionQ->where('name', 'like', "%{$search}%")
+                        ->orWhereHas('bookedDevices.device', function ($deviceQuery) use ($search) {
+                            $deviceQuery->where('name', 'like', "%{$search}%");
+                        });
+                })
                     ->with('bookedDevices.device');
             }]);
         } else {
-            $query->with(['sessions' => function($q) use ($startDate, $endDate) {
+            $query->with(['sessions' => function ($q) {
                 // $q->whereBetween('created_at', [$startDate, $endDate])
-                    $q->with('bookedDevices.device');
+                $q->with('bookedDevices.device');
             }]);
         }
     }
@@ -193,15 +194,15 @@ class DailyReportService
     private function loadExpenses($query, ?string $search, Carbon $startDate, Carbon $endDate): void
     {
         if ($search) {
-            $query->with(['expenses' => function($q) use ($search, $startDate, $endDate) {
+            $query->with(['expenses' => function ($q) use ($search, $startDate, $endDate) {
                 $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->where(function($searchQuery) use ($search) {
+                    ->where(function ($searchQuery) use ($search) {
                         $searchQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
                     });
             }]);
         } else {
-            $query->with(['expenses' => function($q) use ($startDate, $endDate) {
+            $query->with(['expenses' => function ($q) use ($startDate, $endDate) {
                 $q->whereBetween('created_at', [$startDate, $endDate]);
             }]);
         }
@@ -210,24 +211,24 @@ class DailyReportService
     /**
      * حساب الإحصائيات مع فلترة التاريخ
      */
-  private function calculateStats(Collection $dailies, Carbon $startDate, Carbon $endDate): array
+    private function calculateStats(Collection $dailies, Carbon $startDate, Carbon $endDate): array
     {
         // ✅ العلاقات مفلترة بالفعل من fetchDailies
-        $totalExpense = $dailies->sum(function($daily) {
+        $totalExpense = $dailies->sum(function ($daily) {
             return $daily->expenses->sum('price');
         });
 
-        $totalOrders = $dailies->sum(function($daily) {
+        $totalOrders = $dailies->sum(function ($daily) {
             return $daily->totalOrders();
         });
 
-        $totalSessions = $dailies->sum(function($daily) {
-            return $daily->sessions->sum(function($session) {
+        $totalSessions = $dailies->sum(function ($daily) {
+            return $daily->sessions->sum(function ($session) {
                 // return $session->bookedDevices->sum('actual_paid_amount');
-            return   $session->bookedDevices->where('status', BookedDeviceEnum::FINISHED->value)
+                return $session->bookedDevices->where('status', BookedDeviceEnum::FINISHED->value)
                     ->groupBy('device_id')
-                    ->map(fn($devices) => $devices->sortByDesc('id')->first())
-                    ->sum(fn($device) => (float) ($device->actual_paid_amount ?? 0));
+                    ->map(fn ($devices) => $devices->sortByDesc('id')->first())
+                    ->sum(fn ($device) => (float) ($device->actual_paid_amount ?? 0));
             });
 
         });
@@ -247,14 +248,14 @@ class DailyReportService
     /**
      * المنتجات الأكثر طلباً مع فلترة التاريخ
      */
-  private function getMostRequestedProducts(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
+    private function getMostRequestedProducts(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
     {
         return $dailies
-            ->flatMap(fn($daily) => $daily->orders) // ✅ مفلترة بالفعل
-            ->flatMap(fn($order) => $order->items ?? [])
-            ->filter(fn($item) => $item->product)
-            ->groupBy(fn($item) => $item->product->name)
-            ->map(fn($items, $productName) => [
+            ->flatMap(fn ($daily) => $daily->orders) // ✅ مفلترة بالفعل
+            ->flatMap(fn ($order) => $order->items ?? [])
+            ->filter(fn ($item) => $item->product)
+            ->groupBy(fn ($item) => $item->product->name)
+            ->map(fn ($items, $productName) => [
                 'productPath' => $items->first()->product->media?->path
                     ?? Media::where('category', 'products')->first()?->path
                     ?? '',
@@ -269,19 +270,19 @@ class DailyReportService
     /**
      * الأجهزة الأكثر استخداماً مع فلترة التاريخ
      */
- private function getMostUsedDevices(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
+    private function getMostUsedDevices(Collection $dailies, Carbon $startDate, Carbon $endDate): Collection
     {
         return $dailies
-            ->flatMap(fn($daily) => $daily->sessions ?? collect([])) // ✅ مفلترة بالفعل
-            ->flatMap(fn($session) => $session->bookedDevices ?? [])
-            ->filter(fn($bookedDevice) => $bookedDevice?->device)
-            ->groupBy(fn($bookedDevice) => $bookedDevice->device->name)
-            ->map(fn($group, $deviceName) => [
+            ->flatMap(fn ($daily) => $daily->sessions ?? collect([])) // ✅ مفلترة بالفعل
+            ->flatMap(fn ($session) => $session->bookedDevices ?? [])
+            ->filter(fn ($bookedDevice) => $bookedDevice?->device)
+            ->groupBy(fn ($bookedDevice) => $bookedDevice->device->name)
+            ->map(fn ($group, $deviceName) => [
                 'devicePath' => $group->first()->device->media?->path,
                 'deviceType' => $group->first()->device->deviceType?->name,
                 'deviceName' => $deviceName,
                 'totalHours' => round(
-                    $group->sum(fn($bookedDevice) => $bookedDevice->calculateUsedSeconds()) / 3600,
+                    $group->sum(fn ($bookedDevice) => $bookedDevice->calculateUsedSeconds()) / 3600,
                     2
                 ),
                 'totalBookings' => $group->count(),

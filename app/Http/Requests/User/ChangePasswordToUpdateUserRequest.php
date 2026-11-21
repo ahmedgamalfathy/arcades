@@ -4,9 +4,9 @@ namespace App\Http\Requests\User;
 
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Helpers\ApiResponse;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rules\Password;
 
 class ChangePasswordToUpdateUserRequest extends FormRequest
@@ -27,11 +27,11 @@ class ChangePasswordToUpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email'=>['required','email','exists:users,email'],
+            'email' => ['required', 'email', 'exists:users,email'],
             'currentPassword' => ['required'],
             'password' => ['required',
-            // 'confirmed',
-            Password::min(8)->mixedCase()->numbers()],
+                // 'confirmed',
+                Password::min(8)->mixedCase()->numbers()],
         ];
     }
 
@@ -41,5 +41,4 @@ class ChangePasswordToUpdateUserRequest extends FormRequest
             ApiResponse::error('', $validator->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY)
         );
     }
-
 }

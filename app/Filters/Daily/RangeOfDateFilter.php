@@ -2,9 +2,9 @@
 
 namespace App\Filters\Daily;
 
-use Spatie\QueryBuilder\Filters\Filter;
-use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Spatie\QueryBuilder\Filters\Filter;
 
 class RangeOfDateFilter implements Filter
 {
@@ -18,7 +18,7 @@ class RangeOfDateFilter implements Filter
             [$start, $end] = array_pad(explode(',', $value), 2, null);
         }
 
-        if (!$start && !$end) {
+        if (! $start && ! $end) {
             return;
         }
 

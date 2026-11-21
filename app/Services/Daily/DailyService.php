@@ -1,30 +1,29 @@
 <?php
+
 namespace App\Services\Daily;
-use Carbon\Carbon;
+
+use App\Enums\BookedDevice\BookedDeviceEnum;
+use App\Filters\Daily\RangeOfDateFilter;
 use App\Models\Daily\Daily;
-use App\Models\Order\Order;
-use Illuminate\Http\Request;
 use App\Models\Device\Device;
 use App\Models\Expense\Expense;
-use Illuminate\Support\Facades\DB;
-use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\Activitylog\Models\Activity;
-use App\Filters\Daily\DailySearchFilter;
-use App\Filters\Daily\RangeOfDateFilter;
-use App\Services\Timer\DeviceTimerService;
-use App\Enums\BookedDevice\BookedDeviceEnum;
-use Illuminate\Validation\ValidationException;
+use App\Models\Order\Order;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Timer\SessionDevice\SessionDevice;
+use App\Services\Timer\DeviceTimerService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Http\Resources\ActivityLog\DailyActivityResource;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class DailyService
 {
-   public function __construct( protected DeviceTimerService $timerService)
-   {
-   }
+    public function __construct(protected DeviceTimerService $timerService) {}
+
     public function allDailies(Request $request)
     {
         $perPage = $request->query('perPage', 10);
@@ -37,56 +36,56 @@ class DailyService
 
         // إذا كان هناك بحث
         if ($search) {
-            $query->where(function($q) use ($search, $includes) {
+            $query->where(function ($q) use ($search, $includes) {
                 if (in_array('orders', $includes)) {
-                    $q->orWhereHas('orders', function($orderQuery) use ($search) {
+                    $q->orWhereHas('orders', function ($orderQuery) use ($search) {
                         $orderQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('number', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
-                        $orderQuery->orWhereHas('bookedDevice.device', function($deviceQuery) use ($search) {
+                        $orderQuery->orWhereHas('bookedDevice.device', function ($deviceQuery) use ($search) {
                             $deviceQuery->where('name', 'like', "%{$search}%");
                         });
                     });
                 }
                 if (in_array('sessions', $includes)) {
-                    $q->orWhereHas('sessions', function($sessionQuery) use ($search) {
+                    $q->orWhereHas('sessions', function ($sessionQuery) use ($search) {
                         $sessionQuery->where('name', 'like', "%{$search}%")
-                            ->orWhereHas('bookedDevices.device', function($deviceQuery) use ($search) {
+                            ->orWhereHas('bookedDevices.device', function ($deviceQuery) use ($search) {
                                 $deviceQuery->where('name', 'like', "%{$search}%");
                             });
                     });
                 }
                 if (in_array('expenses', $includes)) {
-                    $q->orWhereHas('expenses', function($expenseQuery) use ($search) {
+                    $q->orWhereHas('expenses', function ($expenseQuery) use ($search) {
                         $expenseQuery->where('name', 'like', "%{$search}%")
                             ->orWhere('price', 'like', "%{$search}%");
                     });
                 }
             });
             foreach ($includes as $include) {
-               if ($include === 'orders') {
-                    $query->with(['orders' => function($q) use ($search) {
-                        $q->where(function($orderQ) use ($search) {
+                if ($include === 'orders') {
+                    $query->with(['orders' => function ($q) use ($search) {
+                        $q->where(function ($orderQ) use ($search) {
                             $orderQ->where('name', 'like', "%{$search}%")
                                 ->orWhere('number', 'like', "%{$search}%")
                                 ->orWhere('price', 'like', "%{$search}%");
                         });
                     }]);
-               }
+                }
 
                 if ($include === 'sessions') {
-                    $query->with(['sessions' => function($q) use ($search) {
-                        $q->where(function($sessionQ) use ($search) {
+                    $query->with(['sessions' => function ($q) use ($search) {
+                        $q->where(function ($sessionQ) use ($search) {
                             $sessionQ->where('name', 'like', "%{$search}%")
-                                ->orWhereHas('bookedDevices.device', function($deviceQuery) use ($search) {
+                                ->orWhereHas('bookedDevices.device', function ($deviceQuery) use ($search) {
                                     $deviceQuery->where('name', 'like', "%{$search}%");
                                 });
                         })->with('bookedDevices.device'); // تحميل الأجهزة أيضاً
                     }]);
                 }
                 if ($include === 'expenses') {
-                    $query->with(['expenses' => function($q) use ($search) {
-                        $q->where(function($expenseQ) use ($search) {
+                    $query->with(['expenses' => function ($q) use ($search) {
+                        $q->where(function ($expenseQ) use ($search) {
                             $expenseQ->where('name', 'like', "%{$search}%")
                                 ->orWhere('price', 'like', "%{$search}%");
                         });
@@ -107,107 +106,114 @@ class DailyService
                 AllowedFilter::scope('has_orders'),
                 AllowedFilter::scope('has_expenses'),
                 AllowedFilter::scope('has_sessions'),
-                AllowedFilter::custom('range_of_date', new RangeOfDateFilter()),
+                AllowedFilter::custom('range_of_date', new RangeOfDateFilter),
             ])
             ->cursorPaginate($perPage);
 
         return $dailies;
     }
 
-     public function allDailiesWithOutDailyId(Request $request){
+    public function allDailiesWithOutDailyId(Request $request)
+    {
         $perPage = $request->query('perPage', 10);
 
         $dailies = QueryBuilder::for(Daily::class)
-        ->allowedFilters([
-            AllowedFilter::scope('has_orders'),
-            AllowedFilter::scope('has_expenses'),
-            AllowedFilter::scope('has_sessions'),
-          AllowedFilter::custom('rangeOfDate', new RangeOfDateFilter()),
-        ])
-        ->with(['sessions.bookedDevices','orders','expenses'])
-        ->orderByRaw('DATE(start_date_time) DESC, start_date_time DESC')
-        ->cursorPaginate($perPage);
+            ->allowedFilters([
+                AllowedFilter::scope('has_orders'),
+                AllowedFilter::scope('has_expenses'),
+                AllowedFilter::scope('has_sessions'),
+                AllowedFilter::custom('rangeOfDate', new RangeOfDateFilter),
+            ])
+            ->with(['sessions.bookedDevices', 'orders', 'expenses'])
+            ->orderByRaw('DATE(start_date_time) DESC, start_date_time DESC')
+            ->cursorPaginate($perPage);
+
         return $dailies;
-     }
-     public function editDaily($id)
-     {//sessions , orders , expenses
-        return Daily::with('sessions','orders','expenses')->findOrFail($id);
-     }
-     public function createDaily($data)
-     {
-      return DB::transaction(function () use ($data) {
-      $daily =Daily::where('end_date_time',null)->first();
-      if($daily){
-        throw new ModelNotFoundException('Daily is already open');
-      }
-      if($data['startDateTime'] == null){
-        $data['startDateTime'] = Carbon::now()->format('Y-m-d H:i:s');
-      }
-        return Daily::create([
-            'start_date_time' => $data['startDateTime'],
-            'end_date_time' => $data['endDateTime'] ?? null,
-            'total_income' => $data['totalIncome'] ?? null,
-            'total_expense' => $data['totalExpense'] ?? null,
-            'total_profit' => $data['totalProfit'] ?? null,
-        ]);
-      });
-     }
-     public function updateDaily($id, $data)
-     {
-        return DB::transaction(function () use ($id, $data) {
-        return Daily::findOrFail($id)->update([
-            'start_date_time' => $data['startDateTime'],
-            'end_date_time' => $data['endDateTime'] ?? null,
-            'total_income' => $data['totalIncome'] ?? null,
-            'total_expense' => $data['totalExpense'] ?? null,
-            'total_profit' => $data['totalProfit'] ?? null,
-        ]);
+    }
+
+    public function editDaily($id)
+    {// sessions , orders , expenses
+        return Daily::with('sessions', 'orders', 'expenses')->findOrFail($id);
+    }
+
+    public function createDaily($data)
+    {
+        return DB::transaction(function () use ($data) {
+            $daily = Daily::where('end_date_time', null)->first();
+            if ($daily) {
+                throw new ModelNotFoundException('Daily is already open');
+            }
+            if ($data['startDateTime'] == null) {
+                $data['startDateTime'] = Carbon::now()->format('Y-m-d H:i:s');
+            }
+
+            return Daily::create([
+                'start_date_time' => $data['startDateTime'],
+                'end_date_time' => $data['endDateTime'] ?? null,
+                'total_income' => $data['totalIncome'] ?? null,
+                'total_expense' => $data['totalExpense'] ?? null,
+                'total_profit' => $data['totalProfit'] ?? null,
+            ]);
         });
-     }
-     public function deleteDaily($id)
-     {
+    }
+
+    public function updateDaily($id, $data)
+    {
+        return DB::transaction(function () use ($id, $data) {
+            return Daily::findOrFail($id)->update([
+                'start_date_time' => $data['startDateTime'],
+                'end_date_time' => $data['endDateTime'] ?? null,
+                'total_income' => $data['totalIncome'] ?? null,
+                'total_expense' => $data['totalExpense'] ?? null,
+                'total_profit' => $data['totalProfit'] ?? null,
+            ]);
+        });
+    }
+
+    public function deleteDaily($id)
+    {
         return Daily::findOrFail($id)->delete();
-     }
-     public function closeDaily($data)
-     {
-       return DB::transaction(function () use ($data) {
-            $daily =Daily::where('id', $data['dailyId'])->where('end_date_time',null)->first();
-            if(!$daily){
-            throw new ModelNotFoundException('Daily is not open');
+    }
+
+    public function closeDaily($data)
+    {
+        return DB::transaction(function () use ($data) {
+            $daily = Daily::where('id', $data['dailyId'])->where('end_date_time', null)->first();
+            if (! $daily) {
+                throw new ModelNotFoundException('Daily is not open');
             }
             $daily->load('sessions.bookedDevices');
-        // Check if any booked device still active or paused
+            // Check if any booked device still active or paused
             $isBookedDeviceOpen = false;
             foreach ($daily->sessions as $session) {
-            foreach ($session->bookedDevices as $bookedDevice) {
-                if($bookedDevice->status == BookedDeviceEnum::ACTIVE->value || $bookedDevice->status == BookedDeviceEnum::PAUSED->value){
-                    $isBookedDeviceOpen = true;
-                    break 2;
+                foreach ($session->bookedDevices as $bookedDevice) {
+                    if ($bookedDevice->status == BookedDeviceEnum::ACTIVE->value || $bookedDevice->status == BookedDeviceEnum::PAUSED->value) {
+                        $isBookedDeviceOpen = true;
+                        break 2;
+                    }
                 }
             }
+            if ($isBookedDeviceOpen) {
+                throw ValidationException::withMessages([
+                    'closeDaily' => [__('validation.validation_daily')],
+                ]);
             }
-            if($isBookedDeviceOpen){
-            throw ValidationException::withMessages([
-            "closeDaily"=> [ __('validation.validation_daily')],
-            ]);
-            }
-         // sum sessions total
+            // sum sessions total
             $sessionsTotal = 0;
-            if($daily->sessions()->count() > 0){
+            if ($daily->sessions()->count() > 0) {
                 // foreach ($daily->sessions as $session) {
                 //     foreach ($session->bookedDevices as $bookedDevice) {
                 //         $this->timerService->finish($bookedDevice->id);
                 //     }
                 // }
-               $sessionsTotal = $daily->sessions->sum(function($session) {
+                $sessionsTotal = $daily->sessions->sum(function ($session) {
                     return $session->bookedDevices
                         ->where('status', BookedDeviceEnum::FINISHED->value)
                         ->groupBy('device_id')
                         ->map(function ($devices) {
                             return $devices->sortByDesc('id')->first();
                         })
-                        ->sum(fn ($bookedDevice) =>
-                            round($bookedDevice->actual_paid_amount ?? 0, 2)
+                        ->sum(fn ($bookedDevice) => round($bookedDevice->actual_paid_amount ?? 0, 2)
                         );
                     // return $session->bookedDevices->sum(function($bookedDevice) {
                     //     $cost =$bookedDevice->actual_paid_amount;
@@ -215,15 +221,17 @@ class DailyService
                     // });
                 });
             }
-            $income =$sessionsTotal + $daily->totalOrders();
+            $income = $sessionsTotal + $daily->totalOrders();
             $daily->end_date_time = Carbon::now()->format('Y-m-d H:i:s');
             $daily->total_income = $income;
-            $daily->total_expense =round($daily->totalExpenses(),2);
-            $daily->total_profit = round($income - $daily->totalExpenses(),2);
+            $daily->total_expense = round($daily->totalExpenses(), 2);
+            $daily->total_profit = round($income - $daily->totalExpenses(), 2);
             $daily->save();
+
             return $daily;
         });
-     }
+    }
+
     public function dailyReport()
     {
         $startOfMonth = Carbon::now()->startOfMonth();
@@ -250,6 +258,7 @@ class DailyService
 
         return $dailies;
     }
+
     public function activityLog($dailyId)
     {
         $daily = Daily::findOrFail($dailyId);
@@ -259,7 +268,7 @@ class DailyService
         $bookedDeviceIds = $daily->sessions()
             ->with('bookedDevices:id,session_device_id')
             ->get()
-            ->flatMap(fn($session) => $session->bookedDevices->pluck('id'))
+            ->flatMap(fn ($session) => $session->bookedDevices->pluck('id'))
             ->toArray();
 
         // ✅ نستخدم whereIn بدلاً من where (لأن القيم مصفوفة)
@@ -282,21 +291,20 @@ class DailyService
             ->where('subject_type', Daily::class)
             ->get();
 
-
-
-            $activities = [
-            'daily'=>$dailyActivities,
+        $activities = [
+            'daily' => $dailyActivities,
             'sessions' => $sessions,
             'orders' => $orders,
             'expenses' => $expenses,
             'bookedDevices' => $bookedDevices,
         ];
+
         return $activities;
     }
 
     public function checkOpenBookedDevicesInDaily($dailyId)
     {
-        $daily=Daily::find($dailyId);
+        $daily = Daily::find($dailyId);
         $daily->load('sessions.bookedDevices');
         // Check if any booked device still active or paused
         foreach ($daily->sessions as $session) {
@@ -306,6 +314,7 @@ class DailyService
                 }
             }
         }
+
         return false; // جميع الأجهزة المحجوزة مغلقة
     }
 }

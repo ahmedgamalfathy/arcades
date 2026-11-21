@@ -2,14 +2,13 @@
 
 namespace App\Events;
 
+use Carbon\Carbon;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Carbon\Carbon;
+
 class BookedDeviceChangeStatus implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
@@ -18,9 +17,10 @@ class BookedDeviceChangeStatus implements ShouldBroadcastNow
      * Create a new event instance.
      */
     public $bookedDevice;
+
     public function __construct($bookedDevice)
     {
-        $this->bookedDevice =  $bookedDevice->load(['device', 'deviceType', 'deviceTime','sessionDevice']);
+        $this->bookedDevice = $bookedDevice->load(['device', 'deviceType', 'deviceTime', 'sessionDevice']);
     }
 
     /**
@@ -32,6 +32,7 @@ class BookedDeviceChangeStatus implements ShouldBroadcastNow
             new Channel('booked-devices'),
         ];
     }
+
     /**
      * اسم الـ Event
      */
@@ -39,6 +40,7 @@ class BookedDeviceChangeStatus implements ShouldBroadcastNow
     {
         return 'booked-device-change-status';
     }
+
     public function broadcastWith(): array
     {
         return [

@@ -7,6 +7,7 @@ use App\Services\Select\SelectService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+
 class SelectController extends Controller implements HasMiddleware
 {
     private $selectService;
@@ -15,18 +16,18 @@ class SelectController extends Controller implements HasMiddleware
     {
         $this->selectService = $selectService;
     }
+
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:products', only:['getSelects']),
+            new Middleware('permission:products', only: ['getSelects']),
         ];
     }
+
     public function getSelects(Request $request)
     {
         $selectData = $this->selectService->getSelects($request->allSelects);
 
         return response()->json($selectData);
     }
-
-
 }

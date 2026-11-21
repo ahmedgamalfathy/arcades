@@ -2,16 +2,11 @@
 
 namespace App\Http\Requests\Daily;
 
-
-use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rules\Enum;
-
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
 
 class CreateDailyRequest extends FormRequest
 {
@@ -31,11 +26,11 @@ class CreateDailyRequest extends FormRequest
     public function rules(): array
     {
         return [
-         'startDateTime'=> ['nullable','date_format:Y-m-d H:i:s'],
-         'endDateTime'=> ['nullable','date_format:Y-m-d H:i:s'],
-        //  'totalIncome'=> ['nullable','numeric','min:1'],
-        //  'totalExpense'=> ['nullable','numeric','min:1'],
-        //  'totalProfit'=> ['nullable','numeric','min:1'],
+            'startDateTime' => ['nullable', 'date_format:Y-m-d H:i:s'],
+            'endDateTime' => ['nullable', 'date_format:Y-m-d H:i:s'],
+            //  'totalIncome'=> ['nullable','numeric','min:1'],
+            //  'totalExpense'=> ['nullable','numeric','min:1'],
+            //  'totalProfit'=> ['nullable','numeric','min:1'],
         ];
     }
 
@@ -53,5 +48,4 @@ class CreateDailyRequest extends FormRequest
             'startDateTime.required' => __('validation.custom.required'),
         ];
     }
-
 }

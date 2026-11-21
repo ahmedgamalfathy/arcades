@@ -3,15 +3,12 @@
 namespace App\Http\Requests\Expense;
 
 use App\Enums\Expense\ExpenseTypeEnum;
-use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rules\Enum;
-
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
+use Illuminate\Validation\Rules\Enum;
 
 class CreateExpenseRequest extends FormRequest
 {
@@ -29,13 +26,13 @@ class CreateExpenseRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
-    {//name , price , date , note ,type
+    {// name , price , date , note ,type
         return [
-            'name' => ['string','required'],
-            'price'=> ['required','numeric','min:1'],
+            'name' => ['string', 'required'],
+            'price' => ['required', 'numeric', 'min:1'],
             'type' => ['required', new Enum(ExpenseTypeEnum::class)],
-            'date'=>['required','string','date_format:Y-m-d'],
-            'note'=>['nullable','string'],
+            'date' => ['required', 'string', 'date_format:Y-m-d'],
+            'note' => ['nullable', 'string'],
             'dailyId' => ['required_if:type,0', 'exists:dailies,id'],
         ];
     }
@@ -50,7 +47,7 @@ class CreateExpenseRequest extends FormRequest
 
     public function messages()
     {
-            //name , price , date , note ,type
+        // name , price , date , note ,type
         return [
             'name.required' => __('validation.custom.required'),
             // 'date.required' => __('validation.custom.required'),
@@ -58,5 +55,4 @@ class CreateExpenseRequest extends FormRequest
             'type.required' => __('validation.custom.required'),
         ];
     }
-
 }

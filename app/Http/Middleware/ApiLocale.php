@@ -24,11 +24,12 @@ class ApiLocale
         $locale = substr($locale, 0, 2);
 
         // Validate locale
-        if (!in_array($locale, config('app.available_locales', ['ar', 'en','it']))) {
+        if (! in_array($locale, config('app.available_locales', ['ar', 'en', 'it']))) {
             $locale = config('app.locale');
         }
         // Set application locale
         app()->setLocale($locale);
+
         return $next($request);
     }
 }

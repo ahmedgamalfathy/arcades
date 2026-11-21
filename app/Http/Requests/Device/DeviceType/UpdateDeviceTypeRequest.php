@@ -2,17 +2,15 @@
 
 namespace App\Http\Requests\Device\DeviceType;
 
-use Illuminate\Support\Arr;
-use App\Helpers\ApiResponse;
 use App\Enums\ActionStatusEnum;
-use App\Rules\UniqueDeviceTimeName;
-use Illuminate\Validation\Rules\Enum;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
+use App\Rules\UniqueDeviceTimeName;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
-
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateDeviceTypeRequest extends FormRequest
 {
@@ -32,24 +30,24 @@ class UpdateDeviceTypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['string','required',Rule::unique('device_types', 'name')
-            ->ignore($this->route('device_type'))],
-            'times'=> ['required','array','min:1'],
+            'name' => ['string', 'required', Rule::unique('device_types', 'name')
+                ->ignore($this->route('device_type'))],
+            'times' => ['required', 'array', 'min:1'],
             'times.*.name' => [
-                    'required',
-                    'string',
-                    function ($attribute, $value, $fail) {
-                        $index = explode('.', $attribute)[1];
-                        $time   = $this->input("times.$index", []);
-                        $timeId = $time['timeTypeId'] ?? null;
-                        $deviceTypeId = (int)$this->route('device_type');
-                        (new UniqueDeviceTimeName($deviceTypeId, $timeId))
-                            ->validate($attribute, $value, $fail);
-                    },
-                ],
-            'times.*.rate'=>['required','numeric','min:1'],
-            'times.*.actionStatus'=> ['required',new Enum(ActionStatusEnum::class)],
-            'times.*.timeTypeId'=> [ 'nullable', 'exists:device_times,id'],
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    $index = explode('.', $attribute)[1];
+                    $time = $this->input("times.$index", []);
+                    $timeId = $time['timeTypeId'] ?? null;
+                    $deviceTypeId = (int) $this->route('device_type');
+                    (new UniqueDeviceTimeName($deviceTypeId, $timeId))
+                        ->validate($attribute, $value, $fail);
+                },
+            ],
+            'times.*.rate' => ['required', 'numeric', 'min:1'],
+            'times.*.actionStatus' => ['required', new Enum(ActionStatusEnum::class)],
+            'times.*.timeTypeId' => ['nullable', 'exists:device_times,id'],
         ];
     }
 
@@ -71,5 +69,4 @@ class UpdateDeviceTypeRequest extends FormRequest
             'times.*.actionStatus.required' => __('validation.custom.required'),
         ];
     }
-
 }

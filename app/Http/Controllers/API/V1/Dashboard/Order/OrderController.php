@@ -2,58 +2,62 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Order;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
 use App\Enums\Order\OrderStatus;
-use App\Utils\PaginateCollection;
 use App\Enums\Order\OrderTypeEnum;
-use App\Http\Controllers\Controller;
-use App\Services\Order\OrderService;
-use Illuminate\Validation\Rules\Enum;
 use App\Enums\ResponseCode\HttpStatusCode;
-use App\Http\Resources\Order\OrderResource;
-use Illuminate\Routing\Controllers\Middleware;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\CreateOrderRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Http\Resources\Order\AllOrderCollection;
-use Illuminate\Routing\Controllers\HasMiddleware;
+use App\Http\Resources\Order\OrderResource;
+use App\Services\Order\OrderService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller implements HasMiddleware
 {
     protected $orderService;
+
     public function __construct(OrderService $orderService)
     {
         $this->orderService = $orderService;
     }
+
     public static function middleware(): array
-    {//orders ,create_orders , edit_order ,update_order ,destroy_order
+    {// orders ,create_orders , edit_order ,update_order ,destroy_order
         return [
-            new Middleware('permission:orders', only:['index']),
-            new Middleware('permission:create_orders', only:['store']),
-            new Middleware('permission:edit_order', only:['show']),
-            new Middleware('permission:update_order', only:['update']),
-            new Middleware('permission:destroy_order', only:['destroy']),
+            new Middleware('permission:orders', only: ['index']),
+            new Middleware('permission:create_orders', only: ['store']),
+            new Middleware('permission:edit_order', only: ['show']),
+            new Middleware('permission:update_order', only: ['update']),
+            new Middleware('permission:destroy_order', only: ['destroy']),
         ];
     }
+
     public function index(Request $request)
     {
         $orders = $this->orderService->allOrders($request);
+
         return ApiResponse::success((new AllOrderCollection($orders))->additional([
-                'total_count' => $orders['total_count'],
-                'total_sum' => $orders['total_sum']
-            ]));
+            'total_count' => $orders['total_count'],
+            'total_sum' => $orders['total_sum'],
+        ]));
     }
 
     public function show($id)
     {
         try {
-            $order=$this->orderService->editOrder($id);
+            $order = $this->orderService->editOrder($id);
+
             return ApiResponse::success(new OrderResource($order));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
@@ -61,10 +65,11 @@ class OrderController extends Controller implements HasMiddleware
     public function store(CreateOrderRequest $createOrderRequest)
     {
         try {
-            $data=$createOrderRequest->validated();
-            $data['type']=OrderTypeEnum::EXTERNAL->value;
-            $order=$this->orderService->createOrder($data);
-            return ApiResponse::success([],__('crud.created'));
+            $data = $createOrderRequest->validated();
+            $data['type'] = OrderTypeEnum::EXTERNAL->value;
+            $order = $this->orderService->createOrder($data);
+
+            return ApiResponse::success([], __('crud.created'));
         } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
@@ -74,11 +79,12 @@ class OrderController extends Controller implements HasMiddleware
     public function update(UpdateOrderRequest $updateOrderRequest, $id)
     {
         try {
-               $this->orderService->updateOrder($id, $updateOrderRequest->validated());
-            return ApiResponse::success([],__('crud.updated'));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+            $this->orderService->updateOrder($id, $updateOrderRequest->validated());
+
+            return ApiResponse::success([], __('crud.updated'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
 
@@ -88,11 +94,12 @@ class OrderController extends Controller implements HasMiddleware
     {
         try {
             $this->orderService->deleteOrder($id);
-            return ApiResponse::success([],__('crud.deleted'));
+
+            return ApiResponse::success([], __('crud.deleted'));
         } catch (ValidationException $e) {
             return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
@@ -103,6 +110,7 @@ class OrderController extends Controller implements HasMiddleware
     {
         try {
             $this->orderService->restoreOrder($id);
+
             return ApiResponse::success([], __('crud.restored'));
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
@@ -115,6 +123,7 @@ class OrderController extends Controller implements HasMiddleware
     {
         try {
             $this->orderService->forceDeleteOrder($id);
+
             return ApiResponse::success([], __('crud.deleted'));
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
@@ -122,38 +131,40 @@ class OrderController extends Controller implements HasMiddleware
             return ApiResponse::exception($th);
         }
     }
+
     public function changeOrderStatus(Request $request, int $id)
     {
         try {
             $request->validate([
-                'status'=>['required',new Enum(OrderStatus::class)],
+                'status' => ['required', new Enum(OrderStatus::class)],
             ]);
             $this->orderService->changeOrderStatus($id, $request->all());
-            return ApiResponse::success([],__('crud.updated'));
+
+            return ApiResponse::success([], __('crud.updated'));
         } catch (ValidationException $e) {
             return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function changeOrderPaymentStatus(Request $request, int $id)
     {
         try {
-           $request->validate([
-                'isPaid'=>'required|boolean',
+            $request->validate([
+                'isPaid' => 'required|boolean',
             ]);
             $this->orderService->changeOrderPaymentStatus($id, $request->all());
-            return ApiResponse::success([],__('crud.updated'));
+
+            return ApiResponse::success([], __('crud.updated'));
         } catch (ValidationException $e) {
             return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
 }
-
-

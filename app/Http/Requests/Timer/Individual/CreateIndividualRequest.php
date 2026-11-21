@@ -2,13 +2,11 @@
 
 namespace App\Http\Requests\Timer\Individual;
 
-use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
 
 class CreateIndividualRequest extends FormRequest
 {
@@ -26,7 +24,7 @@ class CreateIndividualRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
-    {//name , price , date , note ,type
+    {// name , price , date , note ,type
         return [
             'deviceId' => 'required|exists:devices,id',
             'deviceTypeId' => 'required|exists:device_types,id',
@@ -55,5 +53,4 @@ class CreateIndividualRequest extends FormRequest
             'dailyId.required' => __('validation.custom.required'),
         ];
     }
-
 }

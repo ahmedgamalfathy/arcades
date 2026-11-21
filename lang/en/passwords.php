@@ -18,6 +18,6 @@ return [
     'throttled' => 'Please wait before retrying.',
     'token' => 'This password reset token is invalid.',
     'user' => "We can't find a user with that email address.",
-    'current_password_error'=>"error in currentPassword "
+    'current_password_error' => 'error in currentPassword ',
 
 ];

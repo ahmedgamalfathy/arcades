@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\Order;
 
-use App\Models\Order\Order;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,8 +12,6 @@ class AllOrderCollection extends JsonResource
      *
      * @return array<string, mixed>
      */
-
-
     public function toArray(Request $request): array
     {
         return [
@@ -24,14 +21,15 @@ class AllOrderCollection extends JsonResource
             'count' => $this->resource->total_count ?? 0,
             'sum' => $this->resource->total_sum ?? 0,
             'perPage' => $this->resource->count(),
-            'nextPageUrl'  => $this->extractCursor($this->resource->nextPageUrl()),
-            'prevPageUrl'  => $this->extractCursor($this->resource->previousPageUrl()),
+            'nextPageUrl' => $this->extractCursor($this->resource->nextPageUrl()),
+            'prevPageUrl' => $this->extractCursor($this->resource->previousPageUrl()),
         ];
 
     }
+
     private function extractCursor(?string $url): ?string
     {
-        if (!$url) {
+        if (! $url) {
             return null;
         }
         $query = parse_url($url, PHP_URL_QUERY);

@@ -29,7 +29,7 @@ trait ResolvesActivityModels
     // ==================== Daily ====================
     private function getDailyProperties(string $event): array
     {
-        return match($event) {
+        return match ($event) {
             'created' => $this->getDailyCreatedProperties(),
             'updated' => $this->getDailyUpdatedProperties(),
             'deleted' => $this->getDailyDeletedProperties(),
@@ -44,11 +44,11 @@ trait ResolvesActivityModels
         return [
             'startDateTime' => [
                 'old' => '',
-                'new' => $attributes['start_date_time'] ?? ''
+                'new' => $attributes['start_date_time'] ?? '',
             ],
             'endDateTime' => [
                 'old' => '',
-                'new' => $attributes['end_date_time'] ?? ''
+                'new' => $attributes['end_date_time'] ?? '',
             ],
         ];
     }
@@ -64,7 +64,7 @@ trait ResolvesActivityModels
             'end_date_time' => 'endDateTime',
             'total_income' => 'totalIncome',
             'total_expense' => 'totalExpense',
-            'total_profit' => 'totalProfit'
+            'total_profit' => 'totalProfit',
         ];
 
         foreach ($importantFields as $dbField => $responseField) {
@@ -74,7 +74,7 @@ trait ResolvesActivityModels
 
                 $props[$responseField] = [
                     'old' => $old[$dbField] ?? '',
-                    'new' => $attributes[$dbField] ?? ''
+                    'new' => $attributes[$dbField] ?? '',
                 ];
             }
         }
@@ -89,11 +89,11 @@ trait ResolvesActivityModels
         return [
             'startDateTime' => [
                 'old' => '',
-                'new' => $attributes['start_date_time'] ?? ''
+                'new' => $attributes['start_date_time'] ?? '',
             ],
             'endDateTime' => [
                 'old' => '',
-                'new' => $attributes['end_date_time'] ?? ''
+                'new' => $attributes['end_date_time'] ?? '',
             ],
         ];
     }
@@ -101,7 +101,7 @@ trait ResolvesActivityModels
     // ==================== Order ====================
     private function getOrderProperties(string $event): array
     {
-        return match($event) {
+        return match ($event) {
             'created' => $this->getOrderCreatedProperties(),
             'updated' => $this->getOrderUpdatedProperties(),
             'deleted' => $this->getOrderDeletedProperties(),
@@ -116,33 +116,33 @@ trait ResolvesActivityModels
         $props = [
             'name' => [
                 'old' => '',
-                'new' => $attributes['name'] ?? ''
+                'new' => $attributes['name'] ?? '',
             ],
             'number' => [
                 'old' => '',
-                'new' => $attributes['number'] ?? ''
+                'new' => $attributes['number'] ?? '',
             ],
             'price' => [
                 'old' => '',
-                'new' => $attributes['price'] ?? ''
+                'new' => $attributes['price'] ?? '',
             ],
             'deliveredStatus' => [
                 'old' => '',
-                'new' => $attributes['status'] ?? ''
+                'new' => $attributes['status'] ?? '',
             ],
             'payStatus' => [
                 'old' => '',
-                'new' => $attributes['is_paid'] ?? ''
+                'new' => $attributes['is_paid'] ?? '',
             ],
         ];
 
         // Add bookedDevice info if exists
-        if (!empty($attributes['booked_device_id'])) {
+        if (! empty($attributes['booked_device_id'])) {
             $device = BookedDevice::withTrashed()->find($attributes['booked_device_id']);
             if ($device) {
                 $props['bookedDevice'] = [
                     'id' => $device->id,
-                    'name' => $device->device?->name ?? ''
+                    'name' => $device->device?->name ?? '',
                 ];
             }
         }
@@ -158,18 +158,18 @@ trait ResolvesActivityModels
         $props = [];
 
         // Always show number if available
-        if (!empty($attributes['number'])) {
+        if (! empty($attributes['number'])) {
             $props['number'] = [
                 'old' => $old['number'] ?? '',
-                'new' => $attributes['number']
+                'new' => $attributes['number'],
             ];
         }
 
         // Always show name if available
-        if (!empty($attributes['name'])) {
+        if (! empty($attributes['name'])) {
             $props['name'] = [
                 'old' => $old['name'] ?? '',
-                'new' => $attributes['name']
+                'new' => $attributes['name'],
             ];
         }
 
@@ -177,14 +177,14 @@ trait ResolvesActivityModels
         if (array_key_exists('price', $attributes)) {
             $props['price'] = [
                 'old' => $old['price'] ?? '',
-                'new' => $attributes['price']
+                'new' => $attributes['price'],
             ];
         }
 
         // Show status and is_paid only if changed
         $conditionalFields = [
             'status' => 'deliveredStatus',
-            'is_paid' => 'payStatus'
+            'is_paid' => 'payStatus',
         ];
 
         foreach ($conditionalFields as $dbField => $responseField) {
@@ -194,7 +194,7 @@ trait ResolvesActivityModels
 
                 $props[$responseField] = [
                     'old' => $old[$dbField],
-                    'new' => $attributes[$dbField]
+                    'new' => $attributes[$dbField],
                 ];
             }
         }
@@ -206,7 +206,7 @@ trait ResolvesActivityModels
             if ($device) {
                 $props['bookedDevice'] = [
                     'id' => $device->id,
-                    'name' => $device->device?->name ?? ''
+                    'name' => $device->device?->name ?? '',
                 ];
             }
         }
@@ -221,25 +221,25 @@ trait ResolvesActivityModels
         $props = [
             'name' => [
                 'old' => '',
-                'new' => $attributes['name'] ?? ''
+                'new' => $attributes['name'] ?? '',
             ],
             'number' => [
                 'old' => '',
-                'new' => $attributes['number'] ?? ''
+                'new' => $attributes['number'] ?? '',
             ],
             'price' => [
                 'old' => '',
-                'new' => $attributes['price'] ?? ''
+                'new' => $attributes['price'] ?? '',
             ],
         ];
 
         // Add bookedDevice info if exists
-        if (!empty($attributes['booked_device_id'])) {
+        if (! empty($attributes['booked_device_id'])) {
             $device = BookedDevice::withTrashed()->find($attributes['booked_device_id']);
             if ($device) {
                 $props['bookedDevice'] = [
                     'id' => $device->id,
-                    'name' => $device->device?->name ?? ''
+                    'name' => $device->device?->name ?? '',
                 ];
             }
         }
@@ -250,7 +250,7 @@ trait ResolvesActivityModels
     // ==================== OrderItem ====================
     private function getOrderItemProperties(string $event): array
     {
-        return match($event) {
+        return match ($event) {
             'created' => $this->getOrderItemCreatedProperties(),
             'updated' => $this->getOrderItemUpdatedProperties(),
             'deleted' => $this->getOrderItemDeletedProperties(),
@@ -266,7 +266,7 @@ trait ResolvesActivityModels
             'productId' => $attributes['product_id'] ?? '',
             'quantity' => $attributes['qty'] ?? '',
             'price' => $attributes['price'] ?? '',
-            'total'=>($attributes['qty'] ?? 0) * ($attributes['price'] ?? 0),
+            'total' => ($attributes['qty'] ?? 0) * ($attributes['price'] ?? 0),
             'order' => $attributes['order_id'] ?? '',
         ];
     }
@@ -284,7 +284,7 @@ trait ResolvesActivityModels
                 $old[$field] != $attributes[$field]) {
                 $props[$field] = [
                     'old' => $old[$field],
-                    'new' => $attributes[$field]
+                    'new' => $attributes[$field],
                 ];
             }
         }
@@ -300,15 +300,15 @@ trait ResolvesActivityModels
             'productId' => $attributes['product_id'] ?? '',
             'quantity' => $attributes['qty'] ?? '',
             'price' => $attributes['price'] ?? '',
-            'total'=>($attributes['qty'] ?? 0) * ($attributes['price'] ?? 0),
-            'order'=>$attributes['order_id']??'',
+            'total' => ($attributes['qty'] ?? 0) * ($attributes['price'] ?? 0),
+            'order' => $attributes['order_id'] ?? '',
         ];
     }
 
     // ==================== Expense ====================
     private function getExpenseProperties(string $event): array
     {
-        return match($event) {
+        return match ($event) {
             'created' => $this->getExpenseCreatedProperties(),
             'updated' => $this->getExpenseUpdatedProperties(),
             'deleted' => $this->getExpenseDeletedProperties(),
@@ -324,11 +324,11 @@ trait ResolvesActivityModels
         $props = [
             'name' => [
                 'old' => '',
-                'new' => $attributes['name'] ?? ''
+                'new' => $attributes['name'] ?? '',
             ],
             'price' => [
                 'old' => '',
-                'new' => $attributes['price'] ?? ''
+                'new' => $attributes['price'] ?? '',
             ],
         ];
 
@@ -336,11 +336,11 @@ trait ResolvesActivityModels
         if ($type == 1) {
             $props['date'] = [
                 'old' => '',
-                'new' => $attributes['date'] ?? ''
+                'new' => $attributes['date'] ?? '',
             ];
             $props['note'] = [
                 'old' => '',
-                'new' => $attributes['note'] ?? ''
+                'new' => $attributes['note'] ?? '',
             ];
         }
 
@@ -363,15 +363,15 @@ trait ResolvesActivityModels
         $type = $attributes['type'] ?? $old['type'] ?? ($expense ? $expense->type : 0);
 
         // Always show name
-        if (!empty($attributes['name'])) {
+        if (! empty($attributes['name'])) {
             $props['name'] = [
                 'old' => $old['name'] ?? '',
-                'new' => $attributes['name']
+                'new' => $attributes['name'],
             ];
         } elseif ($expense) {
             $props['name'] = [
                 'old' => '',
-                'new' => $expense->name
+                'new' => $expense->name,
             ];
         }
 
@@ -379,12 +379,12 @@ trait ResolvesActivityModels
         if (array_key_exists('price', $attributes)) {
             $props['price'] = [
                 'old' => $old['price'] ?? '',
-                'new' => $attributes['price']
+                'new' => $attributes['price'],
             ];
         } elseif ($expense) {
             $props['price'] = [
                 'old' => '',
-                'new' => $expense->price
+                'new' => $expense->price,
             ];
         }
 
@@ -394,12 +394,12 @@ trait ResolvesActivityModels
             if (array_key_exists('date', $attributes)) {
                 $props['date'] = [
                     'old' => $old['date'] ?? '',
-                    'new' => $attributes['date']
+                    'new' => $attributes['date'],
                 ];
             } elseif ($expense) {
                 $props['date'] = [
                     'old' => '',
-                    'new' => $expense->date
+                    'new' => $expense->date,
                 ];
             }
 
@@ -407,12 +407,12 @@ trait ResolvesActivityModels
             if (array_key_exists('note', $attributes)) {
                 $props['note'] = [
                     'old' => $old['note'] ?? '',
-                    'new' => $attributes['note'] ?? ''
+                    'new' => $attributes['note'] ?? '',
                 ];
             } elseif ($expense) {
                 $props['note'] = [
                     'old' => '',
-                    'new' => $expense->note ?? ''
+                    'new' => $expense->note ?? '',
                 ];
             }
         }
@@ -428,11 +428,11 @@ trait ResolvesActivityModels
         $props = [
             'name' => [
                 'old' => '',
-                'new' => $attributes['name'] ?? ''
+                'new' => $attributes['name'] ?? '',
             ],
             'price' => [
                 'old' => '',
-                'new' => $attributes['price'] ?? ''
+                'new' => $attributes['price'] ?? '',
             ],
         ];
 
@@ -440,11 +440,11 @@ trait ResolvesActivityModels
         if ($type == 1) {
             $props['date'] = [
                 'old' => '',
-                'new' => $attributes['date'] ?? ''
+                'new' => $attributes['date'] ?? '',
             ];
             $props['note'] = [
                 'old' => '',
-                'new' => $attributes['note'] ?? ''
+                'new' => $attributes['note'] ?? '',
             ];
         }
 
@@ -454,7 +454,7 @@ trait ResolvesActivityModels
     // ==================== SessionDevice ====================
     private function getSessionDeviceProperties(string $event): array
     {
-        return match($event) {
+        return match ($event) {
             'created' => $this->getSessionDeviceCreatedProperties(),
             'updated' => $this->getSessionDeviceUpdatedProperties(),
             'deleted' => $this->getSessionDeviceDeletedProperties(),
@@ -470,12 +470,12 @@ trait ResolvesActivityModels
         return [
             'name' => [
                 'old' => '',
-                'new' => $attributes['name'] ?? ''
+                'new' => $attributes['name'] ?? '',
             ],
             'type' => [
                 'old' => '',
-                'new' => $attributes['type'] ?? ''
-            ]
+                'new' => $attributes['type'] ?? '',
+            ],
         ];
     }
 
@@ -494,13 +494,13 @@ trait ResolvesActivityModels
                     // Field changed - show old and new
                     $props[$field] = [
                         'old' => $old[$field] ?? '',
-                        'new' => $attributes[$field] ?? ''
+                        'new' => $attributes[$field] ?? '',
                     ];
                 } else {
                     // Field didn't change - show with old=""
                     $props[$field] = [
                         'old' => '',
-                        'new' => $attributes[$field] ?? ''
+                        'new' => $attributes[$field] ?? '',
                     ];
                 }
             }
@@ -516,12 +516,12 @@ trait ResolvesActivityModels
         return [
             'name' => [
                 'old' => '',
-                'new' => $attributes['name'] ?? ''
+                'new' => $attributes['name'] ?? '',
             ],
             'type' => [
                 'old' => '',
-                'new' => $attributes['type'] ?? ''
-            ]
+                'new' => $attributes['type'] ?? '',
+            ],
         ];
     }
 
@@ -533,19 +533,19 @@ trait ResolvesActivityModels
         return [
             'name' => [
                 'old' => $old['name'] ?? '',
-                'new' => $attributes['name'] ?? ''
+                'new' => $attributes['name'] ?? '',
             ],
             'type' => [
                 'old' => '',
-                'new' => $attributes['type'] ?? ''
-            ]
+                'new' => $attributes['type'] ?? '',
+            ],
         ];
     }
 
     // ==================== BookedDevice ====================
     private function getBookedDeviceProperties(string $event): array
     {
-        return match($event) {
+        return match ($event) {
             'created' => $this->getBookedDeviceCreatedProperties(),
             'updated' => $this->getBookedDeviceUpdatedProperties(),
             'deleted' => $this->getBookedDeviceDeletedProperties(),
@@ -560,25 +560,25 @@ trait ResolvesActivityModels
         return [
             'deviceName' => [
                 'old' => '',
-                'new' => !empty($attributes['device_id'])
+                'new' => ! empty($attributes['device_id'])
                     ? (Device::find($attributes['device_id'])?->name ?? '')
-                    : ''
+                    : '',
             ],
             'deviceType' => [
                 'old' => '',
-                'new' => !empty($attributes['device_type_id'])
+                'new' => ! empty($attributes['device_type_id'])
                     ? (DeviceType::find($attributes['device_type_id'])?->name ?? '')
-                    : ''
+                    : '',
             ],
             'deviceTime' => [
                 'old' => '',
-                'new' => !empty($attributes['device_time_id'])
+                'new' => ! empty($attributes['device_time_id'])
                     ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '')
-                    : ''
+                    : '',
             ],
             'status' => [
                 'old' => '',
-                'new' => $attributes['status'] ?? ''
+                'new' => $attributes['status'] ?? '',
             ],
         ];
     }
@@ -596,7 +596,7 @@ trait ResolvesActivityModels
         $allFields = ['device_id', 'device_type_id', 'device_time_id', 'status', 'end_date_time'];
 
         foreach ($allFields as $field) {
-            $displayField = match($field) {
+            $displayField = match ($field) {
                 'device_id' => 'deviceName',
                 'device_type_id' => 'deviceType',
                 'device_time_id' => 'deviceTime',
@@ -617,19 +617,19 @@ trait ResolvesActivityModels
 
                 // Convert IDs to names
                 if ($field === 'device_id') {
-                    $oldValue = !empty($oldValue) ? (Device::find($oldValue)?->name ?? '') : '';
-                    $newValue = !empty($newValue) ? (Device::find($newValue)?->name ?? '') : '';
+                    $oldValue = ! empty($oldValue) ? (Device::find($oldValue)?->name ?? '') : '';
+                    $newValue = ! empty($newValue) ? (Device::find($newValue)?->name ?? '') : '';
                 } elseif ($field === 'device_type_id') {
-                    $oldValue = !empty($oldValue) ? (DeviceType::find($oldValue)?->name ?? '') : '';
-                    $newValue = !empty($newValue) ? (DeviceType::find($newValue)?->name ?? '') : '';
+                    $oldValue = ! empty($oldValue) ? (DeviceType::find($oldValue)?->name ?? '') : '';
+                    $newValue = ! empty($newValue) ? (DeviceType::find($newValue)?->name ?? '') : '';
                 } elseif ($field === 'device_time_id') {
-                    $oldValue = !empty($oldValue) ? (DeviceTime::find($oldValue)?->name ?? '') : '';
-                    $newValue = !empty($newValue) ? (DeviceTime::find($newValue)?->name ?? '') : '';
+                    $oldValue = ! empty($oldValue) ? (DeviceTime::find($oldValue)?->name ?? '') : '';
+                    $newValue = ! empty($newValue) ? (DeviceTime::find($newValue)?->name ?? '') : '';
                 }
 
                 $props[$displayField] = [
                     'old' => $oldValue,
-                    'new' => $newValue
+                    'new' => $newValue,
                 ];
             } elseif ($bookedDevice) {
                 // Field didn't change - get current value from BookedDevice
@@ -637,16 +637,16 @@ trait ResolvesActivityModels
 
                 // Convert IDs to names
                 if ($field === 'device_id') {
-                    $value = !empty($value) ? (Device::find($value)?->name ?? '') : '';
+                    $value = ! empty($value) ? (Device::find($value)?->name ?? '') : '';
                 } elseif ($field === 'device_type_id') {
-                    $value = !empty($value) ? (DeviceType::find($value)?->name ?? '') : '';
+                    $value = ! empty($value) ? (DeviceType::find($value)?->name ?? '') : '';
                 } elseif ($field === 'device_time_id') {
-                    $value = !empty($value) ? (DeviceTime::find($value)?->name ?? '') : '';
+                    $value = ! empty($value) ? (DeviceTime::find($value)?->name ?? '') : '';
                 }
 
                 $props[$displayField] = [
                     'old' => $value,
-                    'new' => $value
+                    'new' => $value,
                 ];
             }
         }
@@ -661,25 +661,25 @@ trait ResolvesActivityModels
         return [
             'deviceName' => [
                 'old' => '',
-                'new' => !empty($attributes['device_id'])
+                'new' => ! empty($attributes['device_id'])
                     ? (Device::find($attributes['device_id'])?->name ?? '')
-                    : ''
+                    : '',
             ],
             'deviceType' => [
                 'old' => '',
-                'new' => !empty($attributes['device_type_id'])
+                'new' => ! empty($attributes['device_type_id'])
                     ? (DeviceType::find($attributes['device_type_id'])?->name ?? '')
-                    : ''
+                    : '',
             ],
             'deviceTime' => [
                 'old' => '',
-                'new' => !empty($attributes['device_time_id'])
+                'new' => ! empty($attributes['device_time_id'])
                     ? (DeviceTime::find($attributes['device_time_id'])?->name ?? '')
-                    : ''
+                    : '',
             ],
             'status' => [
                 'old' => '',
-                'new' => $attributes['status'] ?? ''
+                'new' => $attributes['status'] ?? '',
             ],
         ];
     }

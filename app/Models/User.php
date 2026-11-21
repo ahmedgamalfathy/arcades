@@ -6,29 +6,28 @@ namespace App\Models;
 use App\Enums\StatusEnum;
 use App\Models\Expense\Expense;
 use App\Models\Media\Media;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable , HasRoles ,HasApiTokens, SoftDeletes;
+    use HasApiTokens, HasFactory , HasRoles ,Notifiable, SoftDeletes;
+
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-     protected $connection = 'mysql';
-     protected $fillable = [
+    protected $connection = 'mysql';
+
+    protected $fillable = [
         'name',
         'email',
         'media_id',
@@ -46,6 +45,7 @@ class User extends Authenticatable
         'app_key',
         'remember_token',
     ];
+
     // public function getActivitylogOptions(): LogOptions
     // {
     //     return LogOptions::defaults()
@@ -78,7 +78,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'expired_at' => 'datetime',
             'password' => 'hashed',
-            'is_active' => StatusEnum::class
+            'is_active' => StatusEnum::class,
         ];
     }
 
@@ -91,18 +91,18 @@ class User extends Authenticatable
 
     public function media()
     {
-       return  $this->setConnection('tenant')->belongsTo(Media::class,'media_id');
+        return $this->setConnection('tenant')->belongsTo(Media::class, 'media_id');
     }
 
     public function expenses()
     {
         return $this->hasMany(Expense::class);
     }
+
     public function getAvatarPathAttribute(): string
     {
         return Media::on('tenant')
             ->where('id', $this->media_id)
             ->value('path') ?? '';
     }
-
 }

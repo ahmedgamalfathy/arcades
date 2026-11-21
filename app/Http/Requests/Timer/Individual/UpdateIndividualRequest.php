@@ -2,13 +2,11 @@
 
 namespace App\Http\Requests\Timer\Individual;
 
-use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
 
 class UpdateIndividualRequest extends FormRequest
 {
@@ -51,5 +49,4 @@ class UpdateIndividualRequest extends FormRequest
             'name.required' => __('validation.custom.required'),
         ];
     }
-
 }

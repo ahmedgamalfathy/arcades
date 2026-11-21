@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Requests\Daily\Report;
+
 use Illuminate\Foundation\Http\FormRequest;
 
 class ReportDailyRequestSearch extends FormRequest

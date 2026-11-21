@@ -4,9 +4,9 @@ namespace App\Http\Requests\User;
 
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Helpers\ApiResponse;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rules\Password;
 
 class ChangePasswordRequest extends FormRequest
@@ -38,5 +38,4 @@ class ChangePasswordRequest extends FormRequest
             ApiResponse::error('', $validator->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY)
         );
     }
-
 }

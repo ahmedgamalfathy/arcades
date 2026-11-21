@@ -2,12 +2,9 @@
 
 namespace App\Http\Resources\ActivityLog;
 
+use App\Models\Timer\BookedDevice\BookedDevice;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\Timer\BookedDevice\BookedDevice;
-use Spatie\Activitylog\Models\Activity;
-use App\Models\User;
-use App\Models\Order\OrderItem;
 
 class OrderActivityResouce extends JsonResource
 {
@@ -42,7 +39,7 @@ class OrderActivityResouce extends JsonResource
 
     private function getProperties($properties): array
     {
-        return match($this->event) {
+        return match ($this->event) {
             'created' => $this->getCreatedProperties($properties),
             'updated' => $this->getUpdatedProperties($properties),
             'deleted' => $this->getDeletedProperties($properties),
@@ -77,7 +74,7 @@ class OrderActivityResouce extends JsonResource
 
                 $props[$field] = [
                     'old' => $old[$field],
-                    'new' => $attributes[$field]
+                    'new' => $attributes[$field],
                 ];
             }
         }

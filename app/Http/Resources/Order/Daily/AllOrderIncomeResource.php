@@ -2,12 +2,11 @@
 
 namespace App\Http\Resources\Order\Daily;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Order\OrderItem\Daily\OrderItemResource;
-use Carbon\Carbon;
 
-class AllOrderIncomeResource  extends JsonResource
+class AllOrderIncomeResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -18,10 +17,10 @@ class AllOrderIncomeResource  extends JsonResource
     {
         return [
             'orderId' => $this->id,
-            'name' => $this->name??$this->bookedDevice->device->name ??"",
+            'name' => $this->name ?? $this->bookedDevice->device->name ?? '',
             'price' => $this->price,
-            'createdAt' =>Carbon::parse($this->created_at)->format('d/m/Y'),
-            'timeCreated' =>Carbon::parse($this->created_at)->format('H:i')
+            'createdAt' => Carbon::parse($this->created_at)->format('d/m/Y'),
+            'timeCreated' => Carbon::parse($this->created_at)->format('H:i'),
         ];
     }
 }

@@ -2,14 +2,12 @@
 
 namespace App\Http\Requests\Device;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rule;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
+use Illuminate\Validation\Rule;
 
 class UpdateDeviceRequest extends FormRequest
 {
@@ -29,35 +27,34 @@ class UpdateDeviceRequest extends FormRequest
     public function rules(): array
     {
         return [
-          'mediaId' => ['nullable', 'integer', 'exists:media,id'],
-          'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
-          'name' => [
-            'required',
-            'string',
-            Rule::unique('devices')
-            ->ignore($this->device)
-            ->where(fn ($q) =>
-            $q->where('device_type_id', $this->deviceTypeId)
-            // ->whereNull('deleted_at')
-            )
-        ],
-          'deviceTypeId'=>['required','integer','exists:device_types,id'],
-          'deviceTimeIds'=>['required','array'],
-          'deviceTimeIds.*'=>['integer', 'exists:device_times,id'],
-        'deviceTimeSpecial' => [
+            'mediaId' => ['nullable', 'integer', 'exists:media,id'],
+            'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'name' => [
+                'required',
+                'string',
+                Rule::unique('devices')
+                    ->ignore($this->device)
+                    ->where(fn ($q) => $q->where('device_type_id', $this->deviceTypeId)
+                        // ->whereNull('deleted_at')
+                    ),
+            ],
+            'deviceTypeId' => ['required', 'integer', 'exists:device_types,id'],
+            'deviceTimeIds' => ['required', 'array'],
+            'deviceTimeIds.*' => ['integer', 'exists:device_times,id'],
+            'deviceTimeSpecial' => [
                 'nullable',
                 'array',
                 'required_without:deviceTimeIds',
-                'min:1'
+                'min:1',
             ],
             'deviceTimeSpecial.*.name' => [
                 'required_if:deviceTimeSpecial.*.actionStatus,create',
-                'string'
+                'string',
             ],
 
             'deviceTimeSpecial.*.rate' => [
                 'required_if:deviceTimeSpecial.*.actionStatus,create',
-                'numeric'
+                'numeric',
             ],
             'deviceTimeSpecial.*.actionStatus' => [
                 'required',
@@ -66,7 +63,7 @@ class UpdateDeviceRequest extends FormRequest
             'deviceTimeSpecial.*.timeTypeId' => [
                 'required_if:deviceTimeSpecial.*.actionStatus,update,delete',
                 'integer',
-                'exists:device_times,id'
+                'exists:device_times,id',
             ],
 
         ];
@@ -76,10 +73,11 @@ class UpdateDeviceRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             if ($this->mediaId && $this->hasFile('mediaFile')) {
-                $validator->errors()->add('media','You cannot upload an image and select an existing image at the same time.');
+                $validator->errors()->add('media', 'You cannot upload an image and select an existing image at the same time.');
             }
         });
     }
+
     public function failedValidation(Validator $validator)
     {
 
@@ -97,5 +95,4 @@ class UpdateDeviceRequest extends FormRequest
             'deviceTimeIds.required' => __('validation.custom.required'),
         ];
     }
-
 }

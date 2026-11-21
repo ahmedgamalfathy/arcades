@@ -4,9 +4,9 @@ namespace App\Http\Requests\User;
 
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Helpers\ApiResponse;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Contracts\Validation\Validator;
 
 class UpdateUserProfileRequest extends FormRequest
 {
@@ -32,11 +32,12 @@ class UpdateUserProfileRequest extends FormRequest
             //     'email',
             //     'unique:users,email,' . $this->route('user'),
             // ],
-          'mediaId' => ['nullable', 'integer'],
-          'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'mediaId' => ['nullable', 'integer'],
+            'mediaFile' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
         ];
     }
-     public function withValidator($validator)
+
+    public function withValidator($validator)
     {
         $validator->after(function ($validator) {
             // if (!$this->mediaId && !$this->hasFile('mediaFile')) {
@@ -64,5 +65,4 @@ class UpdateUserProfileRequest extends FormRequest
             'password.required' => __('validation.custom.required'),
         ];
     }
-
 }

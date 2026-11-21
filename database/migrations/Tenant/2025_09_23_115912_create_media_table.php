@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('path');
             $table->tinyInteger('type')->default(MediaTypeEnum::PHOTO->value);
-            $table->string('category')->nullable();//avatar , device
+            $table->string('category')->nullable(); // avatar , device
             $table->timestamps();
         });
     }

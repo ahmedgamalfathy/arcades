@@ -4,10 +4,9 @@ namespace App\Http\Requests\Media;
 
 use App\Enums\ResponseCode\HttpStatusCode;
 use App\Helpers\ApiResponse;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Contracts\Validation\Validator;
-
 
 class CreateMediaRequest extends FormRequest
 {
@@ -27,9 +26,9 @@ class CreateMediaRequest extends FormRequest
     public function rules(): array
     {// path , type , category
         return [
-            'category' => ['string','nullable'],
-            'type'=> ['nullable','integer'],
-            'path' => ["required","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
+            'category' => ['string', 'nullable'],
+            'type' => ['nullable', 'integer'],
+            'path' => ['required', 'image', 'mimes:jpeg,jpg,png,gif,svg,webp', 'max:5120'],
         ];
     }
 
@@ -47,5 +46,4 @@ class CreateMediaRequest extends FormRequest
             'path.required' => __('validation.custom.required'),
         ];
     }
-
 }

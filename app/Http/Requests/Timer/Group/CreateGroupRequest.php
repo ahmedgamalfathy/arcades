@@ -2,13 +2,12 @@
 
 namespace App\Http\Requests\Timer\Group;
 
-use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Enums\SessionDevice\SessionDeviceEnum;
-
+use App\Helpers\ApiResponse;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class CreateGroupRequest extends FormRequest
 {
@@ -26,10 +25,10 @@ class CreateGroupRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
-    {//name , price , date , note ,type
+    {// name , price , date , note ,type
         return [
             'name' => 'required_without:sessionDeviceId|string|nullable',
-            'sessionDeviceId' => ['required_without:name', 'exists:session_devices,id,type,' . SessionDeviceEnum::GROUP->value, 'nullable'],
+            'sessionDeviceId' => ['required_without:name', 'exists:session_devices,id,type,'.SessionDeviceEnum::GROUP->value, 'nullable'],
             'deviceId' => 'required|exists:devices,id',
             'deviceTypeId' => 'required|exists:device_types,id',
             'deviceTimeId' => 'required|exists:device_times,id',
@@ -57,5 +56,4 @@ class CreateGroupRequest extends FormRequest
             'dailyId.required' => __('validation.custom.required'),
         ];
     }
-
 }

@@ -2,37 +2,35 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Maintenance;
 
-use App\Http\Resources\Maintenance\MaintenanceResource;
-use Throwable;
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Enums\ResponseCode\HttpStatusCode;
-
-use App\Services\Maintenance\MaintenanceService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Maintenance\CreateMaintenanceRequest;
 use App\Http\Requests\Maintenance\UpdateMaintenanceRequest;
-use App\Http\Resources\Maintenance\AllMaintenanceResource;
+use App\Http\Resources\Maintenance\MaintenanceResource;
+use App\Services\Maintenance\MaintenanceService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Throwable;
 
 class MaintenanceController extends Controller
 {
-       protected $maintenanceService;
-
+    protected $maintenanceService;
 
     public function __construct(MaintenanceService $maintenanceService)
     {
         $this->maintenanceService = $maintenanceService;
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $Maintenances = $this->maintenanceService->allMaintenances($request);
+
         return ApiResponse::success(MaintenanceResource::collection($Maintenances));
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -40,8 +38,9 @@ class MaintenanceController extends Controller
     public function store(CreateMaintenanceRequest $createMaintenanceRequest)
     {
         try {
-               $this->maintenanceService->createMaintenance($createMaintenanceRequest->validated());
-            return ApiResponse::success([],__('crud.created'));
+            $this->maintenanceService->createMaintenance($createMaintenanceRequest->validated());
+
+            return ApiResponse::success([], __('crud.created'));
         } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
@@ -53,11 +52,12 @@ class MaintenanceController extends Controller
     public function show(int $id)
     {
         try {
-         $Maintenance =  $this->maintenanceService->editMaintenance($id);
+            $Maintenance = $this->maintenanceService->editMaintenance($id);
+
             return ApiResponse::success(new MaintenanceResource($Maintenance));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
@@ -68,11 +68,12 @@ class MaintenanceController extends Controller
     public function update(UpdateMaintenanceRequest $updateMaintenanceRequest, int $id)
     {
         try {
-            $this->maintenanceService->updateMaintenance($id,$updateMaintenanceRequest->validated());
+            $this->maintenanceService->updateMaintenance($id, $updateMaintenanceRequest->validated());
+
             return ApiResponse::success([], __('crud.updated'));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (Throwable $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
@@ -82,16 +83,14 @@ class MaintenanceController extends Controller
      */
     public function destroy(string $id)
     {
-        try{
+        try {
             $this->maintenanceService->deleteMaintenance($id);
-            return ApiResponse::success([],__('crud.deleted'));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),[],HttpStatusCode::INTERNAL_SERVER_ERROR);
+
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-
 }
-
-

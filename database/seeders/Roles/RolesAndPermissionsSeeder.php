@@ -2,7 +2,6 @@
 
 namespace Database\Seeders\Roles;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -26,7 +25,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'force_delete_user',
             'change_user_status',
 
-
             'all_roles',
             'create_role',
             'edit_role',
@@ -38,7 +36,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit_product',
             'update_product',
             'destroy_product',
-//expenses ,create_expenses ,edit_expense ,update_expense,destroy_expense
+            // expenses ,create_expenses ,edit_expense ,update_expense,destroy_expense
             'all_expenses',
             'create_expenses',
             'restore_expense',
@@ -46,13 +44,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit_expense',
             'update_expense',
             'destroy_expense',
-//maintenance permissions
+            // maintenance permissions
             'maintenances',
             'create_maintenance',
             'edit_maintenance',
             'update_maintenance',
             'destroy_maintenance',
-//orders ,create_orders , edit_order ,update_order ,destroy_order
+            // orders ,create_orders , edit_order ,update_order ,destroy_order
             'orders',
             'create_orders',
             'edit_order',
@@ -62,32 +60,32 @@ class RolesAndPermissionsSeeder extends Seeder
             'force_delete_order',
             'change_order_status',
             'change_order_payment_status',
-//media permissions
+            // media permissions
             'media',
             'create_media',
             'edit_media',
             'update_media',
             'destroy_media',
-//devices ,create_devices, edit_device,update_device ,destroy_device
+            // devices ,create_devices, edit_device,update_device ,destroy_device
             'devices',
             'create_devices',
             'edit_device',
             'update_device',
             'destroy_device',
             'change_device_status',
-//device_times, create_device_times, edit_device_time, update_device_time, destroy_device_time
+            // device_times, create_device_times, edit_device_time, update_device_time, destroy_device_time
             'device_times',
             'create_device_times',
             'edit_device_time',
             'update_device_time',
             'destroy_device_time',
-//device_types, create_device_types, edit_device_type, update_device_type, destroy_device_type
+            // device_types, create_device_types, edit_device_type, update_device_type, destroy_device_type
             'device_types',
             'create_device_types',
             'edit_device_type',
             'update_device_type',
             'destroy_device_type',
-//daily ,create_daily , edit_daily ,update_daily ,destroy_daily ,close_daily ,daily_report
+            // daily ,create_daily , edit_daily ,update_daily ,destroy_daily ,close_daily ,daily_report
             'daily',
             'create_daily',
             'edit_daily',
@@ -96,13 +94,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'close_daily',
             'daily_report',
             'view_daily_activity',
-//all_params , create_param , edit_param ,update_param ,destroy_param
+            // all_params , create_param , edit_param ,update_param ,destroy_param
             'all_params',
             'create_param',
             'edit_param',
             'update_param',
             'destroy_param',
-//notifications , auth_unread_notifications , auth_read_notifications , auth_read_notification , auth_delete_notifications , auth_delete_notification
+            // notifications , auth_unread_notifications , auth_read_notifications , auth_read_notification , auth_delete_notifications , auth_delete_notification
             'notifications',
             'auth_unread_notifications',
             'auth_read_notifications',
@@ -128,8 +126,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
         //     'products',
         //     'edit_product',
-
-
 
         //     'devices',
         //     'edit_device',

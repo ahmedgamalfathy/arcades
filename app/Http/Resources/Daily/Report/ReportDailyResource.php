@@ -2,11 +2,11 @@
 
 namespace App\Http\Resources\Daily\Report;
 
+use App\Http\Resources\Expense\Daily\AllExpenseDailyResource;
+use App\Http\Resources\Order\Daily\AllOrderIncomeResource;
+use App\Http\Resources\Timer\SessionDevice\Daily\AllSessionIncomeResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Expense\Daily\AllExpenseDailyResource;
-use App\Http\Resources\Timer\SessionDevice\Daily\AllSessionIncomeResource;
-use App\Http\Resources\Order\Daily\AllOrderIncomeResource;
 
 class ReportDailyResource extends JsonResource
 {
@@ -17,16 +17,15 @@ class ReportDailyResource extends JsonResource
 
         $data = [
             'dailyId' => $this->id,
-            'totalIncome' => $this->total_income ?? "",
-            'totalExpense' => $this->total_expense ?? "",
-            'totalProfit' => $this->total_profit ?? "",
+            'totalIncome' => $this->total_income ?? '',
+            'totalExpense' => $this->total_expense ?? '',
+            'totalProfit' => $this->total_profit ?? '',
         ];
 
         // فقط إذا كانت موجودة في include
         if (in_array('sessions', $includes) && $this->relationLoaded('sessions') && $this->sessions->isNotEmpty()) {
             $data['sessions'] = [
-                'total' => $this->sessions->sum(fn($session) =>
-                    $session->bookedDevices->sum('period_cost')
+                'total' => $this->sessions->sum(fn ($session) => $session->bookedDevices->sum('period_cost')
                 ),
                 'data' => AllSessionIncomeResource::collection($this->sessions),
             ];

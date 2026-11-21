@@ -15,26 +15,28 @@ class AllDailyRangeOfDateResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-            $groupedByDate = collect($this->resource->items())->groupBy(function($daily) {
+        $groupedByDate = collect($this->resource->items())->groupBy(function ($daily) {
             return Carbon::parse($daily->start_date_time)->format('Y-m-d');
         });
 
-        $data = $groupedByDate->map(function($dailies, $date) {
+        $data = $groupedByDate->map(function ($dailies, $date) {
             return [
                 'date' => Carbon::parse($date)->format('d/m/Y'),
                 'dailies' => DailyRangeOfDateResource::collection($dailies),
             ];
         })->values();
+
         return [
-            'data' =>$data,
-            'perPage'      => $this->resource->count(),
-            'nextPageUrl'  => $this->extractCursor($this->resource->nextPageUrl()),
-            'prevPageUrl'  => $this->extractCursor($this->resource->previousPageUrl()),
+            'data' => $data,
+            'perPage' => $this->resource->count(),
+            'nextPageUrl' => $this->extractCursor($this->resource->nextPageUrl()),
+            'prevPageUrl' => $this->extractCursor($this->resource->previousPageUrl()),
         ];
     }
+
     private function extractCursor(?string $url): ?string
     {
-        if (!$url) {
+        if (! $url) {
             return null;
         }
         $query = parse_url($url, PHP_URL_QUERY);

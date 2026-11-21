@@ -16,14 +16,15 @@ class AllNotificationResource extends JsonResource
     {
         return [
             'notifications' => NotificationResource::collection($this->resource->items()),
-            'perPage'      => $this->resource->count(),
-            'nextPageUrl'  => $this->extractCursor($this->resource->nextPageUrl()),
-            'prevPageUrl'  => $this->extractCursor($this->resource->previousPageUrl()),
+            'perPage' => $this->resource->count(),
+            'nextPageUrl' => $this->extractCursor($this->resource->nextPageUrl()),
+            'prevPageUrl' => $this->extractCursor($this->resource->previousPageUrl()),
         ];
     }
+
     private function extractCursor(?string $url): ?string
     {
-        if (!$url) {
+        if (! $url) {
             return null;
         }
         $query = parse_url($url, PHP_URL_QUERY);

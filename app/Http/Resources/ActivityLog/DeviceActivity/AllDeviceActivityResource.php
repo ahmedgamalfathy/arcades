@@ -12,9 +12,9 @@ class AllDeviceActivityResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-         $propsArray = is_array($this->properties)
-            ? $this->properties
-            : json_decode(json_encode($this->properties), true);
+        $propsArray = is_array($this->properties)
+           ? $this->properties
+           : json_decode(json_encode($this->properties), true);
 
         $event = $this->event ?? $this->description ?? 'unknown';
 

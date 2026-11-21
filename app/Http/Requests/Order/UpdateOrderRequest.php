@@ -2,17 +2,15 @@
 
 namespace App\Http\Requests\Order;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rule;
 use App\Enums\Order\OrderStatus;
-use App\Enums\Order\DiscountType;
-use App\Enums\Order\OrderTypeEnum;
-use Illuminate\Validation\Rules\Enum;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Helpers\ApiResponse;
 use App\Models\Order\Order;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateOrderRequest extends FormRequest
 {
@@ -34,31 +32,32 @@ class UpdateOrderRequest extends FormRequest
         //  ['string',  'min:3', Rule::unique('users', 'email')->ignore($this->route('user'))]
         return [
             'name' => ['string',
-            // Rule::unique('orders', 'name')->ignore($this->route('order')),
+                // Rule::unique('orders', 'name')->ignore($this->route('order')),
                 Rule::requiredIf(function () {
-                $order = Order::find($this->route('order'));
-                return $order && $order->booked_device_id == null;
+                    $order = Order::find($this->route('order'));
+
+                    return $order && $order->booked_device_id == null;
                 }),
             ],
-             'isPaid' => ['required', 'boolean'],
-             'status' => ['required', new Enum(OrderStatus::class)],
-             'orderItems' => ['required', 'array', 'min:1'],
-             'orderItems.*.productId' => ['required', 'integer', 'exists:products,id'],
-             'orderItems.*.qty' => ['required', 'integer', 'min:1'],
+            'isPaid' => ['required', 'boolean'],
+            'status' => ['required', new Enum(OrderStatus::class)],
+            'orderItems' => ['required', 'array', 'min:1'],
+            'orderItems.*.productId' => ['required', 'integer', 'exists:products,id'],
+            'orderItems.*.qty' => ['required', 'integer', 'min:1'],
             'orderItems.*.orderItemId' => [
-            'nullable',
-            'integer',
-            'required_if:orderItems.*.actionStatus,update,delete,""',
-            'exists:order_items,id',
-            function ($attribute, $value, $fail) {
-                if ($value) {
-                    $orderId = $this->route('order'); // id بتاع الأوردر الحالي
-                    $orderItem = \App\Models\Order\OrderItem::find($value);
-                    if ($orderItem && $orderItem->order_id != $orderId) {
-                        $fail("The order item ID does not belong to this order.");
+                'nullable',
+                'integer',
+                'required_if:orderItems.*.actionStatus,update,delete,""',
+                'exists:order_items,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $orderId = $this->route('order'); // id بتاع الأوردر الحالي
+                        $orderItem = \App\Models\Order\OrderItem::find($value);
+                        if ($orderItem && $orderItem->order_id != $orderId) {
+                            $fail('The order item ID does not belong to this order.');
+                        }
                     }
-                }
-            },
+                },
             ],
             'orderItems.*.actionStatus' => ['required', 'in:update,delete,create,""'],
         ];
@@ -70,6 +69,7 @@ class UpdateOrderRequest extends FormRequest
             ApiResponse::error('', $validator->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY)
         );
     }
+
     public function messages()
     {
         return [
@@ -77,5 +77,4 @@ class UpdateOrderRequest extends FormRequest
             'orderItems.required' => __('validation.custom.required'),
         ];
     }
-
 }

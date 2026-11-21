@@ -2,24 +2,25 @@
 
 namespace App\Models\Timer\BookedDevice;
 
-use App\Trait\UsesTenantConnection;
-use Illuminate\Database\Eloquent\Model;
-use App\Models\Device\DeviceTime\DeviceTime;
-use App\Models\Timer\BookedDevicePause\BookedDevicePause;
-use App\Models\Device\DeviceType\DeviceType;
-use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Models\Device\Device;
+use App\Models\Device\DeviceTime\DeviceTime;
+use App\Models\Device\DeviceType\DeviceType;
 use App\Models\Order\Order;
+use App\Models\Timer\BookedDevicePause\BookedDevicePause;
+use App\Models\Timer\SessionDevice\SessionDevice;
+use App\Trait\UsesTenantConnection;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
-use Carbon\Carbon;
+use Spatie\Activitylog\Traits\LogsActivity;
+
 class BookedDevice extends Model
 {
-     use UsesTenantConnection , LogsActivity, SoftDeletes;
+    use LogsActivity , SoftDeletes, UsesTenantConnection;
 
-      protected $fillable = [
+    protected $fillable = [
         'session_device_id',
         'device_type_id',
         'device_id',
@@ -34,63 +35,75 @@ class BookedDevice extends Model
         'actual_paid_amount',
         'is_notification_sent',
     ];
-     public function getActivitylogOptions(): LogOptions
+
+    public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->useLogName('BookedDevice')
             ->logAll()
             ->logOnlyDirty()
             ->dontLogIfAttributesChangedOnly(['updated_at'])
-            ->setDescriptionForEvent(fn(string $eventName) => "BookedDevice {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "BookedDevice {$eventName}");
     }
+
     public function tapActivity(Activity $activity, string $eventName)
     {
         $activity->daily_id = $this->sessionDevice?->daily_id;
     }
-      protected $casts = [
+
+    protected $casts = [
         'start_date_time' => 'datetime',
-        'end_date_time'   => 'datetime',
+        'end_date_time' => 'datetime',
     ];
 
     public function pauses()
     {
         return $this->hasMany(BookedDevicePause::class);
     }
-//sessionDevice,deviceType,deviceTime,device
-   public function sessionDevice()
+
+    // sessionDevice,deviceType,deviceTime,device
+    public function sessionDevice()
     {
         return $this->belongsTo(SessionDevice::class);
     }
+
     public function deviceType()
     {
         return $this->belongsTo(DeviceType::class)->withTrashed();
     }
+
     public function device()
     {
         return $this->belongsTo(Device::class)->withTrashed();
     }
+
     public function deviceTime()
     {
         return $this->belongsTo(DeviceTime::class)->withTrashed();
     }
+
     public function orders()
     {
         return $this->hasMany(Order::class);
     }
+
     public function calculateUsedSeconds(): int
     {
-        $start=$this->start_date_time;
+        $start = $this->start_date_time;
         $end = $this->end_date_time ?? Carbon::now();
         $total = $start->diffInSeconds($end);
+
         return max(0, $total - $this->total_paused_seconds);
     }
 
     public function calculatePrice(): float
     {
         $hours = $this->calculateUsedSeconds() / 3600;
+
         return round($hours * ($this->deviceTime->rate ?? 0), 2);
     }
-// في BookedDevice Model
+
+    // في BookedDevice Model
     public function getCurrentDeviceCostAttribute(): float
     {
         // لو الجهاز منتهي
@@ -117,6 +130,7 @@ class BookedDevice extends Model
 
         // حول لساعات واضرب في السعر
         $hours = $totalSeconds / 3600;
+
         return round($hours * ($this->deviceTime->rate ?? 0), 2);
     }
 
@@ -125,13 +139,13 @@ class BookedDevice extends Model
     {
         $totalSeconds = 0;
 
-        if (!method_exists($this, 'pauses')) {
+        if (! method_exists($this, 'pauses')) {
             return 0;
         }
 
         $pauses = $this->pauses;
 
-        if (!$pauses || $pauses->isEmpty()) {
+        if (! $pauses || $pauses->isEmpty()) {
             return 0;
         }
 
@@ -145,10 +159,9 @@ class BookedDevice extends Model
 
         return $totalSeconds;
     }
+
     public function getTotalCostAttribute()
     {
         return ($this->period_cost ?? 0) + ($this->orders->sum('price') ?? 0);
     }
-
-
 }

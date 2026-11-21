@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class MakeTenantMigration extends Command
 {
@@ -39,6 +39,7 @@ class MakeTenantMigration extends Command
 
         if ($tenants->isEmpty()) {
             $this->warn('No tenants found in the database.');
+
             return Command::SUCCESS;
         }
 
@@ -53,7 +54,7 @@ class MakeTenantMigration extends Command
                 $bar->advance();
             } catch (\Exception $e) {
                 $this->newLine();
-                $this->error("Failed to migrate tenant {$tenant->id}: " . $e->getMessage());
+                $this->error("Failed to migrate tenant {$tenant->id}: ".$e->getMessage());
                 $bar->advance();
             }
         }
@@ -74,10 +75,10 @@ class MakeTenantMigration extends Command
 
         $query = DB::connection('mysql') // Your main database connection
             ->table('users')
-            ->select('id', 'name','database_name', 'database_username', 'database_password')
+            ->select('id', 'name', 'database_name', 'database_username', 'database_password')
             ->whereNotNull('database_username'); // Only users with tenant databases
 
-        if (!empty($tenantIds)) {
+        if (! empty($tenantIds)) {
             $query->whereIn('id', $tenantIds);
         }
 
@@ -115,25 +116,25 @@ class MakeTenantMigration extends Command
         try {
             DB::connection($connectionName)->getPdo();
         } catch (\Exception $e) {
-            throw new \Exception("Cannot connect to database: " . $e->getMessage());
+            throw new \Exception('Cannot connect to database: '.$e->getMessage());
         }
 
         // Run migrations
-            $params = [
+        $params = [
             '--database' => $connectionName,
             '--force' => true,
-            ];
+        ];
 
-            if ($path = $this->option('path')) {
-                $params['--path'] = $path;
-            }
+        if ($path = $this->option('path')) {
+            $params['--path'] = $path;
+        }
 
-            if ($this->option('fresh')) {
-                $this->warn("Running fresh migration for tenant {$tenant->id}...");
-                Artisan::call('migrate:fresh', $params);
-            } else {
-                Artisan::call('migrate', $params);
-            }
+        if ($this->option('fresh')) {
+            $this->warn("Running fresh migration for tenant {$tenant->id}...");
+            Artisan::call('migrate:fresh', $params);
+        } else {
+            Artisan::call('migrate', $params);
+        }
 
         $this->info(Artisan::output());
 

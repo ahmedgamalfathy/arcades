@@ -2,13 +2,11 @@
 
 namespace App\Http\Requests\Maintenance;
 
-use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
 
 class UpdateMaintenanceRequest extends FormRequest
 {
@@ -28,12 +26,12 @@ class UpdateMaintenanceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'deviceId' => ['required','exists:devices,id'],
-            'price'=> ['required','numeric','min:1'],
-            'title' => ['required','string'],
-            'place' => ['nullable','string'],
-            'date'=>['required','string','date_format:Y-m-d'],
-            'note'=>['nullable','string']
+            'deviceId' => ['required', 'exists:devices,id'],
+            'price' => ['required', 'numeric', 'min:1'],
+            'title' => ['required', 'string'],
+            'place' => ['nullable', 'string'],
+            'date' => ['required', 'string', 'date_format:Y-m-d'],
+            'note' => ['nullable', 'string'],
         ];
     }
 
@@ -54,5 +52,4 @@ class UpdateMaintenanceRequest extends FormRequest
             'title.required' => __('validation.custom.required'),
         ];
     }
-
 }

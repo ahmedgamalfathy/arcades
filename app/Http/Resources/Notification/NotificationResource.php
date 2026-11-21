@@ -3,9 +3,9 @@
 namespace App\Http\Resources\Notification;
 
 use App\Models\Timer\BookedDevice\BookedDevice;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Carbon\Carbon;
 
 class NotificationResource extends JsonResource
 {
@@ -16,8 +16,8 @@ class NotificationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        //id,read_at,deviceTypeName,deviceTimeName,deviceName,bookedDeviceId,userId,createdAt,updatedAt
-        $data_decode =json_decode($this->data,true);
+        // id,read_at,deviceTypeName,deviceTimeName,deviceName,bookedDeviceId,userId,createdAt,updatedAt
+        $data_decode = json_decode($this->data, true);
         $bookedDevice = BookedDevice::find($data_decode['bookedDeviceId'] ?? null);
 
         return [
@@ -28,10 +28,10 @@ class NotificationResource extends JsonResource
                 'deviceName' => $data_decode['deviceName'] ?? '',
                 'bookedDeviceId' => $data_decode['bookedDeviceId'] ?? null,
                 'userId' => $data_decode['userId'] ?? null,
-                'message' => $data_decode['message']??"",
-                'createdAt' =>Carbon::parse($this->created_at)->diffForHumans(),
-                'readAt' => $this->read_at??"",
-                'path'=>$bookedDevice?->device?->media?->path ?? "",
+                'message' => $data_decode['message'] ?? '',
+                'createdAt' => Carbon::parse($this->created_at)->diffForHumans(),
+                'readAt' => $this->read_at ?? '',
+                'path' => $bookedDevice?->device?->media?->path ?? '',
             ],
         ];
     }

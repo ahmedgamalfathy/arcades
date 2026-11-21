@@ -2,12 +2,9 @@
 
 namespace App\Http\Resources\Devices\DeviceType;
 
-
+use App\Http\Resources\Devices\Device\Relation\DeviceResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Devices\Device\Relation\DeviceResource;
-
-
 
 class DeviceTypeResource extends JsonResource
 {
@@ -21,7 +18,7 @@ class DeviceTypeResource extends JsonResource
         return [
             'deviceTypeId' => $this->id,
             'name' => $this->name,
-            'devices'=> DeviceResource::collection($this->whenLoaded('devices')),
+            'devices' => DeviceResource::collection($this->whenLoaded('devices')),
         ];
     }
 }

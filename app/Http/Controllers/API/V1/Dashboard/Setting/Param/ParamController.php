@@ -2,44 +2,48 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Setting\Param;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Services\Params\ParamService;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Routing\Controllers\Middleware;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Param\CreateParamRequest;
 use App\Http\Requests\Param\UpdateParamRequest;
-use Illuminate\Routing\Controllers\HasMiddleware;
+use App\Services\Params\ParamService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
 class ParamController extends Controller implements HasMiddleware
 {
     protected $paramService;
+
     public function __construct(ParamService $paramService)
     {
         $this->paramService = $paramService;
     }
-        public static function middleware(): array
+
+    public static function middleware(): array
     {
         return [
-            new Middleware('permission:all_params', only:['index']),
-            new Middleware('permission:create_param', only:['store']),
-            new Middleware('permission:edit_param', only:['show']),
-            new Middleware('permission:update_param', only:['update']),
-            new Middleware('permission:destroy_param', only:['destroy']),
+            new Middleware('permission:all_params', only: ['index']),
+            new Middleware('permission:create_param', only: ['store']),
+            new Middleware('permission:edit_param', only: ['show']),
+            new Middleware('permission:update_param', only: ['update']),
+            new Middleware('permission:destroy_param', only: ['destroy']),
         ];
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $validated = $request->validate([
-            'parameterOrder' => 'required|integer|min:1'
+            'parameterOrder' => 'required|integer|min:1',
         ]);
         $param = $this->paramService->allParams($validated);
-        return  ApiResponse::success($param);
+
+        return ApiResponse::success($param);
     }
 
     /**
@@ -48,7 +52,8 @@ class ParamController extends Controller implements HasMiddleware
     public function store(CreateParamRequest $createParamRequest)
     {
         $this->paramService->createParam($createParamRequest->validated());
-        return ApiResponse::success([],__("created successfully"));
+
+        return ApiResponse::success([], __('created successfully'));
     }
 
     /**
@@ -56,47 +61,47 @@ class ParamController extends Controller implements HasMiddleware
      */
     public function show(int $id)
     {
-        try{
-        $param = $this->paramService->getParamById($id);
-        return ApiResponse::success($param);
+        try {
+            $param = $this->paramService->getParamById($id);
+
+            return ApiResponse::success($param);
         } catch (ModelNotFoundException $th) {
-        return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
-        }catch (\Exception $e) {
-        return ApiResponse::exception($e);
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Exception $e) {
+            return ApiResponse::exception($e);
         }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateParamRequest $updateParamRequest,int $id)
+    public function update(UpdateParamRequest $updateParamRequest, int $id)
     {
-        try{
-        $this->paramService->updateParam($id,$updateParamRequest->validated());
-        return ApiResponse::success([], __('crud.updated'));
+        try {
+            $this->paramService->updateParam($id, $updateParamRequest->validated());
+
+            return ApiResponse::success([], __('crud.updated'));
         } catch (ModelNotFoundException $th) {
-        return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
-        }catch (\Exception $e) {
-        return ApiResponse::exception($e);
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Exception $e) {
+            return ApiResponse::exception($e);
         }
 
     }
-
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(int $id)
     {
-        try{
-        $this->paramService->deleteParam($id);
-        return ApiResponse::success([], __('crud.deleted'));
+        try {
+            $this->paramService->deleteParam($id);
+
+            return ApiResponse::success([], __('crud.deleted'));
         } catch (ModelNotFoundException $th) {
-        return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
-        }catch (\Exception $e) {
-        return ApiResponse::exception($e);
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Exception $e) {
+            return ApiResponse::exception($e);
         }
     }
 }
-
-

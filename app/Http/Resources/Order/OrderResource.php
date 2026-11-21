@@ -2,10 +2,10 @@
 
 namespace App\Http\Resources\Order;
 
+use App\Http\Resources\Order\OrderItem\OrderItemResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Order\OrderItem\OrderItemResource;
 
 class OrderResource extends JsonResource
 {
@@ -20,14 +20,14 @@ class OrderResource extends JsonResource
             'orderId' => $this->id,
             'isPaid' => $this->is_paid,
             'status' => $this->status,
-            'bookedDeviceId'=>$this->booked_device_id??"",
+            'bookedDeviceId' => $this->booked_device_id ?? '',
             'orderNumber' => $this->number,
-            'name' => $this->name??"",
+            'name' => $this->name ?? '',
             'price' => $this->price,
-            'date' =>Carbon::parse($this->created_at)->format('d/m/Y'),
-            'time' =>Carbon::parse($this->created_at)->format('H:i'),
+            'date' => Carbon::parse($this->created_at)->format('d/m/Y'),
+            'time' => Carbon::parse($this->created_at)->format('H:i'),
             // 'totalOrderItems'=>$this->items->count(),
-            'orderItems'=> OrderItemResource::collection($this->whenLoaded('items')),
+            'orderItems' => OrderItemResource::collection($this->whenLoaded('items')),
         ];
     }
 }

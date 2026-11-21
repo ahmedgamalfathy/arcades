@@ -2,14 +2,12 @@
 
 namespace App\Http\Requests\Product;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rule;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -29,10 +27,10 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['string','required',Rule::unique('products')->ignore($this->route('product'))],
-            'price'=> ['required','numeric','min:1'],
+            'name' => ['string', 'required', Rule::unique('products')->ignore($this->route('product'))],
+            'price' => ['required', 'numeric', 'min:1'],
             // 'status' => ['nullable', new Enum(StatusEnum::class)],
-            'path' => ["nullable","image", "mimes:jpeg,jpg,png,gif,svg,webp", "max:5120"],
+            'path' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,svg,webp', 'max:5120'],
         ];
     }
 
@@ -52,5 +50,4 @@ class UpdateProductRequest extends FormRequest
             'price.required' => __('validation.custom.required'),
         ];
     }
-
 }

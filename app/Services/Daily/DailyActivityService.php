@@ -67,7 +67,7 @@ class DailyActivityService
                 $sessionId = $activity->properties['attributes']['session_device_id'] ??
                     $activity->properties['old']['session_device_id'] ?? null;
 
-                if (!$sessionId && $activity->subject_id) {
+                if (! $sessionId && $activity->subject_id) {
                     $bookedDevice = BookedDevice::find($activity->subject_id);
                     $sessionId = $bookedDevice?->session_device_id;
                 }
@@ -111,14 +111,14 @@ class DailyActivityService
         $orderId = $activity->subject_id;
         $propertiesChildren = $activity->properties['children'] ?? [];
 
-        if (!empty($propertiesChildren)) {
+        if (! empty($propertiesChildren)) {
             $activity->children = $this->childrenFromOrderProperties($activity, $propertiesChildren);
         } else {
             $allChildren = $childrenMap['order'][$orderId] ?? [];
             $activity->children = collect($allChildren)->filter(function ($child) use ($activity) {
                 $sameEvent = strtolower($child->event) === strtolower($activity->event);
 
-                if (!$sameEvent) {
+                if (! $sameEvent) {
                     return false;
                 }
 
@@ -161,7 +161,7 @@ class DailyActivityService
             $itemId = $childData['id'] ?? null;
             $oldItem = $oldItemsMap->get($itemId);
 
-            if (!$oldItem) {
+            if (! $oldItem) {
                 return (object) [
                     'log_name' => 'OrderItem',
                     'event' => 'created',
@@ -177,7 +177,7 @@ class DailyActivityService
                 }
             }
 
-            if (!$hasChanges) {
+            if (! $hasChanges) {
                 return null;
             }
 
@@ -208,7 +208,7 @@ class DailyActivityService
         $sessionId = $activity->subject_id;
         $propertiesChildren = $activity->properties['children'] ?? [];
 
-        if (!empty($propertiesChildren)) {
+        if (! empty($propertiesChildren)) {
             $activity->children = collect($propertiesChildren)
                 ->map(fn ($childData) => $this->childFromSessionProperties($childData))
                 ->all();
@@ -288,8 +288,9 @@ class DailyActivityService
             return strtolower($parent->log_name) === 'order' && $parent->subject_id == $orderId;
         });
 
-        if (!$parentOrder) {
+        if (! $parentOrder) {
             $this->pushStandaloneChild($grouped, $activity, 'Order', $orderId);
+
             return;
         }
 
@@ -298,7 +299,7 @@ class DailyActivityService
         $timeDiff = abs($parentTime->diffInSeconds($childTime));
         $sameEvent = strtolower($activity->event) === strtolower($parentOrder->event);
 
-        if (!$sameEvent || $timeDiff > 10) {
+        if (! $sameEvent || $timeDiff > 10) {
             $this->pushStandaloneChild($grouped, $activity, 'Order', $orderId);
         }
     }
@@ -308,7 +309,7 @@ class DailyActivityService
         $sessionId = $activity->properties['attributes']['session_device_id'] ??
             $activity->properties['old']['session_device_id'] ?? null;
 
-        if (!$sessionId && $activity->subject_id) {
+        if (! $sessionId && $activity->subject_id) {
             $bookedDevice = BookedDevice::find($activity->subject_id);
             $sessionId = $bookedDevice?->session_device_id;
         }
@@ -317,7 +318,7 @@ class DailyActivityService
             return strtolower($parent->log_name) === 'sessiondevice' && $parent->subject_id == $sessionId;
         });
 
-        if (!$parentSession) {
+        if (! $parentSession) {
             $this->pushStandaloneChild($grouped, $activity, 'SessionDevice', $sessionId);
         }
     }

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\ActivityLog;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ActivityLog\BatchedActivityResource;
 use Illuminate\Http\Request;
 use Spatie\Activitylog\Models\Activity;
-use App\Http\Resources\ActivityLog\BatchedActivityResource;
-use App\Helpers\ApiResponse;
 
 class BatchedActivityController extends Controller
 {
@@ -55,7 +55,7 @@ class BatchedActivityController extends Controller
                     'per_page' => $batches->perPage(),
                     'total' => $batches->total(),
                     'last_page' => $batches->lastPage(),
-                ]
+                ],
             ]
         );
     }
@@ -160,13 +160,13 @@ class BatchedActivityController extends Controller
             ),
             'batchesByLogName' => Activity::selectRaw('log_name, COUNT(DISTINCT batch_uuid) as batches_count')
                 ->whereNotNull('batch_uuid')
-                ->when($dailyId, fn($q) => $q->where('daily_id', $dailyId))
+                ->when($dailyId, fn ($q) => $q->where('daily_id', $dailyId))
                 ->groupBy('log_name')
                 ->get()
                 ->pluck('batches_count', 'log_name'),
             'batchesByEvent' => Activity::selectRaw('event, COUNT(DISTINCT batch_uuid) as batches_count')
                 ->whereNotNull('batch_uuid')
-                ->when($dailyId, fn($q) => $q->where('daily_id', $dailyId))
+                ->when($dailyId, fn ($q) => $q->where('daily_id', $dailyId))
                 ->groupBy('event')
                 ->get()
                 ->pluck('batches_count', 'event'),

@@ -14,7 +14,7 @@ class AllMaintenanceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-    //    $total = Expense::count();
+        //    $total = Expense::count();
         return [
             'maintenances' => MaintenanceResource::collection($this->resource->items()),
             // 'count'=>$total,

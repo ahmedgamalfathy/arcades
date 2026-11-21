@@ -2,11 +2,10 @@
 
 namespace App\Http\Requests\Auth;
 
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class LoginUserRequest extends FormRequest
 {
@@ -27,19 +26,20 @@ class LoginUserRequest extends FormRequest
     {
         return [
             'email' => [
-                'required','string'
+                'required', 'string',
                 // Rule::anyOf([
                 //     ['string', 'email','unique:users,email'],
                 //     ['string', 'min:3','unique:users,email'],
                 // ]),
             ],
-            'password'=>'required'
+            'password' => 'required',
         ];
     }
+
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            'message' => $validator->errors()
+            'message' => $validator->errors(),
         ], 401));
     }
 }

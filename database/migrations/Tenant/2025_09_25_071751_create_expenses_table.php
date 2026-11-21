@@ -1,12 +1,12 @@
 <?php
 
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Schema;
 use App\Enums\Expense\ExpenseTypeEnum;
-use App\Models\User;
 use App\Models\Daily\Daily;
-use Illuminate\Database\Schema\Blueprint;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -16,12 +16,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('expenses', function (Blueprint $table) {
-            $table->id();//name , price , date , note ,type
+            $table->id(); // name , price , date , note ,type
             // $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->string('name');
             $table->tinyInteger('type')->default(ExpenseTypeEnum::EXTERNAL->value);
-            $table->decimal('price', 8,2);
+            $table->decimal('price', 8, 2);
             $table->date('date')->default(Carbon::now());
             $table->text('note')->nullable();
             $table->foreignIdFor(Daily::class)->nullable()->constrained()->cascadeOnUpdate()->nullOnDelete();

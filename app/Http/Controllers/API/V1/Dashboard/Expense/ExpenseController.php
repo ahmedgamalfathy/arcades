@@ -2,27 +2,23 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Expense;
 
-use App\Enums\Expense\ExpenseTypeEnum;
-use App\Http\Resources\Expense\AllExpenseResource;
-use Exception;
-use Throwable;
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Services\Expense\ExpenseService;
 use App\Enums\ResponseCode\HttpStatusCode;
-
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Routing\Controllers\HasMiddleware;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Expense\CreateExpenseRequest;
 use App\Http\Requests\Expense\UpdateExpenseRequest;
+use App\Http\Resources\Expense\AllExpenseResource;
 use App\Http\Resources\Expense\ExpenseResource;
+use App\Services\Expense\ExpenseService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Throwable;
 
 class ExpenseController extends Controller implements HasMiddleware
 {
-       protected $expenseService;
-
+    protected $expenseService;
 
     public function __construct(ExpenseService $expenseService)
     {
@@ -30,24 +26,25 @@ class ExpenseController extends Controller implements HasMiddleware
     }
 
     public static function middleware(): array
-    {//internalExpenses,externalExpenses, forceDelete,restore,create_expenses ,edit_expense ,update_expense,destroy_expense
+    {// internalExpenses,externalExpenses, forceDelete,restore,create_expenses ,edit_expense ,update_expense,destroy_expense
         return [
-            new Middleware('permission:all_expenses', only:['index']),
-            new Middleware('permission:create_expenses', only:['store']),
-            new Middleware('permission:edit_expense', only:['show']),
-            new Middleware('permission:update_expense', only:['update']),
-            new Middleware('permission:destroy_expense', only:['destroy']),
-            new Middleware('permission:restore_expense', only:['restore']),
-            new Middleware('permission:force_delete_expense', only:['forceDelete']),
+            new Middleware('permission:all_expenses', only: ['index']),
+            new Middleware('permission:create_expenses', only: ['store']),
+            new Middleware('permission:edit_expense', only: ['show']),
+            new Middleware('permission:update_expense', only: ['update']),
+            new Middleware('permission:destroy_expense', only: ['destroy']),
+            new Middleware('permission:restore_expense', only: ['restore']),
+            new Middleware('permission:force_delete_expense', only: ['forceDelete']),
         ];
     }
+
     /**
      * Display a listing of the resource.
      */
-
     public function index(Request $request)
     {
         $expenses = $this->expenseService->allExpenses($request);
+
         return ApiResponse::success(new AllExpenseResource($expenses));
     }
 
@@ -57,8 +54,9 @@ class ExpenseController extends Controller implements HasMiddleware
     public function store(CreateExpenseRequest $createExpenseRequest)
     {
         try {
-               $this->expenseService->createExpense($createExpenseRequest->validated());
-            return ApiResponse::success([],__('crud.created'));
+            $this->expenseService->createExpense($createExpenseRequest->validated());
+
+            return ApiResponse::success([], __('crud.created'));
         } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
@@ -70,11 +68,12 @@ class ExpenseController extends Controller implements HasMiddleware
     public function show(int $id)
     {
         try {
-         $expense =  $this->expenseService->editExpense($id);
+            $expense = $this->expenseService->editExpense($id);
+
             return ApiResponse::success(new ExpenseResource($expense));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
@@ -85,11 +84,12 @@ class ExpenseController extends Controller implements HasMiddleware
     public function update(UpdateExpenseRequest $updateExpenseRequest, int $id)
     {
         try {
-            $this->expenseService->updateExpense($id,$updateExpenseRequest->validated());
+            $this->expenseService->updateExpense($id, $updateExpenseRequest->validated());
+
             return ApiResponse::success([], __('crud.updated'));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (Throwable $th) {
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
@@ -99,36 +99,40 @@ class ExpenseController extends Controller implements HasMiddleware
      */
     public function destroy(string $id)
     {
-        try{
+        try {
             $this->expenseService->deleteExpense($id);
-            return ApiResponse::success([],__('crud.deleted'));
-        }catch (ModelNotFoundException $th) {
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
-            return ApiResponse::error(__('crud.server_error'),[],HttpStatusCode::INTERNAL_SERVER_ERROR);
+
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $th) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::error(__('crud.server_error'), [], HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
-    public function restore($id){
+
+    public function restore($id)
+    {
         try {
             $this->expenseService->restoreExpense($id);
-            return ApiResponse::success([],__('crud.restore'));
-        }catch(ModelNotFoundException $e){
-            return apiResponse::error(__('crud.not_found'),[], HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+
+            return ApiResponse::success([], __('crud.restore'));
+        } catch (ModelNotFoundException $e) {
+            return apiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
     public function forceDelete($id)
     {
         try {
             $this->expenseService->forceDeleteExpense($id);
-            return ApiResponse::success([],__('crud.deleted'));
-        } catch(ModelNotFoundException $e){
-            return apiResponse::error(__('crud.not_found'),[], HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $e) {
+            return apiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
 }
-
-

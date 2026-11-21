@@ -1,89 +1,107 @@
 <?php
+
 namespace App\Services\Expense;
-use Illuminate\Http\Request;
-use App\Models\Expense\Expense;
-use Spatie\QueryBuilder\QueryBuilder;
+
 use App\Filters\Expense\FilterExpense;
-use Spatie\QueryBuilder\AllowedFilter;
-use Illuminate\Support\Facades\DB;
+use App\Models\Expense\Expense;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
-class ExpenseService {
- public function allExpenses(Request $request) {
-    $perPage =$request->query('perPage',10);
-    // $expenses = Expense::where('type',$type)->orderByDesc('id')->cursorPaginate($perPage);
-    $expenses = QueryBuilder::for(Expense::class)
-    ->with('user')
-    ->allowedFilters([
-        AllowedFilter::custom('search', new FilterExpense),
-        AllowedFilter::exact('type', 'type'),
-        AllowedFilter::exact('dailyId', 'daily_id'),
-    ])
-    ->orderByDesc('created_at')
-    ->cursorPaginate($perPage);
-    return $expenses;
- }
- public function editExpense(int $id){
-    $expense = Expense::find($id);
-    if(!$expense){
-      throw new ModelNotFoundException("Expense with id {$id} not found");
-    }
-    return $expense;
- }
- public function createExpense(array $data){
-    return DB::transaction(function () use ($data) {
-    $expense = Expense::create([
-        'user_id'=>auth('api')->id(),
-        'name'=>$data['name'],
-        'type'=>$data['type'],
-        'price'=>$data['price'],
-        'date'=>$data['date'],
-        'note'=>$data['note']??null,
-        'daily_id'=>$data['dailyId']??null,
-    ]);
-    return $expense;
-    });
- }
- public function updateExpense(int $id , array $data){
-    return DB::transaction(function () use ($id, $data) {
-    $expense = Expense::find($id);
-    if(!$expense){
-      throw new ModelNotFoundException("Expense with id {$id} not found");
-    }
-    $expense->user_id = auth('api')->id();
-    $expense->type = $expense->type;
-    $expense->name = $data['name'];
-    $expense->price = $data['price'];
-    $expense->date = $data['date'];
-    $expense->note = $data['note']??null;
-    $expense->save();
-    return $expense;
-    });
- }
- public  function deleteExpense(int $id){
-    $expense = Expense::find($id);
-    if(!$expense){
-      throw new ModelNotFoundException("Expense with id {$id} not found");
-    }
-    $expense->delete();
-    return  $expense;
-
- }
-public function restoreExpense($id)
+class ExpenseService
 {
-    $expense = Expense::withTrashed()->findOrFail($id);
-    if(!$expense){
-      throw new ModelNotFoundException("Expense with id {$id} not found");
-    }
-    $expense->restore();
-}
+    public function allExpenses(Request $request)
+    {
+        $perPage = $request->query('perPage', 10);
+        // $expenses = Expense::where('type',$type)->orderByDesc('id')->cursorPaginate($perPage);
+        $expenses = QueryBuilder::for(Expense::class)
+            ->with('user')
+            ->allowedFilters([
+                AllowedFilter::custom('search', new FilterExpense),
+                AllowedFilter::exact('type', 'type'),
+                AllowedFilter::exact('dailyId', 'daily_id'),
+            ])
+            ->orderByDesc('created_at')
+            ->cursorPaginate($perPage);
 
-public function forceDeleteExpense($id)
-{
-    $expense = Expense::withTrashed()->findOrFail($id);
-    if(!$expense){
-      throw new ModelNotFoundException("Expense with id {$id} not found");
+        return $expenses;
     }
-    $expense->forceDelete();
-}
+
+    public function editExpense(int $id)
+    {
+        $expense = Expense::find($id);
+        if (! $expense) {
+            throw new ModelNotFoundException("Expense with id {$id} not found");
+        }
+
+        return $expense;
+    }
+
+    public function createExpense(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+            $expense = Expense::create([
+                'user_id' => auth('api')->id(),
+                'name' => $data['name'],
+                'type' => $data['type'],
+                'price' => $data['price'],
+                'date' => $data['date'],
+                'note' => $data['note'] ?? null,
+                'daily_id' => $data['dailyId'] ?? null,
+            ]);
+
+            return $expense;
+        });
+    }
+
+    public function updateExpense(int $id, array $data)
+    {
+        return DB::transaction(function () use ($id, $data) {
+            $expense = Expense::find($id);
+            if (! $expense) {
+                throw new ModelNotFoundException("Expense with id {$id} not found");
+            }
+            $expense->user_id = auth('api')->id();
+            $expense->type = $expense->type;
+            $expense->name = $data['name'];
+            $expense->price = $data['price'];
+            $expense->date = $data['date'];
+            $expense->note = $data['note'] ?? null;
+            $expense->save();
+
+            return $expense;
+        });
+    }
+
+    public function deleteExpense(int $id)
+    {
+        $expense = Expense::find($id);
+        if (! $expense) {
+            throw new ModelNotFoundException("Expense with id {$id} not found");
+        }
+        $expense->delete();
+
+        return $expense;
+
+    }
+
+    public function restoreExpense($id)
+    {
+        $expense = Expense::withTrashed()->findOrFail($id);
+        if (! $expense) {
+            throw new ModelNotFoundException("Expense with id {$id} not found");
+        }
+        $expense->restore();
+    }
+
+    public function forceDeleteExpense($id)
+    {
+        $expense = Expense::withTrashed()->findOrFail($id);
+        if (! $expense) {
+            throw new ModelNotFoundException("Expense with id {$id} not found");
+        }
+        $expense->forceDelete();
+    }
 }

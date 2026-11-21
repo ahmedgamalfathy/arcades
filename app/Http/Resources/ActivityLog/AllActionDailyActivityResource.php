@@ -4,11 +4,6 @@ namespace App\Http\Resources\ActivityLog;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\ActivityLog\DailyActivityResource;
-use App\Http\Resources\ActivityLog\SessionActivityResource;
-use App\Http\Resources\ActivityLog\OrderActivityResouce;
-use App\Http\Resources\ActivityLog\ExpenseActivityResource;
-use App\Http\Resources\ActivityLog\BookedDeviceActivityResource;
 
 class AllActionDailyActivityResource extends JsonResource
 {

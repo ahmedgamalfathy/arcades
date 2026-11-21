@@ -2,10 +2,9 @@
 
 namespace App\Http\Resources\Devices\DeviceType;
 
+use App\Http\Resources\Devices\DeviceTime\DeviceTimeResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Devices\DeviceTime\DeviceTimeResource;
-
 
 class DeviceTypeEditResource extends JsonResource
 {

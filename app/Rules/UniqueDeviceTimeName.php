@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 class UniqueDeviceTimeName implements ValidationRule
 {
     protected int $deviceTypeId;
+
     protected ?int $ignoreId;
 
     public function __construct(int $deviceTypeId, ?int $ignoreId = null)

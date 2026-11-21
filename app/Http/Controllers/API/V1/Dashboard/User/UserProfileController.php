@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\User;
 
+use App\Enums\Media\MediaTypeEnum;
 use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\User\UpdateUserProfileRequest;
+use App\Http\Resources\User\ProfileResource;
+use App\Services\Media\MediaService;
+use App\Services\Upload\UploadService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use App\Enums\Media\MediaTypeEnum;
-use App\Http\Controllers\Controller;
-use App\Services\Media\MediaService;
-use Illuminate\Support\Facades\Auth;
-use App\Services\Upload\UploadService;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Resources\User\ProfileResource;
-use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
-use App\Http\Requests\User\UpdateUserProfileRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class UserProfileController extends Controller implements HasMiddleware
 {
     protected $uploadService;
+
     protected $mediaService;
+
     public function __construct(UploadService $uploadService, MediaService $mediaService)
     {
         $this->uploadService = $uploadService;
@@ -32,11 +33,9 @@ class UserProfileController extends Controller implements HasMiddleware
         ];
     }
 
-
     /**
      * Show the form for editing the specified resource.
      */
-
     public function show(Request $request)
     {
 
@@ -48,13 +47,13 @@ class UserProfileController extends Controller implements HasMiddleware
      */
     public function update(UpdateUserProfileRequest $request)
     {
-        $superAdmin =Auth::user();
+        $superAdmin = Auth::user();
         $authUser = $request->user();
         $userData = $request->validated();
         $oldMediaId = $authUser->media_id ?? null;
         $mediaId = $oldMediaId;
         if (isset($userData['mediaFile']) && $userData['mediaFile'] instanceof UploadedFile) {
-            if (!empty($oldMediaId)) {
+            if (! empty($oldMediaId)) {
                 $this->mediaService->deleteMedia($oldMediaId);
             }
             $media = $this->mediaService->createMedia([
@@ -63,19 +62,16 @@ class UserProfileController extends Controller implements HasMiddleware
                 'category' => null,
             ]);
             $mediaId = $media->id;
-        }
-        elseif (isset($userData['mediaId']) && $userData['mediaId'] != $oldMediaId) {
-                $mediaId = $userData['mediaId'];
-                if ($oldMediaId) {
-                    $this->mediaService->deleteMedia($oldMediaId);
-                }
+        } elseif (isset($userData['mediaId']) && $userData['mediaId'] != $oldMediaId) {
+            $mediaId = $userData['mediaId'];
+            if ($oldMediaId) {
+                $this->mediaService->deleteMedia($oldMediaId);
+            }
         }
         $authUser->name = $userData['name'];
-        $authUser->media_id =$mediaId;
+        $authUser->media_id = $mediaId;
         $authUser->save();
 
         return ApiResponse::success([], __('crud.updated'));
     }
-
-
 }

@@ -2,32 +2,34 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Device;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Http\Request;
-use App\Enums\Order\OrderTypeEnum;
-use App\Http\Controllers\Controller;
-use App\Services\Order\OrderService;
-use Illuminate\Validation\Rules\Enum;
 use App\Enums\Device\DeviceStatusEnum;
-use App\Services\Device\DeviceService;
-use Illuminate\Database\QueryException;
+use App\Enums\Order\OrderTypeEnum;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Validation\ValidationException;
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Device\CreateDeviceRequest;
 use App\Http\Requests\Device\UpdateDeviceRequest;
 use App\Http\Requests\Order\CreateOrderDeviceRequest;
-use App\Http\Resources\Devices\Device\DeviceResource;
-use App\Services\Device\DeviceTime\DeviceTimeService;
 use App\Http\Resources\Devices\Device\AllDeviceResource;
+use App\Http\Resources\Devices\Device\DeviceResource;
+use App\Services\Device\DeviceService;
+use App\Services\Device\DeviceTime\DeviceTimeService;
+use App\Services\Order\OrderService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\ValidationException;
 
 class DeviceController extends Controller
 {
     protected $deviceTimeService;
+
     protected $deviceService;
+
     protected $orderService;
-    public function __construct(DeviceTimeService $deviceTimeService ,DeviceService $deviceService,OrderService $orderService)
+
+    public function __construct(DeviceTimeService $deviceTimeService, DeviceService $deviceService, OrderService $orderService)
     {
         $this->deviceTimeService = $deviceTimeService;
         $this->deviceService = $deviceService;
@@ -39,21 +41,23 @@ class DeviceController extends Controller
      */
     public function index(Request $request)
     {
-        $devices=$this->deviceService->allDevices($request);
-        return ApiResponse::success(new AllDeviceResource ($devices));
+        $devices = $this->deviceService->allDevices($request);
+
+        return ApiResponse::success(new AllDeviceResource($devices));
     }
 
     /**
      * Display the specified resource.
      */
-      public function show($id)
+    public function show($id)
     {
         try {
-            $device=$this->deviceService->editDevice($id);
-            return ApiResponse::success(new  DeviceResource($device));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+            $device = $this->deviceService->editDevice($id);
+
+            return ApiResponse::success(new DeviceResource($device));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
@@ -61,9 +65,10 @@ class DeviceController extends Controller
     public function store(CreateDeviceRequest $createDeviceRequest)
     {
         try {
-            $data =$createDeviceRequest->validated();
+            $data = $createDeviceRequest->validated();
             $this->deviceService->createDevice($data);
-            return ApiResponse::success([],__('crud.created'));
+
+            return ApiResponse::success([], __('crud.created'));
         } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
@@ -73,12 +78,13 @@ class DeviceController extends Controller
     public function update(UpdateDeviceRequest $updateDeviceRequest, $id)
     {
         try {
-            $data =$updateDeviceRequest->validated();
-            $this->deviceService->updateDevice($id,$data );
-            return ApiResponse::success([],__('crud.updated'));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+            $data = $updateDeviceRequest->validated();
+            $this->deviceService->updateDevice($id, $data);
+
+            return ApiResponse::success([], __('crud.updated'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
 
@@ -88,70 +94,81 @@ class DeviceController extends Controller
     {
         try {
             $this->deviceService->deleteDevice($id);
-            return ApiResponse::success([],__('crud.deleted'));
-        }catch(ValidationException $e){
-           return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch(QueryException  $e){
-            return ApiResponse::error(__('crud.dont_delete_device_time'),[],HttpStatusCode::UNPROCESSABLE_ENTITY);
-        }catch (\Throwable $th) {
+
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ValidationException $e) {
+            return ApiResponse::error(__('validation.validation_error'), $e->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (QueryException  $e) {
+            return ApiResponse::error(__('crud.dont_delete_device_time'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
 
     }
+
     public function restore(int $id)
     {
         try {
             $this->deviceService->restoreDevice($id);
-            return ApiResponse::success([],__('crud.updated'));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
-            return ApiResponse::exception($th);
-        }
-    }
-    public function forceDelete(int $id)
-    {
-        try {
-            $this->deviceService->forceDeleteDevice($id);
-            return ApiResponse::success([],__('crud.deleted'));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch(QueryException  $e){
-            return ApiResponse::error(__('crud.dont_delete_device_type'),[],HttpStatusCode::UNPROCESSABLE_ENTITY);
-        }catch (\Throwable $th) {
-            return ApiResponse::exception($th);
-        }
-    }
-        public function changeStatus($id , Request $request)
-    {
-        try {
-           $data= $request->validate([
-            "status"=>['required','string',new Enum(DeviceStatusEnum::class) ]
-           ]);
-            $device=$this->deviceService->changeDeviceStatus($id,$data );
-            if($device){
-            activity()->performedOn($device)->causedBy(auth()->user())->withProperties($device->toArray())->log('change device status');
-            }
-            return ApiResponse::success([],__('crud.updated'));
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
-            return ApiResponse::exception($th);
-        }
 
-    }
-    public function createOrderDevice(CreateOrderDeviceRequest $createOrderDeviceRequest){
-        try {
-            $data =$createOrderDeviceRequest->validated();
-            $data['type']=OrderTypeEnum::INTERNAL->value;
-            $this->orderService->createOrder($data);
-            return ApiResponse::success([],__('crud.created'));
+            return ApiResponse::success([], __('crud.updated'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
         } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
+
+    public function forceDelete(int $id)
+    {
+        try {
+            $this->deviceService->forceDeleteDevice($id);
+
+            return ApiResponse::success([], __('crud.deleted'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (QueryException  $e) {
+            return ApiResponse::error(__('crud.dont_delete_device_type'), [], HttpStatusCode::UNPROCESSABLE_ENTITY);
+        } catch (\Throwable $th) {
+            return ApiResponse::exception($th);
+        }
+    }
+
+    public function changeStatus($id, Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'status' => ['required', 'string', new Enum(DeviceStatusEnum::class)],
+            ]);
+            $device = $this->deviceService->changeDeviceStatus($id, $data);
+            if ($device) {
+                activity()->performedOn($device)->causedBy(auth()->user())->withProperties($device->toArray())->log('change device status');
+            }
+
+            return ApiResponse::success([], __('crud.updated'));
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
+            return ApiResponse::exception($th);
+        }
+
+    }
+
+    public function createOrderDevice(CreateOrderDeviceRequest $createOrderDeviceRequest)
+    {
+        try {
+            $data = $createOrderDeviceRequest->validated();
+            $data['type'] = OrderTypeEnum::INTERNAL->value;
+            $this->orderService->createOrder($data);
+
+            return ApiResponse::success([], __('crud.created'));
+        } catch (\Throwable $th) {
+            return ApiResponse::exception($th);
+        }
+    }
+
     public function getTimesByDeviceId(Request $request)
     {
         try {
@@ -166,16 +183,12 @@ class DeviceController extends Controller
                     'lable' => $deviceTime->name,
                 ];
             });
+
             return ApiResponse::success($schemaTimes);
-        }catch(ModelNotFoundException $e){
-            return ApiResponse::error(__('crud.not_found'),[],HttpStatusCode::NOT_FOUND);
-        }catch (\Throwable $th) {
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(__('crud.not_found'), [], HttpStatusCode::NOT_FOUND);
+        } catch (\Throwable $th) {
             return ApiResponse::exception($th);
         }
     }
-
 }
-
-
-
-

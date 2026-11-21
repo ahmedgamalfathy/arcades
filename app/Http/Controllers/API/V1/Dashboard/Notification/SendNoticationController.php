@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\API\V1\Dashboard\Notification;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Helpers\ApiResponse;
-use App\Models\Timer\BookedDevice\BookedDevice;
-use App\Notifications\BookedDeviceStatusNotification;
-use App\Models\User;
+use App\Http\Controllers\Controller;
 use App\Models\Setting\Param\Param;
+use App\Models\Timer\BookedDevice\BookedDevice;
+use App\Models\User;
+use App\Notifications\BookedDeviceStatusNotification;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+
 class SendNoticationController extends Controller
 {
     /**
@@ -19,41 +20,42 @@ class SendNoticationController extends Controller
     {
         $now = Carbon::now();
         // $user = User::findOrFail(auth('api')->id());
-        $users=User::where('is_active',1)->get();
-        $defaultTimeNotification = Param::where('parameter_order',1)->first()->value('type');
-        $bookedDevices = BookedDevice::where('status', '!=', 'finished') 
-        ->whereBetween('end_date_time', [
-        $now->copy()->addMinutes($defaultTimeNotification), 
-        $now->copy()->addMinutes($defaultTimeNotification + 1)  
-        ])->get();
-        $expiredBookedDevices = BookedDevice::where('status', '!=', 'finished') 
-        ->where('end_date_time', '<=', $now)->get();
+        $users = User::where('is_active', 1)->get();
+        $defaultTimeNotification = Param::where('parameter_order', 1)->first()->value('type');
+        $bookedDevices = BookedDevice::where('status', '!=', 'finished')
+            ->whereBetween('end_date_time', [
+                $now->copy()->addMinutes($defaultTimeNotification),
+                $now->copy()->addMinutes($defaultTimeNotification + 1),
+            ])->get();
+        $expiredBookedDevices = BookedDevice::where('status', '!=', 'finished')
+            ->where('end_date_time', '<=', $now)->get();
         foreach ($users as $user) {
             foreach ($bookedDevices as $booked) {
                 $user->notify(new BookedDeviceStatusNotification([
-                        "sessionDevice" => $booked->sessionDevice->id,
-                        "deviceTypeName" => $booked->deviceType->name,
-                        "deviceTimeName"=>$booked->deviceTime->name,
-                        "deviceName"=>$booked->device->name,
-                        "bookedDeviceId" => $booked->id,
-                        "message"=>"متبقى على الجهاز{$defaultTimeNotification} دقائق",
-                        "userId" => $user->id,
+                    'sessionDevice' => $booked->sessionDevice->id,
+                    'deviceTypeName' => $booked->deviceType->name,
+                    'deviceTimeName' => $booked->deviceTime->name,
+                    'deviceName' => $booked->device->name,
+                    'bookedDeviceId' => $booked->id,
+                    'message' => "متبقى على الجهاز{$defaultTimeNotification} دقائق",
+                    'userId' => $user->id,
                 ]));
             }
         }
         foreach ($users as $user) {
-                foreach ($expiredBookedDevices as $booked) {
-                    $user->notify(new BookedDeviceStatusNotification([
-                            "sessionDevice" => $booked->sessionDevice->id,
-                            "deviceTypeName" => $booked->deviceType->name,
-                            "deviceTimeName"=>$booked->deviceTime->name,
-                            "deviceName"=>$booked->device->name,
-                            "bookedDeviceId" => $booked->id,
-                            "message"=>"انتهى الوقت المتبقى على الجهاز",
-                            "userId" => $user->id,
-                    ]));
+            foreach ($expiredBookedDevices as $booked) {
+                $user->notify(new BookedDeviceStatusNotification([
+                    'sessionDevice' => $booked->sessionDevice->id,
+                    'deviceTypeName' => $booked->deviceType->name,
+                    'deviceTimeName' => $booked->deviceTime->name,
+                    'deviceName' => $booked->device->name,
+                    'bookedDeviceId' => $booked->id,
+                    'message' => 'انتهى الوقت المتبقى على الجهاز',
+                    'userId' => $user->id,
+                ]));
             }
         }
-    return ApiResponse::success([],'Notification sent successfully!');
+
+        return ApiResponse::success([], 'Notification sent successfully!');
     }
 }

@@ -1,72 +1,85 @@
 <?php
+
 namespace App\Services\Media;
 
 use App\Enums\Media\MediaTypeEnum;
 use App\Models\Media\Media;
 use App\Services\Upload\UploadService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class MediaService {
+class MediaService
+{
     public $uploadService;
-        public function __construct(UploadService $uploadService)
+
+    public function __construct(UploadService $uploadService)
     {
         $this->uploadService = $uploadService;
     }
-   public  function allMedia($category=null)  {
-    if($category == null){
-      $media = Media::select('id','path')->get();
-    }else{
-    $media = Media::select('id','path')->where('category',$category)->get();
-    }
-    return $media;
-    }
 
-    function editMedia($id)  {
-    $media = Media::select('id','path')->find($id);
-    if(!$media){
-        throw new ModelNotFoundException();
-    }
-    return $media;
-    }
-
-    public function createMedia(array $data){
-        $path = null;
-        if(isset($data['path']) && $data['path'] instanceof UploadedFile){
-          $path =  $this->uploadService->uploadFile($data['path'], 'media');
+    public function allMedia($category = null)
+    {
+        if ($category == null) {
+            $media = Media::select('id', 'path')->get();
+        } else {
+            $media = Media::select('id', 'path')->where('category', $category)->get();
         }
-      $media=Media::on('tenant')->create([
-        'path'=>$path,
-        'type'=>$data['type']??MediaTypeEnum::PHOTO->value,
-        'category'=>$data['category'],
-      ]);
-      return $media;
+
+        return $media;
     }
-    public function updateMedia(int $id,$data){
-    $media = Media::on('tenant')->find($id);
-    if(!$media){
-        throw new ModelNotFoundException();
+
+    public function editMedia($id)
+    {
+        $media = Media::select('id', 'path')->find($id);
+        if (! $media) {
+            throw new ModelNotFoundException;
+        }
+
+        return $media;
     }
-    $path = null;
-    if($media->path){
-        Storage::disk('public')->delete($media->getRawOriginal('path'));
+
+    public function createMedia(array $data)
+    {
+        $path = null;
+        if (isset($data['path']) && $data['path'] instanceof UploadedFile) {
+            $path = $this->uploadService->uploadFile($data['path'], 'media');
+        }
+        $media = Media::on('tenant')->create([
+            'path' => $path,
+            'type' => $data['type'] ?? MediaTypeEnum::PHOTO->value,
+            'category' => $data['category'],
+        ]);
+
+        return $media;
     }
-    if(isset($data['path']) && $data['path'] instanceof UploadedFile){
-    $path =$this->uploadService->uploadFile($data['path'], 'media');
-    }
-    $media->type=$data['type'];
-    $media->path = $path;
-    $media->category = $data['category'];
-    $media->save();
-    return $media;
+
+    public function updateMedia(int $id, $data)
+    {
+        $media = Media::on('tenant')->find($id);
+        if (! $media) {
+            throw new ModelNotFoundException;
+        }
+        $path = null;
+        if ($media->path) {
+            Storage::disk('public')->delete($media->getRawOriginal('path'));
+        }
+        if (isset($data['path']) && $data['path'] instanceof UploadedFile) {
+            $path = $this->uploadService->uploadFile($data['path'], 'media');
+        }
+        $media->type = $data['type'];
+        $media->path = $path;
+        $media->category = $data['category'];
+        $media->save();
+
+        return $media;
     }
 
     public function deleteMedia(int $id)
     {
         $media = Media::on('tenant')->find($id);
         if (! $media) {
-            throw new ModelNotFoundException();
+            throw new ModelNotFoundException;
         }
         if (! is_null($media->category)) {
             return;
@@ -76,5 +89,4 @@ class MediaService {
         }
         $media->delete();
     }
-
 }

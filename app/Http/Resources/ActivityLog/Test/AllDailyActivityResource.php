@@ -4,9 +4,9 @@ namespace App\Http\Resources\ActivityLog\Test;
 
 use App\Http\Resources\ActivityLog\Test\Concerns\ResolvesActivityChildren;
 use App\Http\Resources\ActivityLog\Test\Concerns\ResolvesActivityModels;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Carbon\Carbon;
 
 class AllDailyActivityResource extends JsonResource
 {
@@ -18,13 +18,13 @@ class AllDailyActivityResource extends JsonResource
         $details = $this->resolveResource();
 
         // Add parent info to details if exists (for standalone children)
-        if (!empty($this->parentInfo)) {
+        if (! empty($this->parentInfo)) {
             $details['parentInfo'] = $this->parentInfo;
         }
 
         // Process all children - filtering is done in controller
         $children = [];
-        if (!empty($this->children)) {
+        if (! empty($this->children)) {
             foreach ($this->children as $child) {
                 $children[] = $this->resolveChildDetails($child);
             }
@@ -44,5 +44,4 @@ class AllDailyActivityResource extends JsonResource
             'children' => $children,
         ];
     }
-
 }

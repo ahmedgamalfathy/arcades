@@ -17,9 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 class DeviceTypeController extends Controller
 {
-    public function __construct(protected DeviceTypeService $deviceTypeService)
-    {
-    }
+    public function __construct(protected DeviceTypeService $deviceTypeService) {}
 
     public function index(Request $request)
     {

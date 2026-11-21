@@ -11,6 +11,3 @@ class PermissionSelectService
         return Permission::all(['name as value', 'name as label']);
     }
 }
-
-
-

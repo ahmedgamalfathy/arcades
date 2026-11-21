@@ -2,11 +2,12 @@
 
 namespace App\Http\Resources\Timer\BookedDevice;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\Order\AllOrderResource;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
-use App\Http\Resources\Order\AllOrderResource;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
 class BookedDeviceResource extends JsonResource
 {
     /**
@@ -16,42 +17,45 @@ class BookedDeviceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [//sessionDevice,deviceType,deviceTime,device
+        return [// sessionDevice,deviceType,deviceTime,device
             'bookedDeviceId' => $this->id,
-            'sessionDeviceId'=>$this->session_device_id??"",
+            'sessionDeviceId' => $this->session_device_id ?? '',
             'deviceTypeId' => $this->device_type_id,
             'deviceTimeId' => $this->device_time_id,
             'deviceId' => $this->device_id,
-            'device'=>[
+            'device' => [
                 'deviceTypeName' => $this->deviceType->name,
                 'deviceTimeName' => $this->deviceTime->name,
                 'deviceName' => $this->device->name,
-                'path'=>$this->device->media->path??"",
+                'path' => $this->device->media->path ?? '',
             ],
-            'startDateTime' => $this->start_date_time ? Carbon::parse($this->start_date_time)->format('H:i') : "",
-            'endDateTime' => $this->end_date_time ? Carbon::parse($this->end_date_time)->format('H:i') : "",
+            'startDateTime' => $this->start_date_time ? Carbon::parse($this->start_date_time)->format('H:i') : '',
+            'endDateTime' => $this->end_date_time ? Carbon::parse($this->end_date_time)->format('H:i') : '',
             'status' => $this->status,
             'totalHour' => $this->calculateTotalHour($this->start_date_time, $this->end_date_time),
             'currentTime' => $this->formatDuration($this->start_date_time, $this->end_date_time),
-            'price'=>$this->period_cost,
-            'actualPaidAmount'=>$this->actual_paid_amount,
-            'orders'=>$this->orders?AllOrderResource::collection($this->orders):"",
+            'price' => $this->period_cost,
+            'actualPaidAmount' => $this->actual_paid_amount,
+            'orders' => $this->orders ? AllOrderResource::collection($this->orders) : '',
             // 'totalPaidAmount'=>$this->orders?$this->orders->sum('paid_amount'):"",,
         ];
     }
-     private function calculateTotalHour($startTime, $endTime)
+
+    private function calculateTotalHour($startTime, $endTime)
     {
-        if (!$endTime || $endTime->isFuture()) {
+        if (! $endTime || $endTime->isFuture()) {
             return $startTime->diffForHumans(Carbon::now(), [
-            'parts' => 2,
-            'syntax' => CarbonInterface::DIFF_ABSOLUTE
+                'parts' => 2,
+                'syntax' => CarbonInterface::DIFF_ABSOLUTE,
             ]);
         }
+
         return $startTime->diffForHumans($endTime, [
             'parts' => 2,
-            'syntax' => CarbonInterface::DIFF_ABSOLUTE
-         ]);
+            'syntax' => CarbonInterface::DIFF_ABSOLUTE,
+        ]);
     }
+
     private function formatDuration($startTime, $endTime = null)
     {
         $start = Carbon::parse($startTime);
@@ -63,7 +67,7 @@ class BookedDeviceResource extends JsonResource
             $effectiveEnd = $now;
         }
         if ($effectiveEnd->lessThan($start)) {
-            return "00:00:00";
+            return '00:00:00';
         }
         $diff = $start->diff($effectiveEnd);
         $totalHours = ($diff->days * 24) + $diff->h;

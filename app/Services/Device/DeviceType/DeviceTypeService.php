@@ -1,29 +1,28 @@
 <?php
+
 namespace App\Services\Device\DeviceType;
 
 use App\Enums\ActionStatusEnum;
-use App\Services\Device\DeviceTime\DeviceTimeService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\QueryBuilder\AllowedFilter;
 use App\Filters\DeviceType\FilterDeviceType;
 use App\Models\Device\DeviceType\DeviceType;
-use Illuminate\Validation\ValidationException;
+use App\Services\Device\DeviceTime\DeviceTimeService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class DeviceTypeService
 {
-    public function __construct(private DeviceTimeService $deviceTimeService)
-    {
-    }
+    public function __construct(private DeviceTimeService $deviceTimeService) {}
 
     public function allDeviceTypes(Request $request)
     {
         $perPage = $request->query('perPage', 10);
         $query = QueryBuilder::for(DeviceType::class)
             ->allowedFilters([
-                AllowedFilter::custom('search', new FilterDeviceType()),
+                AllowedFilter::custom('search', new FilterDeviceType),
             ])
             ->with('devices');
 
@@ -33,22 +32,25 @@ class DeviceTypeService
 
         return $query->cursorPaginate($perPage);
     }
+
     public function editDeviceType(int $id)
     {
         $deviceType = DeviceType::with('deviceTimes')->find($id);
-        if(!$deviceType){
-        throw new ModelNotFoundException("Device Type with id {$id} not found");
+        if (! $deviceType) {
+            throw new ModelNotFoundException("Device Type with id {$id} not found");
         }
-        return  $deviceType;
+
+        return $deviceType;
     }
+
     public function createDeviceType(array $data)
     {
         return DB::transaction(function () use ($data) {
             $deviceType = DeviceType::create([
-                'name'=>$data['name'],
+                'name' => $data['name'],
             ]);
 
-            if (!empty($data['times'])) {
+            if (! empty($data['times'])) {
                 foreach ($data['times'] as $time) {
                     $time['deviceTypeId'] = $deviceType->id;
                     $this->deviceTimeService->createDeviceTime($time);
@@ -58,17 +60,18 @@ class DeviceTypeService
             return $deviceType;
         });
     }
-    public function updateDeviceType(int $id,array $data)
+
+    public function updateDeviceType(int $id, array $data)
     {
         return DB::transaction(function () use ($id, $data) {
             $deviceType = DeviceType::find($id);
-            if(!$deviceType){
-            throw new ModelNotFoundException("Device Type with id {$id} not found");
+            if (! $deviceType) {
+                throw new ModelNotFoundException("Device Type with id {$id} not found");
             }
             $deviceType->name = $data['name'];
             $deviceType->save();
 
-            if (!empty($data['times'])) {
+            if (! empty($data['times'])) {
                 foreach ($data['times'] as $time) {
                     $time['deviceTypeId'] = $deviceType->id;
                     $status = isset($time['actionStatus']) ? (int) $time['actionStatus'] : ActionStatusEnum::DEFAULT->value;
@@ -96,49 +99,53 @@ class DeviceTypeService
             return $deviceType;
         });
     }
+
     public function deleteDeviceType(int $id)
     {
         $deviceType = DeviceType::find($id);
-        if (!$deviceType) {
+        if (! $deviceType) {
             throw new ModelNotFoundException("Device Type with id {$id} not found");
         }
 
         // التحقق من إمكانية الحذف
-        if (!$deviceType->canBeDeleted()) {
+        if (! $deviceType->canBeDeleted()) {
             throw ValidationException::withMessages([
-                'deviceType'=>$deviceType->getDeletionBlockReason()
+                'deviceType' => $deviceType->getDeletionBlockReason(),
             ]);
         }
 
         // حذف الأجهزة غير النشطة أولاً (Soft Delete)
-        $deviceType->devices()->each(function($device) {
-            if (!$device->hasActiveBookings()) {
+        $deviceType->devices()->each(function ($device) {
+            if (! $device->hasActiveBookings()) {
                 $device->delete(); // Soft Delete
             }
         });
 
         // حذف نوع الجهاز (Soft Delete)
         $deviceType->delete();
+
         return $deviceType;
     }
 
     public function restoreDeviceType(int $id)
     {
         $deviceType = DeviceType::onlyTrashed()->find($id);
-        if (!$deviceType) {
+        if (! $deviceType) {
             throw new ModelNotFoundException("Device Type with id {$id} not found in trashed");
         }
         $deviceType->restore();
+
         return $deviceType;
     }
 
     public function forceDeleteDeviceType(int $id)
     {
         $deviceType = DeviceType::withTrashed()->find($id);
-        if (!$deviceType) {
+        if (! $deviceType) {
             throw new ModelNotFoundException("Device Type with id {$id} not found");
         }
         $deviceType->forceDelete();
+
         return $deviceType;
     }
 }

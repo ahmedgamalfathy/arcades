@@ -2,8 +2,8 @@
 
 namespace App\Helpers;
 
-use Illuminate\Http\JsonResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
+use Illuminate\Http\JsonResponse;
 use Throwable;
 
 class ApiResponse
@@ -13,9 +13,9 @@ class ApiResponse
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data'    => $data
+            'data' => $data,
         ], $status->value)->withHeaders([
-            'Accept'=>'application/json'
+            'Accept' => 'application/json',
         ]);
     }
 
@@ -29,9 +29,9 @@ class ApiResponse
         return response()->json([
             'success' => false,
             'message' => $message,
-            'errors'  => $errors
+            'errors' => $errors,
         ], $status->value)->withHeaders([
-            'Accept'=>'application/json'
+            'Accept' => 'application/json',
         ]);
     }
 

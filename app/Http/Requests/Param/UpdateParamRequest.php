@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Param;
 
-use App\Helpers\ApiResponse;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UpdateParamRequest extends FormRequest
@@ -26,24 +26,26 @@ class UpdateParamRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => 'required|string|unique:params,type,'. $this->route('param'),
+            'type' => 'required|string|unique:params,type,'.$this->route('param'),
             'note' => 'nullable|string|max:255',
-            'parameterOrder'=>'required|integer|min:1|exists:parameters,order'
+            'parameterOrder' => 'required|integer|min:1|exists:parameters,order',
         ];
     }
-      public function failedValidation(Validator $validator)
+
+    public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(
             ApiResponse::error('', $validator->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY)
         );
 
     }
+
     public function messages()
     {
         return [
 
             'type.required' => __('validation.custom.required'),
-            'parameterOrder.required' => __('validation.custom.required')
+            'parameterOrder.required' => __('validation.custom.required'),
         ];
     }
 }

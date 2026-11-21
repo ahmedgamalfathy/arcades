@@ -3,8 +3,8 @@
 namespace App\Http\Resources\User;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 
 class AllUserResource extends JsonResource
 {
@@ -20,11 +20,10 @@ class AllUserResource extends JsonResource
         return [
             'userId' => $this->id,
             'name' => $this->name,
-            "email"=> $this->email,
+            'email' => $this->email,
             'isActive' => $this->is_active,
-            'roleName' => $this->roles->first()->name??'guest',
-            'avatar' => $this->media->path ??"",
+            'roleName' => $this->roles->first()->name ?? 'guest',
+            'avatar' => $this->media->path ?? '',
         ];
     }
 }
-

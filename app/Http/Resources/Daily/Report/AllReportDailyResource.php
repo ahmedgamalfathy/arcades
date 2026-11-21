@@ -2,11 +2,11 @@
 
 namespace App\Http\Resources\Daily\Report;
 
+use App\Http\Resources\Expense\Daily\AllExpenseDailyResource;
+use App\Http\Resources\Order\Daily\AllOrderIncomeResource;
+use App\Http\Resources\Timer\SessionDevice\Daily\AllSessionIncomeResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\Expense\Daily\AllExpenseDailyResource;
-use App\Http\Resources\Timer\SessionDevice\Daily\AllSessionIncomeResource;
-use App\Http\Resources\Order\Daily\AllOrderIncomeResource;
 
 class AllReportDailyResource extends JsonResource
 {
@@ -27,8 +27,7 @@ class AllReportDailyResource extends JsonResource
          * ----------------------------- */
         if (in_array('sessions', $includes) && $this->relationLoaded('sessions') && $this->sessions->isNotEmpty()) {
             $data['sessions'] = [
-                'total' => $this->sessions->sum(fn($session) =>
-                    $session->bookedDevices->sum('period_cost')
+                'total' => $this->sessions->sum(fn ($session) => $session->bookedDevices->sum('period_cost')
                 ),
                 'data' => AllSessionIncomeResource::collection($this->sessions),
             ];

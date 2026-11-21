@@ -1,12 +1,13 @@
 <?php
+
 namespace App\Services\Timer;
 
 use App\Enums\BookedDevice\BookedDeviceEnum;
 use App\Enums\Device\DeviceStatusEnum;
-use Carbon\Carbon;
+use App\Events\BookedDeviceChangeStatus;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Timer\SessionDevice\SessionDevice;
-use App\Events\BookedDeviceChangeStatus;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class DeviceTimerService
@@ -18,74 +19,73 @@ class DeviceTimerService
 
     // بدء التايمر أو إدخال وقت محدد
     public function startOrSetTime(array $data)
-    {//sessionDeviceId,deviceTypeId,deviceId,deviceTimeId,startDateTime,endDateTime
-        if (!empty($data['startDateTime']) && !empty($data['endDateTime'])) {
+    {// sessionDeviceId,deviceTypeId,deviceId,deviceTimeId,startDateTime,endDateTime
+        if (! empty($data['startDateTime']) && ! empty($data['endDateTime'])) {
             $data['status'] = BookedDeviceEnum::ACTIVE->value;
             $data['totalUsedSeconds'] = Carbon::parse($data['startDateTime'])
                 ->diffInSeconds(Carbon::parse($data['endDateTime']));
         } else {
-           $data['status'] = BookedDeviceEnum::ACTIVE->value;
+            $data['status'] = BookedDeviceEnum::ACTIVE->value;
         }
 
         return $this->bookedDeviceService->createbookedDevice($data);
     }
 
-
     public function pause(int $id)
     {
         return DB::transaction(function () use ($id) {
-         $bookedDevice=BookedDevice::findOrFail($id);
-        if($bookedDevice->status== BookedDeviceEnum::FINISHED->value){
-            throw new \Exception('Device is already finished.');
-        }
-        if ($bookedDevice->status !== BookedDeviceEnum::ACTIVE->value) {
-            throw new \Exception('Device is already paused.');
-        }
+            $bookedDevice = BookedDevice::findOrFail($id);
+            if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
+                throw new \Exception('Device is already finished.');
+            }
+            if ($bookedDevice->status !== BookedDeviceEnum::ACTIVE->value) {
+                throw new \Exception('Device is already paused.');
+            }
 
-        // Disable automatic logging
-        $oldStatus = $bookedDevice->status;
+            // Disable automatic logging
+            $oldStatus = $bookedDevice->status;
 
-        // Create pause without logging
-        $this->pauseService->createPause($id);
+            // Create pause without logging
+            $this->pauseService->createPause($id);
 
-        // Update status without automatic logging
-        $bookedDevice->withoutEvents(function() use ($bookedDevice) {
-            $bookedDevice->update(['status' => BookedDeviceEnum::PAUSED->value]);
-        });
+            // Update status without automatic logging
+            $bookedDevice->withoutEvents(function () use ($bookedDevice) {
+                $bookedDevice->update(['status' => BookedDeviceEnum::PAUSED->value]);
+            });
 
-        // Manual activity log for SessionDevice with BookedDevice as child
-        $this->logSessionDeviceAction($bookedDevice, $oldStatus);
+            // Manual activity log for SessionDevice with BookedDevice as child
+            $this->logSessionDeviceAction($bookedDevice, $oldStatus);
 
-        //  broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
+            //  broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
         });
     }
 
     public function resume(int $id)
     {
         return DB::transaction(function () use ($id) {
-        $bookedDevice=BookedDevice::findOrFail($id);
-        if ( $bookedDevice->status !== BookedDeviceEnum::PAUSED->value) {
-            throw new \Exception('Device is not paused.');
-        }
+            $bookedDevice = BookedDevice::findOrFail($id);
+            if ($bookedDevice->status !== BookedDeviceEnum::PAUSED->value) {
+                throw new \Exception('Device is not paused.');
+            }
 
-        $oldStatus = $bookedDevice->status;
+            $oldStatus = $bookedDevice->status;
 
-        // Resume pause without logging
-        $this->pauseService->resumePause($id);
+            // Resume pause without logging
+            $this->pauseService->resumePause($id);
 
-        // Update status without automatic logging
-        $bookedDevice->withoutEvents(function() use ($bookedDevice) {
-            $bookedDevice->update(['status' => BookedDeviceEnum::ACTIVE->value]);
-        });
+            // Update status without automatic logging
+            $bookedDevice->withoutEvents(function () use ($bookedDevice) {
+                $bookedDevice->update(['status' => BookedDeviceEnum::ACTIVE->value]);
+            });
 
-        // Manual activity log for SessionDevice with BookedDevice as child
-        $this->logSessionDeviceAction($bookedDevice, $oldStatus);
+            // Manual activity log for SessionDevice with BookedDevice as child
+            $this->logSessionDeviceAction($bookedDevice, $oldStatus);
 
-        // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
+            // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
         });
     }
 
-    public function finish(int $id ,array $data = [])
+    public function finish(int $id, array $data = [])
     {
         return DB::transaction(function () use ($id, $data) {
             $bookedDevice = BookedDevice::findOrFail($id);
@@ -126,18 +126,18 @@ class DeviceTimerService
     {
         $start = $bookedDevice->start_date_time;
         $end = Carbon::now();
-        if($bookedDevice->end_date_time && $bookedDevice->end_date_time->lessThan($end)) {
+        if ($bookedDevice->end_date_time && $bookedDevice->end_date_time->lessThan($end)) {
             $end = $bookedDevice->end_date_time;
         }
         $total = $start->diffInSeconds($end);
         $used = max(0, $total - (int) $bookedDevice->total_paused_seconds);
 
         // Update without triggering events
-        $bookedDevice->withoutEvents(function() use ($bookedDevice, $end, $used, $data) {
+        $bookedDevice->withoutEvents(function () use ($bookedDevice, $end, $used, $data) {
             $bookedDevice->update([
                 'end_date_time' => $end,
                 'total_used_seconds' => $used,
-                'status' => BookedDeviceEnum::FINISHED->value
+                'status' => BookedDeviceEnum::FINISHED->value,
             ]);
             $bookedDevice->period_cost = $bookedDevice->calculatePrice();
             $bookedDevice->actual_paid_amount = $data['actualPaidAmount'] ?? $bookedDevice->total_cost;
@@ -161,15 +161,15 @@ class DeviceTimerService
     {
         $sessionDevice = $bookedDevice->sessionDevice;
 
-        if (!$sessionDevice) {
+        if (! $sessionDevice) {
             return;
         }
 
         // Generate consistent keys for activity tracking
         $dailyId = $sessionDevice->daily_id;
         $deviceStartDate = $bookedDevice->created_at->format('Y-m-d');
-        $deviceSessionKey = 'device_' . $bookedDevice->device_id . '_daily_' . $dailyId . '_' . $deviceStartDate;
-        $timerId = 'timer_' . $bookedDevice->device_id . '_' . $bookedDevice->created_at->timestamp;
+        $deviceSessionKey = 'device_'.$bookedDevice->device_id.'_daily_'.$dailyId.'_'.$deviceStartDate;
+        $timerId = 'timer_'.$bookedDevice->device_id.'_'.$bookedDevice->created_at->timestamp;
 
         // Determine action type based on status change
         $actionType = '';
@@ -211,7 +211,7 @@ class DeviceTimerService
                 'device_session_key' => $deviceSessionKey, // Add persistent device key
                 'timer_id' => $timerId, // Add timer lifecycle ID
                 'action_type' => $actionType, // Add action type for clarity
-                'session_type' => $sessionDevice->type == 0 ? 'individual' : 'group' // Add session type
+                'session_type' => $sessionDevice->type == 0 ? 'individual' : 'group', // Add session type
             ])
             ->tap(function ($activity) use ($sessionDevice) {
                 $activity->daily_id = $sessionDevice->daily_id;
@@ -220,8 +220,8 @@ class DeviceTimerService
     }
 
     public function changeDeviceTime($id, int $newTimeId)
-        {
-            return DB::transaction(function () use ($id, $newTimeId) {
+    {
+        return DB::transaction(function () use ($id, $newTimeId) {
             $oldBookedDevice = BookedDevice::findOrFail($id);
             $newEndDateTime = null;
 
@@ -259,8 +259,8 @@ class DeviceTimerService
                 // Generate consistent keys for activity tracking
                 $dailyId = $sessionDevice->daily_id;
                 $deviceStartDate = $BookedDeviceChange->created_at->format('Y-m-d');
-                $deviceSessionKey = 'device_' . $BookedDeviceChange->device_id . '_daily_' . $dailyId . '_' . $deviceStartDate;
-                $timerId = 'timer_' . $BookedDeviceChange->device_id . '_' . $BookedDeviceChange->created_at->timestamp;
+                $deviceSessionKey = 'device_'.$BookedDeviceChange->device_id.'_daily_'.$dailyId.'_'.$deviceStartDate;
+                $timerId = 'timer_'.$BookedDeviceChange->device_id.'_'.$BookedDeviceChange->created_at->timestamp;
 
                 $childData = [
                     'id' => $BookedDeviceChange->id,
@@ -296,7 +296,7 @@ class DeviceTimerService
                         'device_session_key' => $deviceSessionKey, // Add persistent device key
                         'timer_id' => $timerId, // Add timer lifecycle ID
                         'action_type' => 'change_time', // Add action type
-                        'session_type' => $sessionDevice->type == 0 ? 'individual' : 'group' // Add session type
+                        'session_type' => $sessionDevice->type == 0 ? 'individual' : 'group', // Add session type
                     ])
                     ->tap(function ($activity) use ($sessionDevice) {
                         $activity->daily_id = $sessionDevice->daily_id;
@@ -306,8 +306,8 @@ class DeviceTimerService
 
             // broadcast(new BookedDeviceChangeStatus($bookedDevice->fresh()))->toOthers();
             return $BookedDeviceChange;
-            });
-        }
+        });
+    }
 
     public function finishGroupSession(int $sessionDeviceId, ?float $actualPaidAmount = null): SessionDevice
     {

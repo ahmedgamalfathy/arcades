@@ -12,4 +12,3 @@ Broadcast::channel('booked-device-expire-time', function ($user) {
 Broadcast::channel('booked-devices', function ($user) {
     return true;
 });
-    

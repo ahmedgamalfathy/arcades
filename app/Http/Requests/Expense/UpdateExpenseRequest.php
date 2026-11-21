@@ -2,16 +2,13 @@
 
 namespace App\Http\Requests\Expense;
 
-use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rules\Enum;
 use App\Enums\Expense\ExpenseTypeEnum;
-use App\Services\Expense\ExpenseService;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
-
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateExpenseRequest extends FormRequest
 {
@@ -31,11 +28,11 @@ class UpdateExpenseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['string','required'],
-            'price'=> ['required','numeric','min:1'],
+            'name' => ['string', 'required'],
+            'price' => ['required', 'numeric', 'min:1'],
             // 'type' => ['required', new Enum(ExpenseTypeEnum::class)],
-            'date'=>['required','string','date_format:Y-m-d'],
-            'note'=>['nullable','string']
+            'date' => ['required', 'string', 'date_format:Y-m-d'],
+            'note' => ['nullable', 'string'],
         ];
     }
 
@@ -56,5 +53,4 @@ class UpdateExpenseRequest extends FormRequest
             'type.required' => __('validation.custom.required'),
         ];
     }
-
 }

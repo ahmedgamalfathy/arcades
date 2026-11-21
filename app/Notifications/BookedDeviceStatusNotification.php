@@ -3,12 +3,14 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-class BookedDeviceStatusNotification extends Notification  
+
+class BookedDeviceStatusNotification extends Notification
 {
     use Queueable;
+
     protected $data;
+
     /**
      * Create a new notification instance.
      */
@@ -26,25 +28,23 @@ class BookedDeviceStatusNotification extends Notification
     {
         return ['database'];
     }
+
     public function databaseConnection()
     {
-        return 'tenant'; 
+        return 'tenant';
     }
-
-   
 
     public function toArray(object $notifiable): array
     {
         return [
-              'message' => $this->data['message'],
-              'deviceTypeName' => $this->data['deviceTypeName'],
-              'deviceTimeName' => $this->data['deviceTimeName'],
-              'deviceName' => $this->data['deviceName'],
-              'bookedDeviceId' => $this->data['bookedDeviceId'],
-              'userId' => $this->data['userId'],        
-              'created_at' => $this->data['created_at'],
-              'updated_at' => $this->data['updated_at'],
+            'message' => $this->data['message'],
+            'deviceTypeName' => $this->data['deviceTypeName'],
+            'deviceTimeName' => $this->data['deviceTimeName'],
+            'deviceName' => $this->data['deviceName'],
+            'bookedDeviceId' => $this->data['bookedDeviceId'],
+            'userId' => $this->data['userId'],
+            'created_at' => $this->data['created_at'],
+            'updated_at' => $this->data['updated_at'],
         ];
     }
-
 }

@@ -2,11 +2,12 @@
 
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\OrderTypeEnum;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Migrations\Migration;
-use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Models\Daily\Daily;
+use App\Models\Timer\BookedDevice\BookedDevice;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
 return new class extends Migration
 {
     /**
@@ -20,7 +21,7 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->tinyInteger('is_paid')->default(0);
             $table->tinyInteger('status')->default(OrderStatus::PENDING->value);
-            $table->tinyInteger('type')->default(OrderTypeEnum::EXTERNAL->value);//booked_device_id
+            $table->tinyInteger('type')->default(OrderTypeEnum::EXTERNAL->value); // booked_device_id
             $table->foreignIdFor(BookedDevice::class)->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('price', 10, 2)->default(0);
             $table->foreignIdFor(Daily::class)->nullable()->constrained()->cascadeOnUpdate()->nullOnDelete();

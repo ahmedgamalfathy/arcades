@@ -2,16 +2,13 @@
 
 namespace App\Http\Requests\Order;
 
-use App\Helpers\ApiResponse;
 use App\Enums\Order\OrderStatus;
-use App\Enums\Order\DiscountType;
-use App\Enums\Order\OrderTypeEnum;
-use Illuminate\Validation\Rules\Enum;
 use App\Enums\ResponseCode\HttpStatusCode;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-
+use Illuminate\Validation\Rules\Enum;
 
 class CreateOrderDeviceRequest extends FormRequest
 {
@@ -38,7 +35,7 @@ class CreateOrderDeviceRequest extends FormRequest
             'isPaid' => ['required', 'boolean'],
             'status' => ['required', new Enum(OrderStatus::class)],
             'orderItems' => ['required', 'array', 'min:1'],
-            'orderItems.*.productId' => ["required", 'integer', 'exists:products,id'],
+            'orderItems.*.productId' => ['required', 'integer', 'exists:products,id'],
             'orderItems.*.qty' => ['required', 'integer', 'min:1'],
             'dailyId' => ['required', 'exists:dailies,id'],
         ];
@@ -50,6 +47,7 @@ class CreateOrderDeviceRequest extends FormRequest
             ApiResponse::error('', $validator->errors(), HttpStatusCode::UNPROCESSABLE_ENTITY)
         );
     }
+
     public function messages()
     {
         return [
@@ -61,5 +59,4 @@ class CreateOrderDeviceRequest extends FormRequest
             'qty.required' => __('validation.custom.required'),
         ];
     }
-
 }

@@ -46,7 +46,7 @@ class NotificationService
             ->where('notifiable_id', $userId)
             ->first();
 
-        if (!$notification) {
+        if (! $notification) {
             return ['status' => 'not_found', 'notification' => null];
         }
 
@@ -87,7 +87,7 @@ class NotificationService
             ->where('notifiable_id', $userId)
             ->first();
 
-        if (!$notification) {
+        if (! $notification) {
             return false;
         }
 

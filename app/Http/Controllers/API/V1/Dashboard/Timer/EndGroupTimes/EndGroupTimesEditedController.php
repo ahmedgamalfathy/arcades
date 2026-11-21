@@ -12,9 +12,7 @@ use Illuminate\Http\Request;
 
 class EndGroupTimesEditedController extends Controller
 {
-    public function __construct(protected DeviceTimerService $timerService)
-    {
-    }
+    public function __construct(protected DeviceTimerService $timerService) {}
 
     public function __invoke(Request $request)
     {

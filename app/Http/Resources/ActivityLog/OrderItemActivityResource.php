@@ -4,7 +4,6 @@ namespace App\Http\Resources\ActivityLog;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\Order\Order;
 
 class OrderItemActivityResource extends JsonResource
 {
@@ -24,7 +23,7 @@ class OrderItemActivityResource extends JsonResource
 
     private function getProperties(): array
     {
-        return match($this->event) {
+        return match ($this->event) {
             'created' => $this->getCreatedProperties(),
             'updated' => $this->getUpdatedProperties(),
             'deleted' => $this->getDeletedProperties(),
@@ -35,7 +34,7 @@ class OrderItemActivityResource extends JsonResource
     private function getCreatedProperties(): array
     {
         $attributes = $this->properties['attributes'] ?? [];
-        
+
         return [
             'productId' => $attributes['product_id'] ?? '',
             'quantity' => $attributes['quantity'] ?? '',
@@ -48,25 +47,25 @@ class OrderItemActivityResource extends JsonResource
     {
         $attributes = $this->properties['attributes'] ?? [];
         $old = $this->properties['old'] ?? [];
-        
+
         $props = [];
-        
+
         foreach ($old as $field => $oldValue) {
             if (array_key_exists($field, $attributes) && $oldValue != $attributes[$field]) {
                 $props[$field] = [
                     'old' => $oldValue,
-                    'new' => $attributes[$field]
+                    'new' => $attributes[$field],
                 ];
             }
         }
-        
+
         return $props;
     }
 
     private function getDeletedProperties(): array
     {
         $attributes = $this->properties['old'] ?? [];
-        
+
         return [
             'productId' => $attributes['product_id'] ?? '',
             'quantity' => $attributes['quantity'] ?? '',
