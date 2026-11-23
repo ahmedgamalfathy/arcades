@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Casts\EncryptedTenantPassword;
 use App\Enums\StatusEnum;
 use App\Models\Expense\Expense;
 use App\Models\Media\Media;
@@ -62,6 +63,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'database_password',
         'remember_token',
         'code',
         'expired_at',
@@ -78,6 +80,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'expired_at' => 'datetime',
             'password' => 'hashed',
+            'database_password' => EncryptedTenantPassword::class,
             'is_active' => StatusEnum::class,
         ];
     }

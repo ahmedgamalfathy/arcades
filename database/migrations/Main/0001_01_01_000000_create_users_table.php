@@ -26,7 +26,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->string('database_name')->nullable();
             $table->string('database_username')->nullable();
-            $table->string('database_password')->nullable();
+            $table->text('database_password')->nullable();
             $table->string('app_key')->nullable();
             $table->rememberToken();
             $table->timestamps();

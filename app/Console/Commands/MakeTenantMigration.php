@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
@@ -73,8 +74,7 @@ class MakeTenantMigration extends Command
     {
         $tenantIds = $this->option('tenant');
 
-        $query = DB::connection('mysql') // Your main database connection
-            ->table('users')
+        $query = User::on('mysql')
             ->select('id', 'name', 'database_name', 'database_username', 'database_password')
             ->whereNotNull('database_username'); // Only users with tenant databases
 
