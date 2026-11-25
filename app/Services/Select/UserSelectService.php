@@ -8,13 +8,11 @@ class UserSelectService
 {
     public function getAllUsers()
     {
-        $user = User::find(auth()->user()->id);
-        if ($user->user_id == null && $user->database_name != null && $user->database_password != null) {
-            $users = User::where('user_id', $user->id)->get(['id as value', 'name as label']);
-        } else {
-            $users = User::whereNot('id', $user->id)->where('user_id', $user->id)->get(['id as value', 'name as label']);
-        }
+        $actor = auth()->user();
 
-        return $users;
+        return User::query()
+            ->managedBy($actor)
+            ->whereNot('id', $actor->id)
+            ->get(['id as value', 'name as label']);
     }
 }

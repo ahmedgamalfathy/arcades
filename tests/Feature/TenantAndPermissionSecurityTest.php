@@ -6,7 +6,9 @@ use App\Enums\Device\DeviceStatusEnum;
 use App\Models\Device\Device;
 use App\Models\Device\DeviceType\DeviceType;
 use App\Models\User;
+use App\Services\Select\UserSelectService;
 use App\Services\User\UserService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -101,6 +103,10 @@ class TenantAndPermissionSecurityTest extends TestCase
 
         $this->actingAsUser($actor);
 
+        $this->getJson('/api/v1/admin/users')
+            ->assertOk()
+            ->assertJsonMissing(['email' => 'tenant-b-staff@example.com']);
+
         $this->getJson("/api/v1/admin/users/{$foreignUser->id}")
             ->assertNotFound();
 
@@ -110,6 +116,18 @@ class TenantAndPermissionSecurityTest extends TestCase
             'isActive' => 1,
             'roleId' => $role->id,
         ])->assertNotFound();
+
+        $this->actingAs($actor, 'api');
+        try {
+            app(UserService::class)->changePassword([
+                'email' => $foreignUser->email,
+                'currentPassword' => 'password',
+                'password' => 'new-password123',
+            ]);
+            $this->fail('A user changed the password of a user from another account.');
+        } catch (ModelNotFoundException) {
+            $this->assertTrue(Hash::check('password', $foreignUser->fresh()->password));
+        }
 
         $this->deleteJson("/api/v1/admin/users/{$foreignUser->id}")
             ->assertNotFound();
@@ -250,6 +268,40 @@ class TenantAndPermissionSecurityTest extends TestCase
 
         $this->assertSame($actor->id, $createdUser->user_id);
         $this->assertTrue($createdUser->roles->contains('id', $allowedRole->id));
+    }
+
+    public function test_users_created_by_account_staff_remain_owned_by_the_account_owner(): void
+    {
+        $tenant = $this->createTenantDatabase();
+        $owner = $this->createUser($tenant, [], 'account-owner@example.com');
+        $creator = $this->createManagedUser($owner, 'account-creator@example.com');
+        $foreignOwner = $this->createUser($tenant, [], 'other-owner@example.com');
+        $foreignUser = $this->createManagedUser($foreignOwner, 'other-account-staff@example.com');
+
+        foreach (['api', 'web'] as $guard) {
+            $permission = Permission::findOrCreate('create_user', $guard);
+            $creator->givePermissionTo($permission);
+        }
+
+        $role = Role::findOrCreate('Operator', 'web');
+        $this->actingAs($creator, 'api');
+
+        $createdUser = app(UserService::class)->createUser([
+            'name' => 'Account Staff',
+            'email' => 'new-account-staff@example.com',
+            'password' => 'password123',
+            'isActive' => 1,
+            'roleId' => $role->id,
+        ]);
+
+        $this->assertSame($owner->id, $createdUser->user_id);
+        $this->assertNotSame($creator->id, $createdUser->user_id);
+        $this->assertTrue(User::query()->managedBy($owner)->whereKey($createdUser->id)->exists());
+        $this->assertTrue(User::query()->managedBy($creator)->whereKey($createdUser->id)->exists());
+
+        $selectableUserIds = app(UserSelectService::class)->getAllUsers()->pluck('value');
+        $this->assertTrue($selectableUserIds->contains($createdUser->id));
+        $this->assertFalse($selectableUserIds->contains($foreignUser->id));
     }
 
     private function createManagedUser(User $owner, string $email): User

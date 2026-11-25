@@ -42,10 +42,9 @@ class UserService
     public function allUsers(Request $request)
     {
         $auth = Auth::user();
-        $accountOwnerId = $auth->user_id ?? $auth->id;
         $perPage = $request->query('perPage', 10);
         /* $currentUserRole = $auth->getRoleNames()[0]; */
-        $user = QueryBuilder::for(User::class)
+        $user = QueryBuilder::for(User::query()->managedBy($auth))
             ->defaultSort('-created_at')
             ->allowedFilters([
                 AllowedFilter::custom('search', new FilterUser), // Add a custom search filter
@@ -53,7 +52,6 @@ class UserService
                 // AllowedFilter::custom('role', new FilterUserRole()),
             ])
             ->whereNot('id', $auth->id)
-            ->where('user_id', $accountOwnerId)
             // ->whereNull('database_name')
             ->orderBy('created_at', 'desc')
             ->cursorPaginate($perPage);
