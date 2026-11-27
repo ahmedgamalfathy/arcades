@@ -18,9 +18,6 @@ class UploadService
 
     public function uploadFile(UploadedFile $uploadedFile, ?string $uploadPath = null, string $storageDisk = 'public'): ?string
     {
-        if (! $uploadedFile instanceof UploadedFile) {
-            return null;
-        }
         $file = $uploadedFile;
         $uploadPath = $uploadPath ?? $this->defaultUploadPath;
 

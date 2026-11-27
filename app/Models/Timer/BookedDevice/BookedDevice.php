@@ -11,6 +11,8 @@ use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Trait\UsesTenantConnection;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -56,33 +58,33 @@ class BookedDevice extends Model
         'end_date_time' => 'datetime',
     ];
 
-    public function pauses()
+    public function pauses(): HasMany
     {
         return $this->hasMany(BookedDevicePause::class);
     }
 
     // sessionDevice,deviceType,deviceTime,device
-    public function sessionDevice()
+    public function sessionDevice(): BelongsTo
     {
         return $this->belongsTo(SessionDevice::class);
     }
 
-    public function deviceType()
+    public function deviceType(): BelongsTo
     {
         return $this->belongsTo(DeviceType::class)->withTrashed();
     }
 
-    public function device()
+    public function device(): BelongsTo
     {
         return $this->belongsTo(Device::class)->withTrashed();
     }
 
-    public function deviceTime()
+    public function deviceTime(): BelongsTo
     {
         return $this->belongsTo(DeviceTime::class)->withTrashed();
     }
 
-    public function orders()
+    public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }

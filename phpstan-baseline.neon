@@ -1,0 +1,2131 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Console/Commands/CheckBookedDevicesNotifications.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 14
+			path: app/Console/Commands/CheckBookedDevicesNotifications.php
+
+		-
+			message: '#^Parameter \#3 \$status of static method App\\Helpers\\ApiResponse\:\:success\(\) expects App\\Enums\\ResponseCode\\HttpStatusCode, array\<string, array\<string, int\>\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/API/V1/Dashboard/ActivityLog/BatchedActivityController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int and App\\Enums\\StatusEnum\:\:INACTIVE will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/API/V1/Dashboard/Auth/LoginController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/API/V1/Dashboard/Notification/SendNoticationController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/API/V1/Dashboard/Notification/SendNoticationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ActivityLogResource\:\:\$causer_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ActivityLogResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ActivityLogResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ActivityLogResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ActivityLogResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ActivityLogResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ActivityLogResource\:\:\$event\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ActivityLogResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ActivityLogResource\:\:\$log_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ActivityLogResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ActivityLogResource\:\:\$properties\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Resources/ActivityLog/ActivityLogResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Timer\\BookedDevice\\BookedDevice\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Timer\\BookedDevice\\BookedDevice\>\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ActivityLogResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Resources/ActivityLog/BatchedActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\BookedDeviceActivityResource\:\:\$causer_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/BookedDeviceActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\BookedDeviceActivityResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/BookedDeviceActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\BookedDeviceActivityResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/BookedDeviceActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\BookedDeviceActivityResource\:\:\$event\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityLog/BookedDeviceActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\BookedDeviceActivityResource\:\:\$log_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/BookedDeviceActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\DailyActivityResource\:\:\$causer_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/DailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\DailyActivityResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/DailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\DailyActivityResource\:\:\$event\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/DailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\DailyActivityResource\:\:\$log_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/DailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\DeviceActivity\\AllDeviceActivityResource\:\:\$causer\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/DeviceActivity/AllDeviceActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\DeviceActivity\\AllDeviceActivityResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/DeviceActivity/AllDeviceActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\DeviceActivity\\AllDeviceActivityResource\:\:\$properties\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/DeviceActivity/AllDeviceActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\DeviceActivity\\AllDeviceActivityResource\:\:\$subject_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/DeviceActivity/AllDeviceActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ExpenseActivityResource\:\:\$causer_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ExpenseActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ExpenseActivityResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ExpenseActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ExpenseActivityResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ExpenseActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ExpenseActivityResource\:\:\$event\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityLog/ExpenseActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\ExpenseActivityResource\:\:\$log_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/ExpenseActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderActivityResouce\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityLog/OrderActivityResouce.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderActivityResouce\:\:\$event\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityLog/OrderActivityResouce.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderActivityResouce\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderActivityResouce.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderActivityResouce\:\:\$log_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderActivityResouce.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderActivityResouce\:\:\$properties\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderActivityResouce.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderActivityResouce\:\:\$subject_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderActivityResouce.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Timer\\BookedDevice\\BookedDevice\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Timer\\BookedDevice\\BookedDevice\>\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderActivityResouce.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderActivityResouce.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderItemActivityResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderItemActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderItemActivityResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderItemActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderItemActivityResource\:\:\$event\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityLog/OrderItemActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\OrderItemActivityResource\:\:\$log_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderItemActivityResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Resources/ActivityLog/OrderItemActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\SessionActivityResource\:\:\$causer_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/SessionActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\SessionActivityResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/SessionActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\SessionActivityResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/SessionActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\SessionActivityResource\:\:\$event\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityLog/SessionActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\SessionActivityResource\:\:\$log_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/SessionActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\Test\\AllDailyActivityResource\:\:\$causerName\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/Test/AllDailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\Test\\AllDailyActivityResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityLog/Test/AllDailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\Test\\AllDailyActivityResource\:\:\$event\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityLog/Test/AllDailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\Test\\AllDailyActivityResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/ActivityLog/Test/AllDailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\Test\\AllDailyActivityResource\:\:\$log_name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/ActivityLog/Test/AllDailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\ActivityLog\\Test\\AllDailyActivityResource\:\:\$subject_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/ActivityLog/Test/AllDailyActivityResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/ActivityLog/Test/AllDailyActivityResource.php
+
+		-
+			message: '#^Method App\\Http\\Resources\\ActivityLog\\Test\\AllDailyActivityResource\:\:getBookedDevicePauseProperties\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Resources/ActivityLog/Test/AllDailyActivityResource.php
+
+		-
+			message: '#^Variable \$props might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Resources/ActivityLog/Test/AllDailyActivityResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Http/Resources/ActivityLog/Test/Concerns/ResolvesActivityChildren.php
+
+		-
+			message: '#^Variable \$value on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Resources/ActivityLog/Test/Concerns/ResolvesActivityChildren.php
+
+		-
+			message: '#^Match arm comparison between ''end_date_time'' and ''end_date_time'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: app/Http/Resources/ActivityLog/Test/Concerns/ResolvesActivityModels.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 18
+			path: app/Http/Resources/ActivityLog/Test/Concerns/ResolvesActivityModels.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\DailyEditResource\:\:\$expenses\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/DailyEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\DailyEditResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/DailyEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\DailyEditResource\:\:\$orders\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/DailyEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\DailyEditResource\:\:\$sessions\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Daily/DailyEditResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\DailyEditResource\:\:totalExpenses\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Daily/DailyEditResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\DailyEditResource\:\:totalOrders\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Daily/DailyEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\DailyResource\:\:\$end_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/DailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\DailyResource\:\:\$expenses\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/DailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\DailyResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/DailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\DailyResource\:\:\$orders\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/DailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\DailyResource\:\:\$sessions\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/Daily/DailyResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\DailyResource\:\:relationLoaded\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: app/Http/Resources/Daily/DailyResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\DailyResource\:\:totalExpenses\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Resources/Daily/DailyResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\DailyResource\:\:totalOrders\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Resources/Daily/DailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\Report\\AllReportDailyResource\:\:\$expenses\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Daily/Report/AllReportDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\Report\\AllReportDailyResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/Report/AllReportDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\Report\\AllReportDailyResource\:\:\$orders\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Daily/Report/AllReportDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\Report\\AllReportDailyResource\:\:\$sessions\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/Daily/Report/AllReportDailyResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\Report\\AllReportDailyResource\:\:relationLoaded\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Resources/Daily/Report/AllReportDailyResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\Report\\AllReportDailyResource\:\:totalExpenses\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Daily/Report/AllReportDailyResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\Report\\AllReportDailyResource\:\:totalOrders\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Daily/Report/AllReportDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\Report\\ReportDailyResource\:\:\$expenses\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Daily/Report/ReportDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\Report\\ReportDailyResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/Report/ReportDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\Report\\ReportDailyResource\:\:\$orders\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Daily/Report/ReportDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\Report\\ReportDailyResource\:\:\$sessions\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/Daily/Report/ReportDailyResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\Report\\ReportDailyResource\:\:relationLoaded\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Resources/Daily/Report/ReportDailyResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\Report\\ReportDailyResource\:\:totalExpenses\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Daily/Report/ReportDailyResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\Report\\ReportDailyResource\:\:totalOrders\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Daily/Report/ReportDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:\$end_date_time\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:\$sessions\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:\$start_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:\$total_expense\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:\$total_income\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:\$total_profit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:relationLoaded\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:totalExpenses\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Daily\\V2\\DailyRangeOfDateResource\:\:totalOrders\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Resources/Daily/V2/DailyRangeOfDateResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\DeviceResource\:\:\$deviceTimeSpecial\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\DeviceResource\:\:\$deviceTimes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\DeviceResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\DeviceResource\:\:\$maintenances\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\DeviceResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\DeviceResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/DeviceResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Devices\\Device\\DeviceResource\:\:bookedDevices\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Resources/Devices/Device/DeviceResource.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Http/Resources/Devices/Device/DeviceResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>status" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Resources/Devices/Device/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\Relation\\DeviceResource\:\:\$deviceTimeSpecial\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/Relation/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\Relation\\DeviceResource\:\:\$deviceTimes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/Relation/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\Relation\\DeviceResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/Relation/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\Relation\\DeviceResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/Relation/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\Device\\Relation\\DeviceResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/Device/Relation/DeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceTime\\DeviceTimeResource\:\:\$device_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceTime/DeviceTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceTime\\DeviceTimeResource\:\:\$device_type_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceTime/DeviceTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceTime\\DeviceTimeResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceTime/DeviceTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceTime\\DeviceTimeResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceTime/DeviceTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceTime\\DeviceTimeResource\:\:\$rate\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceTime/DeviceTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceType\\DeviceTypeEditResource\:\:\$deviceTimes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceType/DeviceTypeEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceType\\DeviceTypeEditResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceType/DeviceTypeEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceType\\DeviceTypeEditResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceType/DeviceTypeEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceType\\DeviceTypeResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceType/DeviceTypeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Devices\\DeviceType\\DeviceTypeResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Devices/DeviceType/DeviceTypeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\Daily\\AllExpenseDailyResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Expense/Daily/AllExpenseDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\Daily\\AllExpenseDailyResource\:\:\$date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Expense/Daily/AllExpenseDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\Daily\\AllExpenseDailyResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Expense/Daily/AllExpenseDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\Daily\\AllExpenseDailyResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Expense/Daily/AllExpenseDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\Daily\\AllExpenseDailyResource\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Expense/Daily/AllExpenseDailyResource.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Http/Resources/Expense/Daily/AllExpenseDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\ExpenseResource\:\:\$date\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Expense/ExpenseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\ExpenseResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Expense/ExpenseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\ExpenseResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Expense/ExpenseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\ExpenseResource\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Expense/ExpenseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Expense\\ExpenseResource\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Expense/ExpenseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Media\\Media\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Expense/ExpenseResource.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: app/Http/Resources/Expense/ExpenseResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Maintenance\\MaintenanceResource\:\:\$date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Maintenance/MaintenanceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Maintenance\\MaintenanceResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Maintenance/MaintenanceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Maintenance\\MaintenanceResource\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Maintenance/MaintenanceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Maintenance\\MaintenanceResource\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Maintenance/MaintenanceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Media\\AllMediaResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Media/AllMediaResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Media\\AllMediaResource\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Media/AllMediaResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Media\\MediaResource\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Media/MediaResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Notification\\NotificationResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Notification/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Notification\\NotificationResource\:\:\$data\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Notification/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Notification\\NotificationResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Notification/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$media\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Notification/NotificationResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>path" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Resources/Notification/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\AllOrderResource\:\:\$bookedDevice\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/AllOrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\AllOrderResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/AllOrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\AllOrderResource\:\:\$is_paid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/AllOrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\AllOrderResource\:\:\$items\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/AllOrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\AllOrderResource\:\:\$number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/AllOrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\AllOrderResource\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/AllOrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\AllOrderResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/AllOrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\Daily\\AllOrderDailyResource\:\:\$items\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/Daily/AllOrderDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\Daily\\AllOrderIncomeResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Order/Daily/AllOrderIncomeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\Daily\\AllOrderIncomeResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/Daily/AllOrderIncomeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\Daily\\AllOrderIncomeResource\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/Daily/AllOrderIncomeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderItem\\Daily\\OrderItemResource\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Order/OrderItem/Daily/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderItem\\Daily\\OrderItemResource\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderItem/Daily/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderItem\\Daily\\OrderItemResource\:\:\$qty\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Order/OrderItem/Daily/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderItem\\OrderItemResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderItem/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderItem\\OrderItemResource\:\:\$order_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderItem/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderItem\\OrderItemResource\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Order/OrderItem/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderItem\\OrderItemResource\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/Order/OrderItem/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderItem\\OrderItemResource\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderItem/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderItem\\OrderItemResource\:\:\$qty\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Order/OrderItem/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Media\\Media\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderItem/OrderItemResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Order/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderResource\:\:\$is_paid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderResource\:\:\$number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderResource\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Order\\OrderResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Order/OrderResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Product\\ProductResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Product/ProductResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Product\\ProductResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Product/ProductResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Product\\ProductResource\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Product/ProductResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:\$device\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:\$deviceTime\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:\$deviceType\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:\$end_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:\$pauses\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:\$sessionDevice\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:\$start_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:pauses\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Method App\\Http\\Resources\\Timer\\BookedDevice\\AllBookedDeviceResource\:\:calculateTotalHour\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/AllBookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$device\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$deviceType\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$device_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$device_time_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$device_type_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$end_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$pauses\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$sessionDevice\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$session_device_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$start_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceEditResource\:\:pauses\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Http\\Resources\\Json\\AnonymousResourceCollection\:\:pluck\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceEditResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$actual_paid_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$device\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$deviceTime\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$deviceType\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$device_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$device_time_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$device_type_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$end_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$orders\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$period_cost\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$start_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\BookedDeviceResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/BookedDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\ChangeTimeDeviceResource\:\:\$current_device_cost\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/ChangeTimeDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\ChangeTimeDeviceResource\:\:\$device\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/ChangeTimeDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\ChangeTimeDeviceResource\:\:\$deviceTime\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Timer/BookedDevice/ChangeTimeDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\ChangeTimeDeviceResource\:\:\$deviceType\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/ChangeTimeDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\ChangeTimeDeviceResource\:\:\$end_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/ChangeTimeDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\BookedDevice\\ChangeTimeDeviceResource\:\:\$start_date_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/ChangeTimeDeviceResource.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Resources\\Timer\\BookedDevice\\ChangeTimeDeviceResource\:\:calculateUsedSeconds\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Resources/Timer/BookedDevice/ChangeTimeDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\AllSessionDeviceResource\:\:\$bookedDevices\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/AllSessionDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\AllSessionDeviceResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/AllSessionDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\AllSessionDeviceResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/AllSessionDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\Daily\\AllSessionDailyResource\:\:\$bookedDevices\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Timer/SessionDevice/Daily/AllSessionDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\Daily\\AllSessionDailyResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/Daily/AllSessionDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\Daily\\AllSessionDailyResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/Daily/AllSessionDailyResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\Daily\\AllSessionIncomeResource\:\:\$bookedDevices\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Timer/SessionDevice/Daily/AllSessionIncomeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\Daily\\AllSessionIncomeResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Timer/SessionDevice/Daily/AllSessionIncomeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\Daily\\AllSessionIncomeResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/Daily/AllSessionIncomeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\Daily\\AllSessionIncomeResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/Daily/AllSessionIncomeResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/Daily/AllSessionIncomeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\SessionDeviceResource\:\:\$bookedDevices\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Resources/Timer/SessionDevice/SessionDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\SessionDeviceResource\:\:\$bookedDevicesLatest\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/SessionDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\SessionDeviceResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/SessionDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\SessionDeviceResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/SessionDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\SessionDeviceResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/SessionDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\SessionDevice\\SessionDeviceResource\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/SessionDevice/SessionDeviceResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\pausedTime\\PausedTimeResource\:\:\$booked_device_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/pausedTime/PausedTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\pausedTime\\PausedTimeResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/pausedTime/PausedTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\pausedTime\\PausedTimeResource\:\:\$paused_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/pausedTime/PausedTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\pausedTime\\PausedTimeResource\:\:\$paused_seconds\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/pausedTime/PausedTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Timer\\pausedTime\\PausedTimeResource\:\:\$resumed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Timer/pausedTime/PausedTimeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\AllUserResource\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/AllUserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\AllUserResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/AllUserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\AllUserResource\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/AllUserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\AllUserResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/AllUserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\AllUserResource\:\:\$roles\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/AllUserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\ForgetPassword\\SendCodeResource\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/ForgetPassword/SendCodeResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\LoginProfileResource\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/LoginProfileResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\LoginProfileResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/LoginProfileResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\ProfileResource\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/User/ProfileResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\ProfileResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/ProfileResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\ProfileResource\:\:\$roles\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/ProfileResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Media\\Media\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/ProfileResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>path" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Resources/User/ProfileResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\UserResource\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Resources/User/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\UserResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\UserResource\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\UserResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\User\\UserResource\:\:\$roles\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/User/UserResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$bookedDevices\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/Daily/Daily.php
+
+		-
+			message: '#^Access to an undefined property Spatie\\Activitylog\\Models\\Activity\:\:\$daily_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Expense/Expense.php
+
+		-
+			message: '#^Access to an undefined property Spatie\\Activitylog\\Models\\Activity\:\:\$daily_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Order/Order.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$daily_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Timer/BookedDevice/BookedDevice.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$paused_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Timer/BookedDevice/BookedDevice.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$resumed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Timer/BookedDevice/BookedDevice.php
+
+		-
+			message: '#^Access to an undefined property Spatie\\Activitylog\\Models\\Activity\:\:\$daily_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Timer/BookedDevice/BookedDevice.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(App\\Models\\Timer\\BookedDevice\\BookedDevice\) and ''pauses'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Models/Timer/BookedDevice/BookedDevice.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Models/Timer/BookedDevice/BookedDevice.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Timer\\BookedDevicePause\\BookedDevicePause\:\:\$bookedDevice\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Timer/BookedDevicePause/BookedDevicePause.php
+
+		-
+			message: '#^Access to an undefined property Spatie\\Activitylog\\Models\\Activity\:\:\$daily_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Timer/BookedDevicePause/BookedDevicePause.php
+
+		-
+			message: '#^Access to an undefined property Spatie\\Activitylog\\Models\\Activity\:\:\$daily_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Timer/SessionDevice/SessionDevice.php
+
+		-
+			message: '#^PHPDoc type list\<string\> of property App\\Models\\User\:\:\$connection is not covariant with PHPDoc type string\|UnitEnum\|null of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$connection\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Property App\\Models\\User\:\:\$connection \(list\<string\>\) does not accept default value of type ''mysql''\.$#'
+			identifier: property.defaultValue
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Providers/AppServiceProvider.php
+
+		-
+			message: '#^Cannot call method isPast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Services/Auth/ForgotPasswordService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/Daily/DailyActivityService.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$values of method Illuminate\\Support\\Collection\<\(int\|string\),\(object\{log_name\: string, event\: string, properties\: array\<string, mixed\>\}&stdClass\)\>\:\:push\(\) expects \(object\{log_name\: ''OrderItem'', event\: ''created'', properties\: array\{attributes\: mixed\}\}&stdClass\)\|\(object\{log_name\: ''OrderItem'', event\: ''updated'', properties\: array\{attributes\: mixed, old\: mixed\}\}&stdClass\), object\{log_name\: ''OrderItem'', event\: ''deleted'', properties\: array\{old\: mixed\}\}&stdClass given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Daily/DailyActivityService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Expense\\Expense\:\:\$total\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Daily/DailyReportService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Order\\Order\:\:\$date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Daily/DailyReportService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Order\\Order\:\:\$total\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Daily/DailyReportService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$device\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Daily/DailyReportService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/Daily/DailyReportService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$bookedDevices\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Services/Daily/DailyService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Daily\\Daily\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Daily/DailyService.php
+
+		-
+			message: '#^Property App\\Models\\Daily\\Daily\:\:\$total_expense \(int\|null\) does not accept float\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Services/Daily/DailyService.php
+
+		-
+			message: '#^Property App\\Models\\Daily\\Daily\:\:\$total_profit \(int\|null\) does not accept float\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Services/Daily/DailyService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasActiveBookings\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Device/DeviceType/DeviceTypeService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Expense\\Expense\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Expense/ExpenseService.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 2
+			path: app/Services/Expense/ExpenseService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Media\\Media\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Media/MediaService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$daily_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 12
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 7
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$qty\.$#'
+			identifier: property.notFound
+			count: 12
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Pagination\\CursorPaginator\<int, App\\Models\\Order\\Order\>\:\:\$total_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Pagination\\CursorPaginator\<int, App\\Models\\Order\\Order\>\:\:\$total_sum\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 7
+			path: app/Services/Order/OrderService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/Product/ProductService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Media\\Media\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Report/DailyReportService.php
+
+		-
+			message: '#^Method App\\Services\\Report\\DailyReportService\:\:applySearchFilters\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Services/Report/DailyReportService.php
+
+		-
+			message: '#^Method App\\Services\\Report\\DailyReportService\:\:loadRelations\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Services/Report/DailyReportService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),Illuminate\\Support\\Collection\<int, mixed\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/Report/DailyReportService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:sortByDesc\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/Report/DailyReportService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>path" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/Report/DailyReportService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$device\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Report/DailyReportStatusService.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/Report/DailyReportStatusService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$duration_seconds\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Timer/BookedDevicePauseService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$paused_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Timer/BookedDevicePauseService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Timer/BookedDeviceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$daily_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Timer/BookedDeviceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Timer/BookedDeviceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Timer/BookedDeviceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Timer/BookedDeviceService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Timer\\BookedDevice\\BookedDevice\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Timer/BookedDeviceService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\:\:withTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: app/Services/Timer/BookedDeviceService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:withTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Services/Timer/BookedDeviceService.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$values of method Illuminate\\Support\\Collection\<\(int\|string\),\(object\{log_name\: string, event\: string, properties\: array\<string, mixed\>\}&stdClass\)\>\:\:push\(\) expects \(object\{log_name\: ''OrderItem'', event\: ''created'', properties\: array\{attributes\: mixed\}\}&stdClass\)\|\(object\{log_name\: ''OrderItem'', event\: ''updated'', properties\: array\{attributes\: mixed, old\: mixed\}\}&stdClass\), object\{log_name\: ''OrderItem'', event\: ''deleted'', properties\: array\{old\: mixed\}\}&stdClass given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Timer/BookedDeviceService.php
+
+		-
+			message: '#^Call to function is_string\(\) with Illuminate\\Support\\Collection\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Services/Timer/Concerns/HandlesBookedDeviceActivityLog.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$daily_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Services/Timer/DeviceTimerService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Services/Timer/DeviceTimerService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Services/Timer/DeviceTimerService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$period_cost\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Timer/DeviceTimerService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Timer/DeviceTimerService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Services/Timer/DeviceTimerService.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: app/Services/Timer/DeviceTimerService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$device_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Timer/SessionDeviceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$device_time_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Timer/SessionDeviceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$device_type_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Timer/SessionDeviceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Timer/SessionDeviceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Timer/SessionDeviceService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Timer\\SessionDevice\\SessionDevice\>\:\:allowedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Timer/SessionDeviceService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/Timer/SessionDeviceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$media_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$password\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\:\:onlyTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\:\:withTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:syncRoles\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:tokens\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/User/UserService.php

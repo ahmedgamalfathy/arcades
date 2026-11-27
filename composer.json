@@ -60,6 +60,9 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "analyse": [
+            "@php vendor/bin/phpstan analyse --memory-limit=1G"
         ]
     },
     "extra": {

@@ -27,7 +27,7 @@ class LoginController extends Controller
             if (! $user || ! Hash::check($data['password'], $user->password)) {
                 return ApiResponse::error(__('auth.failed'), [], HttpStatusCode::UNAUTHORIZED);
             }
-            if ($user->is_active == StatusEnum::INACTIVE) {
+            if ($user->is_active === StatusEnum::INACTIVE) {
                 return ApiResponse::error(__('auth.inactive_account'), [], HttpStatusCode::UNAUTHORIZED);
             }
             $token = $user->createToken('auth_token')->plainTextToken;

@@ -7,6 +7,7 @@ use App\Models\Device\Device;
 use App\Models\Device\DeviceTime\DeviceTime;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -27,12 +28,12 @@ class DeviceType extends Model
             ->setDescriptionForEvent(fn (string $eventName) => "DeviceType {$eventName}");
     }
 
-    public function deviceTimes()
+    public function deviceTimes(): HasMany
     {
         return $this->hasMany(DeviceTime::class);
     }
 
-    public function devices()
+    public function devices(): HasMany
     {
         return $this->hasMany(Device::class, 'device_type_id');
     }

@@ -52,7 +52,10 @@ class BookedDeviceChangeStatus implements ShouldBroadcastNow
             'status' => $this->bookedDevice->status,
             'startDateTime' => $this->bookedDevice->start_date_time,
             'endDateTime' => $this->bookedDevice->end_date_time,
-            'currentTime' => gmdate('H:i:s', Carbon::now()->diffInSeconds(Carbon::parse($this->bookedDevice->start_date_time))),
+            'currentTime' => gmdate(
+                'H:i:s',
+                (int) Carbon::now()->diffInSeconds(Carbon::parse($this->bookedDevice->start_date_time))
+            ),
             'totalPausedSeconds' => $this->bookedDevice->total_paused_seconds,
             'totalUsedSeconds' => $this->bookedDevice->total_used_seconds,
             'periodCost' => $this->bookedDevice->period_cost,

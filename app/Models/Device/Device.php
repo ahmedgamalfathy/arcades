@@ -10,6 +10,9 @@ use App\Models\Media\Media;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -47,32 +50,32 @@ class Device extends Model
             ->setDescriptionForEvent(fn (string $eventName) => "Device {$eventName}");
     }
 
-    public function media()
+    public function media(): BelongsTo
     {
         return $this->belongsTo(Media::class);
     }
 
-    public function deviceType()
+    public function deviceType(): BelongsTo
     {
         return $this->belongsTo(DeviceType::class, 'device_type_id')->withTrashed();
     }
 
-    public function deviceTimes()
+    public function deviceTimes(): BelongsToMany
     {
         return $this->belongsToMany(DeviceTime::class, 'device_device_time');
     }
 
-    public function deviceTimeSpecial()
+    public function deviceTimeSpecial(): HasMany
     {
         return $this->hasMany(DeviceTime::class, 'device_id');
     }
 
-    public function maintenances()
+    public function maintenances(): HasMany
     {
         return $this->hasMany(Maintenance::class, 'device_id');
     }
 
-    public function bookedDevices()
+    public function bookedDevices(): HasMany
     {
         return $this->hasMany(BookedDevice::class, 'device_id');
     }

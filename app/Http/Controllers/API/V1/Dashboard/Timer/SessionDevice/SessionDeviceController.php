@@ -36,7 +36,7 @@ class SessionDeviceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(int $id)
     {
         try {
             $sessionDevice = $this->sessionDeviceService->editSessionDevice($id);
@@ -52,7 +52,7 @@ class SessionDeviceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
         try {
             $this->sessionDeviceService->deleteSessionDevice($id);
@@ -91,7 +91,7 @@ class SessionDeviceController extends Controller
         }
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
         try {
             $data = $request->validate([

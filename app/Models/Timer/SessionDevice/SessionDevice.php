@@ -6,6 +6,8 @@ use App\Models\Daily\Daily;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -45,17 +47,17 @@ class SessionDevice extends Model
         $activity->daily_id = $this->daily_id;
     }
 
-    public function daily()
+    public function daily(): BelongsTo
     {
         return $this->belongsTo(Daily::class);
     }
 
-    public function bookedDevices()
+    public function bookedDevices(): HasMany
     {
         return $this->hasMany(BookedDevice::class);
     }
 
-    public function bookedDevicesLatest()
+    public function bookedDevicesLatest(): HasMany
     {
         return $this->hasMany(BookedDevice::class)
             ->whereIn('id', function ($q) {

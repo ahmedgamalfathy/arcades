@@ -9,6 +9,7 @@ use App\Models\Order\Order;
 use App\Models\Timer\SessionDevice\SessionDevice;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -30,17 +31,17 @@ class Daily extends Model
             ->setDescriptionForEvent(fn (string $eventName) => "Daily {$eventName}");
     }
 
-    public function sessions()
+    public function sessions(): HasMany
     {
         return $this->hasMany(SessionDevice::class);
     }
 
-    public function expenses()
+    public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class)->where('type', ExpenseTypeEnum::INTERNAL->value);
     }
 
-    public function orders()
+    public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }

@@ -5,6 +5,8 @@ namespace App\Models\Order;
 use App\Models\Timer\BookedDevice\BookedDevice;
 use App\Trait\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -41,12 +43,12 @@ class Order extends Model
         });
     }
 
-    public function items()
+    public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    public function bookedDevice()
+    public function bookedDevice(): BelongsTo
     {
         return $this->belongsTo(BookedDevice::class);
     }

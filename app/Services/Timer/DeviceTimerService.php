@@ -33,7 +33,7 @@ class DeviceTimerService
 
     public function pause(int $id)
     {
-        return DB::transaction(function () use ($id) {
+        DB::transaction(function () use ($id) {
             $bookedDevice = BookedDevice::findOrFail($id);
             if ($bookedDevice->status == BookedDeviceEnum::FINISHED->value) {
                 throw new \Exception('Device is already finished.');
@@ -62,7 +62,7 @@ class DeviceTimerService
 
     public function resume(int $id)
     {
-        return DB::transaction(function () use ($id) {
+        DB::transaction(function () use ($id) {
             $bookedDevice = BookedDevice::findOrFail($id);
             if ($bookedDevice->status !== BookedDeviceEnum::PAUSED->value) {
                 throw new \Exception('Device is not paused.');

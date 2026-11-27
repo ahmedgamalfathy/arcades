@@ -53,5 +53,8 @@ jobs:
       - name: Check code style
         run: vendor/bin/pint --test
 
+      - name: Run static analysis
+        run: composer analyse
+
       - name: Run tests
         run: php artisan test
